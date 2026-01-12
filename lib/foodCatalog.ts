@@ -48,19 +48,19 @@ export const NUTRITION: Record<string, Nutrition> = {
         // 110–120g = 190–200 kcal → ~1.67 kcal/g
         kcalPerG: 1.7,
         // ~23–25g protein per 120g → ~0.21 g/g
-        proteinPerG: 0.21,
+        proteinPerG: 0.23,
     },
 
     beef: {
         // Hotpot fatty beef: 263–319 kcal per 100g
         kcalPerG: 3.0,
-        proteinPerG: 0.25,
+        proteinPerG: 0.15,
     },
 
     pork: {
         // Hotpot pork: ~300 kcal per 100g
         kcalPerG: 3.0,
-        proteinPerG: 0.25,
+        proteinPerG: 0.15,
     },
 
     eggs: {
@@ -79,13 +79,13 @@ export const NUTRITION: Record<string, Nutrition> = {
     dumplings: {
         // 190–201 kcal per 100g
         kcalPerG: 1.95,
-        proteinPerG: 0.06,
+        proteinPerG: 0.078,
     },
 
     bread_roll: {
         // Brioche roll: 122–123 kcal per piece
         kcalPerPc: 123,
-        proteinPerPc: 4,
+        proteinPerPc: 3.2,
     },
 
     // Dairy / Supplements
@@ -104,13 +104,13 @@ export const NUTRITION: Record<string, Nutrition> = {
     babybel: {
         // Fixed in PDF
         kcalPerPc: 66,
-        proteinPerPc: 5,
+        proteinPerPc: 4.4,
     },
 
     cracker: {
         // Fixed in PDF
         kcalPerPc: 35,
-        proteinPerPc: 1,
+        proteinPerPc: 0.8,
     },
 
     // Veggies (100g portions, boiled)
