@@ -24,3 +24,86 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Planner UI responsive styles */
+.planner-main {
+  padding: 16px;
+  max-width: 1200px;
+  margin: 0 auto;
+  font-size: 14px;
+}
+
+.planner-grid {
+  display: grid;
+  grid-template-columns: 120px repeat(4, minmax(180px, 1fr)) 140px;
+  gap: 12px;
+  align-items: start;
+}
+
+.planner-header {
+  font-size: 11px;
+  letter-spacing: 0.3px;
+  opacity: 0.8;
+}
+
+.planner-card {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #2a2a2a;
+  background: #0f0f0f;
+  font-size: 13px;
+}
+
+.planner-mealLabel {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #2a2a2a;
+  background: #0b0b0b;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.planner-nutrition {
+  display: grid;
+  place-items: center;
+  text-align: center;
+}
+
+@media (max-width: 800px) {
+  .planner-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .planner-mealLabel,
+  .planner-card,
+  .planner-nutrition {
+    width: 100%;
+  }
+
+  .planner-card {
+    padding: 8px;
+  }
+
+  body {
+    font-size: 13px;
+  }
+
+  h1 {
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 420px) {
+  .planner-card {
+    padding: 6px;
+    border-radius: 6px;
+  }
+
+  body {
+    font-size: 12px;
+  }
+
+  .planner-header {
+    font-size: 10px;
+  }
+}
