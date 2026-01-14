@@ -1,8 +1,21 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f7f7f7;
+  --foreground: #111111;
+  --card-bg: #ffffff;
+  --card-border: #e3e3e3;
+  --chip-border: #999999;
+  --divider: #e6e6e6;
+  --muted: #666666;
+  --chip-text: #111111;
+  --topbar-bg: #3b3b3b;
+  --topbar-fg: #ffffff;
+  --accent: #464343;
+  --btn-bg: var(--accent);
+  --btn-fg: #ffffff;
+  --btn-border: rgba(0, 0, 0, 0.12);
+  --danger-fg: #b00020;
 }
 
 @theme inline {
@@ -41,26 +54,29 @@ body {
 }
 
 .planner-header {
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.3px;
-  opacity: 0.8;
+  color: var(--foreground);
+  opacity: 1;
 }
 
 .planner-card {
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #2a2a2a;
-  background: #0f0f0f;
-  font-size: 13px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid #e3e3e3;
+  background: #000000;
+  font-size: 14px;
+  color: #111111;
 }
 
 .planner-mealLabel {
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #2a2a2a;
-  background: #0b0b0b;
-  font-weight: 600;
-  font-size: 13px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid #e3e3e3;
+  background: #ffffff;
+  font-weight: 700;
+  font-size: 14px;
+  color: #111111;
 }
 
 .planner-nutrition {
