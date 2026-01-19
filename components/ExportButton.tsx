@@ -36,5 +36,6 @@ const btn: React.CSSProperties = {
     borderRadius: 12,
     border: "1px solid var(--card-border)",
     background: "var(--card-bg)",
+    color: "var(--background)",
     fontWeight: 700,
 };

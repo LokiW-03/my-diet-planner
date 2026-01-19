@@ -49,7 +49,7 @@ export function FoodModal({ open, mode, categoryPreset, food, onClose, onSave, o
     return (
         <div style={styles.backdrop} onMouseDown={onClose}>
             <div style={styles.modal} onMouseDown={(e) => e.stopPropagation()}>
-                <h2 style={{ marginTop: 0 }}>{mode === "add" ? "Add Food" : "Edit Food"}</h2>
+                <h2 style={{ marginTop: 0, color: "var(--background)" }}>{mode === "add" ? "Add Food" : "Edit Food"}</h2>
 
                 <div style={styles.row}>
                     <label style={styles.label}>Name</label>
@@ -157,7 +157,7 @@ const styles: Record<string, React.CSSProperties> = {
         boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
     },
     row: { display: "grid", gridTemplateColumns: "160px 1fr", gap: 12, marginBottom: 10, alignItems: "center" },
-    label: { fontWeight: 600 },
+    label: { fontWeight: 600, color: "var(--background)" },
     input: { padding: 8, borderRadius: 8, border: "1px solid var(--card-border)", background: "var(--background)" },
     btn: { padding: "8px 12px", borderRadius: 10, border: "1px solid var(--card-border)", background: "var(--background)" },
     btnPrimary: { padding: "8px 12px", borderRadius: 10, border: "1px solid var(--btn-border)", background: "var(--btn-bg)", color: "var(--btn-fg)" },
