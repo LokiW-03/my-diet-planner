@@ -27,15 +27,19 @@ function MealEntryChip({
     return (
         <div
             ref={setNodeRef}
-            {...listeners}
-            {...attributes}
             style={{
                 ...entryBox,
                 opacity: isDragging ? 0.5 : 1,
                 transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
             }}
         >
-            <button style={entryNameBtn} onClick={onEditFood} title="Click to edit food">
+            <button
+                style={entryNameBtn}
+                onClick={onEditFood}
+                title="Click to edit food"
+                {...listeners}
+                {...attributes}
+            >
                 {food.name}
             </button>
 
