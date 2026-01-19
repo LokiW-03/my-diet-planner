@@ -1,5 +1,6 @@
 "use client";
 
+import React, { useEffect, useState } from "react";
 import { useDroppable, useDraggable } from "@dnd-kit/core";
 import type { FoodItem, MealEntry, MealKey } from "@/lib/models";
 
@@ -22,7 +23,29 @@ function MealEntryChip({
     const id = `meal:${meal}:${entry.entryId}`;
     const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id });
 
+    const [portionText, setPortionText] = useState(String(entry.portion));
+
+    useEffect(() => {
+        setPortionText(String(entry.portion));
+    }, [entry.portion]);
+
     if (!food) return null;
+
+    function handleChange(v: string) {
+        setPortionText(v);
+        const n = Number(v);
+        if (v !== "" && Number.isFinite(n)) {
+            onPortionChange(Math.trunc(n));
+        }
+    }
+
+    function handleBlur() {
+        if (portionText === "" || !Number.isFinite(Number(portionText))) {
+            setPortionText(String(entry.portion));
+        } else {
+            onPortionChange(Math.trunc(Number(portionText)));
+        }
+    }
 
     return (
         <div
@@ -47,8 +70,9 @@ function MealEntryChip({
                 <input
                     style={portionInput}
                     type="number"
-                    value={entry.portion}
-                    onChange={(e) => onPortionChange(Number(e.target.value))}
+                    value={portionText}
+                    onChange={(e) => handleChange(e.target.value)}
+                    onBlur={handleBlur}
                 />
                 <span style={{ fontWeight: 700 }}>{food.unit}</span>
             </div>
