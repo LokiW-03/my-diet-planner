@@ -39,6 +39,8 @@ export default function Page() {
   const moveEntry = usePlannerStore((s) => s.moveEntry);
   const setEntryPortion = usePlannerStore((s) => s.setEntryPortion);
 
+  const clearAllMeals = usePlannerStore((s) => s.clearAllMeals);
+
   const totals = useMemo(() => computeTotals(foods, meals), [foods, meals]);
   const mealTotals = useMemo(() => computeMealTotals(foods, meals), [foods, meals]);
 
@@ -95,6 +97,7 @@ export default function Page() {
           openEdit={openEdit}
           addEntryToMeal={addEntryToMeal}
           moveEntry={moveEntry}
+          clearAll={clearAllMeals}
         />
       </div>
 

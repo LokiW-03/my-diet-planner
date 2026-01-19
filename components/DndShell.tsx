@@ -19,6 +19,7 @@ export default function DndShell({
     openEdit,
     addEntryToMeal,
     moveEntry,
+    clearAll,
 }: {
     foods: FoodItem[];
     meals: Record<MealKey, any[]>;
@@ -32,6 +33,7 @@ export default function DndShell({
     openEdit: (food: FoodItem) => void;
     addEntryToMeal: (meal: MealKey, foodId: string) => void;
     moveEntry: (from: MealKey, to: MealKey, entryId: string) => void;
+    clearAll: () => void;
 }) {
     function onDragEnd(ev: DragEndEvent) {
         const activeId = String(ev.active.id);
@@ -69,13 +71,29 @@ export default function DndShell({
                     />
 
                     <div style={{ marginTop: 14, display: "flex", gap: 14, alignItems: "center" }}>
-                        <div style={{ border: "1px solid var(--card-border)", borderRadius: 14, padding: 14, minWidth: 220, background: "var(--background)" }}>
+                        <div style={{ border: "1px solid var(--card-border)", borderRadius: 14, padding: 14, minWidth: 160, background: "var(--background)" }}>
                             <div style={{ fontWeight: 900 }}>TOTAL</div>
                             <div style={{ fontSize: 26, fontWeight: 900 }}>{Math.round(totals.kcal)} kcal</div>
                             <div style={{ fontWeight: 700 }}>{Math.round(totals.protein)}g Protein</div>
                         </div>
 
                         <ExportButton foods={foods} meals={meals} totals={totals} dayType={dayType} />
+                        <button
+                            style={{
+                                padding: "10px 14px",
+                                borderRadius: 12,
+                                border: "1px solid var(--card-border)",
+                                background: "var(--card-bg)",
+                                fontWeight: 700,
+                                color: "var(--danger-fg)",
+                                cursor: "pointer",
+                            }}
+                            onClick={clearAll}
+                            title="Clear all meals"
+                        >
+                            Clear All
+                        </button>
+
                     </div>
                 </div>
 

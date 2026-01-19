@@ -23,6 +23,7 @@ type PlannerState = {
     removeEntryFromMeal: (meal: MealKey, entryId: string) => void;
     moveEntry: (from: MealKey, to: MealKey, entryId: string) => void;
     setEntryPortion: (meal: MealKey, entryId: string, portion: number) => void;
+    clearAllMeals: () => void;
 };
 
 const initialFoods: FoodItem[] = [
@@ -75,6 +76,11 @@ export const usePlannerStore = create<PlannerState>()(
                             (entries as MealEntry[]).filter((e) => e.foodId !== foodId),
                         ])
                     ) as MealsState,
+                })),
+
+            clearAllMeals: () =>
+                set(() => ({
+                    meals: emptyMeals,
                 })),
 
             addEntryToMeal: (meal, foodId, portion) =>

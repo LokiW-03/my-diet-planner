@@ -26,7 +26,7 @@ export function ExportButton(props: {
                 URL.revokeObjectURL(url);
             }}
         >
-            Export Meal
+            Export
         </button>
     );
 }

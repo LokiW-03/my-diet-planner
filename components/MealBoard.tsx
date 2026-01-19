@@ -120,7 +120,18 @@ function MealPanel({
                     />
                 ))}
             </div>
-            <div style={mealFooter}>{footer}</div>
+            <div style={mealFooter}>
+                <div>{footer}</div>
+                <button
+                    style={clearBtn}
+                    onClick={() => {
+                        entries.forEach((e) => onRemoveEntry(e.entryId));
+                    }}
+                    title="Clear all items"
+                >
+                    Clear
+                </button>
+            </div>
         </div>
     );
 }
@@ -199,7 +210,26 @@ const mealTitle: React.CSSProperties = { fontWeight: 900, fontSize: 18, marginBo
 
 const mealDropZone: React.CSSProperties = { minHeight: 110, display: "flex", flexDirection: "column", gap: 8 };
 
-const mealFooter: React.CSSProperties = { marginTop: 10, paddingTop: 8, borderTop: "1px solid var(--divider)", fontWeight: 700, color: "var(--muted)" };
+const mealFooter: React.CSSProperties = {
+    marginTop: 10,
+    paddingTop: 8,
+    borderTop: "1px solid var(--divider)",
+    fontWeight: 700,
+    color: "var(--muted)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+};
+
+const clearBtn: React.CSSProperties = {
+    padding: "6px 10px",
+    borderRadius: 8,
+    border: "1px solid var(--card-border)",
+    background: "var(--card-bg)",
+    color: "var(--danger-fg)",
+    cursor: "pointer",
+    fontWeight: 700,
+};
 
 const entryBox: React.CSSProperties = {
     display: "grid",
