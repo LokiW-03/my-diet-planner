@@ -5,6 +5,7 @@ import { MealBoard } from "@/components/MealBoard";
 import { FoodLibrary } from "@/components/FoodLibrary";
 import { ExportButton } from "@/components/ExportButton";
 import type { Category, FoodItem, MealKey } from "@/lib/models";
+import { TARGETS } from "@/lib/targets";
 
 export default function DndShell({
     foods,
@@ -57,6 +58,15 @@ export default function DndShell({
         }
     }
 
+    const target = TARGETS[dayType];
+    const kcal = Math.round(totals.kcal);
+    let stillNeed = 0;
+    if (kcal < target.minKcal) {
+        stillNeed = Math.max(0, Math.round(target.minKcal - kcal));
+    } else if (kcal > target.maxKcal) {
+        stillNeed = Math.round(target.maxKcal - kcal);
+    }
+
     return (
         <DndContext onDragEnd={onDragEnd}>
             <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 16, alignItems: "start" }}>
@@ -75,6 +85,12 @@ export default function DndShell({
                             <div style={{ fontWeight: 900 }}>TOTAL</div>
                             <div style={{ fontSize: 26, fontWeight: 900 }}>{Math.round(totals.kcal)} kcal</div>
                             <div style={{ fontWeight: 700 }}>{Math.round(totals.protein)}g Protein</div>
+                        </div>
+
+                        <div style={{ border: "1px solid var(--card-border)", borderRadius: 14, padding: 14, minWidth: 160, background: "var(--background)", textAlign: "center" }}>
+                            <div style={{ fontWeight: 900, color: "var(--chip-border)" }}>STILL NEED</div>
+                            <div style={{ fontSize: 26, fontWeight: 900 }}>{stillNeed} kcal</div>
+                            <div style={{ fontWeight: 700, color: "var(--chip-border)" }}>to meet target</div>
                         </div>
 
                         <ExportButton foods={foods} meals={meals} totals={totals} dayType={dayType} />
