@@ -1,8 +1,8 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
-/node_modules
-/.pnp
+**/node_modules
+*/.pnp
 .pnp.*
 .yarn/*
 !.yarn/patches
@@ -39,3 +39,30 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# backend / client build artifacts
+/server/dist/
+/server/build/
+/client/dist/
+/client/build/
+
+# local sqlite / DB files and data directory
+/data/
+/server/data/
+/backend/data/
+*.db
+*.sqlite
+*.sqlite3
+*-journal
+*.db-journal
+
+# logs
+logs/
+*.log
+
+# editor / IDE
+.vscode/
+.idea/
+
+# cache
+.cache/
