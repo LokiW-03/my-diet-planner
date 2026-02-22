@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useDroppable, useDraggable } from "@dnd-kit/core";
-import type { FoodItem, MealEntry, MealKey } from "@/lib/models";
+import type { FoodId, FoodItem, MealEntry, MealKey } from "@/shared/models";
 
 function MealEntryChip({
     meal,
@@ -98,7 +98,7 @@ function MealPanel({
     foods: FoodItem[];
     onRemoveEntry: (entryId: string) => void;
     onPortionChange: (entryId: string, n: number) => void;
-    onEditFood: (foodId: string) => void;
+    onEditFood: (foodId: FoodId) => void;
     footer: string;
 }) {
     const { setNodeRef, isOver } = useDroppable({ id: `drop:${meal}` });
@@ -149,7 +149,7 @@ export function MealBoard({
     mealTotals: Record<MealKey, { kcal: number; protein: number }>;
     onRemoveEntry: (meal: MealKey, entryId: string) => void;
     onPortionChange: (meal: MealKey, entryId: string, portion: number) => void;
-    onEditFood: (foodId: string) => void;
+    onEditFood: (foodId: FoodId) => void;
 }) {
     return (
         <div style={mealGrid}>

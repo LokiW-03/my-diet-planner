@@ -1,35 +1,63 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import type { Category, FoodItem, Unit } from "@/lib/models";
-import { CATEGORIES, UNITS } from "@/lib/models";
-import { clampInt } from "@/lib/utils";
+import type { CategoryId, FoodCategory, FoodItem, Unit } from "@/shared/models";
+import { UNITS } from "@/shared/models";
+import { clampInt } from "@/shared/utils";
+import { CATEGORIES } from "@/shared/models";
+import { uid } from "@/shared/utils";
 
 type Props = {
     open: boolean;
     mode: "add" | "edit";
-    categoryPreset?: Category;
+    categories: FoodCategory[]; // <-- provide categories from store/API
+    categoryPreset?: CategoryId; // <-- preset by id now
     food?: FoodItem | null;
     onClose: () => void;
     onSave: (v: Omit<FoodItem, "id">) => void;
     onDelete?: () => void;
 };
 
-export function FoodModal({ open, mode, categoryPreset, food, onClose, onSave, onDelete }: Props) {
+const initialCategories: FoodCategory[] = CATEGORIES.map((name, i) => ({
+    id: uid("cat") as unknown as CategoryId,
+    profileId: "local",
+    name,
+    order: i,
+    enabled: true,
+}));
+
+const catIdByName = new Map(initialCategories.map((c) => [c.name, c.id] as const));
+const catId = (name: string) => (catIdByName.get(name) ?? ("" as CategoryId));
+
+export function FoodModal({ open, mode, categories, categoryPreset, food, onClose, onSave, onDelete }: Props) {
+
+    const safeCategories = categories ?? initialCategories;
+
+    const visibleCats = useMemo(
+        () => safeCategories.filter((c) => c.enabled).slice().sort((a, b) => a.order - b.order),
+        [safeCategories]
+    );
+
     const initial = useMemo(() => {
         if (mode === "edit" && food) return food;
+
+        const fallbackCategoryId =
+            categoryPreset ??
+            visibleCats[0]?.id ??
+            ("" as CategoryId);
+
         return {
             name: "",
-            category: categoryPreset ?? "Proteins",
+            categoryId: fallbackCategoryId,
             unit: "g" as Unit,
             kcalPerUnit: 0,
             proteinPerUnit: 0,
             defaultPortion: 100,
         };
-    }, [mode, food, categoryPreset]);
+    }, [mode, food, categoryPreset, visibleCats]);
 
     const [name, setName] = useState(initial.name);
-    const [category, setCategory] = useState<Category>(initial.category);
+    const [categoryId, setCategoryId] = useState<CategoryId>(initial.categoryId);
     const [unit, setUnit] = useState<Unit>(initial.unit);
     const [kcalPerUnit, setKcal] = useState<number>(initial.kcalPerUnit);
     const [proteinPerUnit, setProtein] = useState<number>(initial.proteinPerUnit);
@@ -37,7 +65,7 @@ export function FoodModal({ open, mode, categoryPreset, food, onClose, onSave, o
 
     useEffect(() => {
         setName(initial.name);
-        setCategory(initial.category);
+        setCategoryId(initial.categoryId);
         setUnit(initial.unit);
         setKcal(initial.kcalPerUnit);
         setProtein(initial.proteinPerUnit);
@@ -46,10 +74,14 @@ export function FoodModal({ open, mode, categoryPreset, food, onClose, onSave, o
 
     if (!open) return null;
 
+    const canSave = name.trim().length > 0 && String(categoryId).length > 0;
+
     return (
         <div style={styles.backdrop} onMouseDown={onClose}>
             <div style={styles.modal} onMouseDown={(e) => e.stopPropagation()}>
-                <h2 style={{ marginTop: 0, color: "var(--background)" }}>{mode === "add" ? "Add Food" : "Edit Food"}</h2>
+                <h2 style={{ marginTop: 0, color: "var(--background)" }}>
+                    {mode === "add" ? "Add Food" : "Edit Food"}
+                </h2>
 
                 <div style={styles.row}>
                     <label style={styles.label}>Name</label>
@@ -58,9 +90,15 @@ export function FoodModal({ open, mode, categoryPreset, food, onClose, onSave, o
 
                 <div style={styles.row}>
                     <label style={styles.label}>Category</label>
-                    <select style={styles.input} value={category} onChange={(e) => setCategory(e.target.value as Category)}>
-                        {CATEGORIES.map((c) => (
-                            <option key={c} value={c}>{c}</option>
+                    <select
+                        style={styles.input}
+                        value={String(categoryId)}
+                        onChange={(e) => setCategoryId(e.target.value as unknown as CategoryId)}
+                    >
+                        {visibleCats.map((c) => (
+                            <option key={String(c.id)} value={String(c.id)}>
+                                {c.name}
+                            </option>
                         ))}
                     </select>
                 </div>
@@ -69,7 +107,9 @@ export function FoodModal({ open, mode, categoryPreset, food, onClose, onSave, o
                     <label style={styles.label}>Unit</label>
                     <select style={styles.input} value={unit} onChange={(e) => setUnit(e.target.value as Unit)}>
                         {UNITS.map((u) => (
-                            <option key={u} value={u}>{u}</option>
+                            <option key={u} value={u}>
+                                {u}
+                            </option>
                         ))}
                     </select>
                 </div>
@@ -107,19 +147,23 @@ export function FoodModal({ open, mode, categoryPreset, food, onClose, onSave, o
                 <div style={{ display: "flex", justifyContent: "space-between", marginTop: 16 }}>
                     <div>
                         {mode === "edit" && onDelete && (
-                            <button style={styles.dangerBtn} onClick={onDelete}>Delete</button>
+                            <button style={styles.dangerBtn} onClick={onDelete}>
+                                Delete
+                            </button>
                         )}
                     </div>
                     <div style={{ display: "flex", gap: 8 }}>
-                        <button style={styles.btn} onClick={onClose}>Cancel</button>
+                        <button style={styles.btn} onClick={onClose}>
+                            Cancel
+                        </button>
                         <button
                             style={styles.btnPrimary}
+                            disabled={!canSave}
                             onClick={() => {
-                                const trimmed = name.trim();
-                                if (!trimmed) return;
+                                if (!canSave) return;
                                 onSave({
-                                    name: trimmed,
-                                    category,
+                                    name: name.trim(),
+                                    categoryId,
                                     unit,
                                     kcalPerUnit: Number(kcalPerUnit) || 0,
                                     proteinPerUnit: Number(proteinPerUnit) || 0,
@@ -138,6 +182,7 @@ export function FoodModal({ open, mode, categoryPreset, food, onClose, onSave, o
 }
 
 const styles: Record<string, React.CSSProperties> = {
+    // ...existing code...
     backdrop: {
         position: "fixed",
         inset: 0,

@@ -1,13 +1,14 @@
 "use client";
 
 import { DndContext, DragEndEvent } from "@dnd-kit/core";
-import { MealBoard } from "@/components/MealBoard";
-import { FoodLibrary } from "@/components/FoodLibrary";
-import { ExportButton } from "@/components/ExportButton";
-import type { Category, FoodItem, MealKey } from "@/lib/models";
-import { TARGETS } from "@/lib/targets";
+import { MealBoard } from "@/client/src/components/MealBoard";
+import { FoodLibrary } from "@/client/src/components/FoodLibrary";
+import { ExportButton } from "@/client/src/components/ExportButton";
+import type { Category, CategoryId, FoodCategory, FoodItem, FoodId, MealKey } from "@/shared/models";
+import { TARGETS } from "@/shared/targets";
 
 export default function DndShell({
+    categories,
     foods,
     meals,
     mealTotals,
@@ -22,6 +23,7 @@ export default function DndShell({
     moveEntry,
     clearAll,
 }: {
+    categories: FoodCategory[];
     foods: FoodItem[];
     meals: Record<MealKey, any[]>;
     mealTotals: Record<MealKey, { kcal: number; protein: number }>;
@@ -29,10 +31,10 @@ export default function DndShell({
     dayType: "FULL" | "HALF" | "REST";
     onRemoveEntry: (meal: MealKey, entryId: string) => void;
     onPortionChange: (meal: MealKey, entryId: string, portion: number) => void;
-    onEditFood: (foodId: string) => void;
-    openAdd: (cat: Category) => void;
+    onEditFood: (foodId: FoodId) => void;
+    openAdd: (catId: CategoryId) => void;
     openEdit: (food: FoodItem) => void;
-    addEntryToMeal: (meal: MealKey, foodId: string) => void;
+    addEntryToMeal: (meal: MealKey, foodId: FoodId) => void;
     moveEntry: (from: MealKey, to: MealKey, entryId: string) => void;
     clearAll: () => void;
 }) {
@@ -45,7 +47,7 @@ export default function DndShell({
 
         if (activeId.startsWith("lib:")) {
             const foodId = activeId.split(":")[1];
-            addEntryToMeal(toMeal, foodId);
+            addEntryToMeal(toMeal, foodId as FoodId);
             return;
         }
 
@@ -114,7 +116,7 @@ export default function DndShell({
                 </div>
 
                 <div>
-                    <FoodLibrary foods={foods} onAdd={openAdd} onEdit={openEdit} />
+                    <FoodLibrary categories={categories} foods={foods} onAdd={openAdd} onEdit={openEdit} />
                 </div>
             </div>
         </DndContext>

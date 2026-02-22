@@ -1,9 +1,10 @@
 "use client";
 
 import { useMemo } from "react";
-import type { Category, FoodItem } from "@/lib/models";
-import { CATEGORIES } from "@/lib/models";
+import type { Category, CategoryId, FoodCategory, FoodItem } from "@/shared/models";
+import { CATEGORIES } from "@/shared/models";
 import { useDraggable } from "@dnd-kit/core";
+import { uid } from "@/shared/utils";
 
 function FoodChip({ food, onClick }: { food: FoodItem; onClick: () => void }) {
     const id = `lib:${food.id}`;
@@ -27,33 +28,56 @@ function FoodChip({ food, onClick }: { food: FoodItem; onClick: () => void }) {
     );
 }
 
+const defaultCategoryId = (name: string) => (`cat:${name}` as unknown as CategoryId);
+
+const defaultCategories: FoodCategory[] = CATEGORIES.map((name, i) => ({
+    id: defaultCategoryId(name),
+    profileId: "local",
+    name,
+    order: i,
+    enabled: true,
+}));
+
 export function FoodLibrary({
+    categories,
     foods,
     onAdd,
     onEdit,
 }: {
+    categories: FoodCategory[];
     foods: FoodItem[];
-    onAdd: (category: Category) => void;
+    onAdd: (categoryId: CategoryId) => void;
     onEdit: (food: FoodItem) => void;
 }) {
+
+    const safeCategories = Array.isArray(categories) && categories.length > 0 ? categories : defaultCategories;
+
+    const visibleCats = useMemo(
+        () => safeCategories.filter((c) => c.enabled).slice().sort((a, b) => a.order - b.order),
+        [safeCategories]
+    );
     const grouped = useMemo(() => {
-        const map = new Map<Category, FoodItem[]>();
-        for (const c of CATEGORIES) map.set(c, []);
-        for (const f of foods) map.get(f.category)!.push(f);
+        const map = new Map<CategoryId, FoodItem[]>();
+        for (const c of visibleCats) map.set(c.id, []);
+        for (const f of foods) {
+            const bucket = map.get(f.categoryId);
+            if (bucket) bucket.push(f);
+            // else: food refers to a missing/disabled category; ignore or handle as "Uncategorized"
+        }
         return map;
-    }, [foods]);
+    }, [foods, visibleCats]);
 
     return (
         <div style={panel}>
-            {CATEGORIES.map((cat) => (
-                <div key={cat} style={{ marginBottom: 14 }}>
+            {visibleCats.map((cat) => (
+                <div key={cat.id} style={{ marginBottom: 14 }}>
                     <div style={headerRow}>
-                        <div style={{ fontWeight: 800 }}>{cat}</div>
-                        <button style={plusBtn} onClick={() => onAdd(cat)}>+</button>
+                        <div style={{ fontWeight: 800 }}>{cat.name}</div>
+                        <button style={plusBtn} onClick={() => onAdd(cat.id)}>+</button>
                     </div>
                     <div style={chipWrap}>
-                        {grouped.get(cat)!.map((f) => (
-                            <FoodChip key={f.id} food={f} onClick={() => onEdit(f)} />
+                        {(grouped.get(cat.id) ?? []).map((f) => (
+                            <FoodChip key={String(f.id)} food={f} onClick={() => onEdit(f)} />
                         ))}
                     </div>
                     <div style={divider} />

@@ -1,6 +1,6 @@
 import React from "react";
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
-import type { FoodItem, MealKey, MealEntry } from "@/lib/models";
+import type { FoodItem, MealKey, MealEntry } from "@/shared/models";
 
 type Props = {
     foods: FoodItem[];

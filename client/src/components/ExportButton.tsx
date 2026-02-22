@@ -2,7 +2,7 @@
 
 import { pdf } from "@react-pdf/renderer";
 import { PdfDoc } from "./PdfDoc";
-import type { FoodItem, MealEntry, MealKey } from "@/lib/models";
+import type { FoodItem, MealEntry, MealKey } from "@/shared/models";
 
 export function ExportButton(props: {
     foods: FoodItem[];

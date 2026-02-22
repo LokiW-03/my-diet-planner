@@ -2,19 +2,22 @@
 
 import { useMemo, useState } from "react";
 import dynamic from "next/dynamic";
-import { usePlannerStore, computeTotals } from "@/lib/store";
-import type { Category, FoodItem, MealKey } from "@/lib/models";
-import { MEALS } from "@/lib/models";
-const DndShell = dynamic(() => import("@/components/DndShell"), { ssr: false });
-import { FoodModal } from "@/components/FoodModal";
+import { usePlannerStore, computeTotals } from "@/client/src/hooks/store";
+import type { Category, CategoryId, FoodCategory, FoodItem, FoodId, MealKey } from "@/shared/models";
+import { MEALS } from "@/shared/models";
+import { FoodModal } from "@/client/src/components/FoodModal";
+
+const DndShell = dynamic(() => import("@/client/src/components/DndShell"), { ssr: false });
 
 function computeMealTotals(foods: FoodItem[], meals: Record<MealKey, any[]>) {
-  const map = new Map(foods.map((f) => [f.id, f]));
+  const map = new Map<FoodId, FoodItem>(foods.map((f) => [f.id, f]));
   const out = {} as Record<MealKey, { kcal: number; protein: number }>;
+
   for (const k of MEALS) {
     let kcal = 0, protein = 0;
+
     for (const e of meals[k]) {
-      const f = map.get(e.foodId);
+      const f = map.get(e.foodId as FoodId);
       if (!f) continue;
       kcal += e.portion * f.kcalPerUnit;
       protein += e.portion * f.proteinPerUnit;
@@ -25,8 +28,10 @@ function computeMealTotals(foods: FoodItem[], meals: Record<MealKey, any[]>) {
 }
 
 export default function Page() {
+  const categories = usePlannerStore((s) => s.categories);
   const foods = usePlannerStore((s) => s.foods);
   const meals = usePlannerStore((s) => s.meals);
+
   const dayType = usePlannerStore((s) => s.dayType);
   const setDayType = usePlannerStore((s) => s.setDayType);
 
@@ -47,14 +52,14 @@ export default function Page() {
   // modal state
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"add" | "edit">("add");
-  const [categoryPreset, setCategoryPreset] = useState<Category | undefined>(undefined);
-  const [editingFoodId, setEditingFoodId] = useState<string | null>(null);
+  const [categoryPreset, setCategoryPreset] = useState<CategoryId | undefined>(undefined);
+  const [editingFoodId, setEditingFoodId] = useState<FoodId | null>(null);
 
   const editingFood = editingFoodId ? foods.find((f) => f.id === editingFoodId) ?? null : null;
 
-  function openAdd(cat: Category) {
+  function openAdd(catId: CategoryId) {
     setModalMode("add");
-    setCategoryPreset(cat);
+    setCategoryPreset(catId);
     setEditingFoodId(null);
     setModalOpen(true);
   }
@@ -82,6 +87,7 @@ export default function Page() {
         </div>
 
         <DndShell
+          categories={categories}
           foods={foods}
           meals={meals}
           mealTotals={mealTotals}
@@ -104,6 +110,7 @@ export default function Page() {
       <FoodModal
         open={modalOpen}
         mode={modalMode}
+        categories={categories}
         categoryPreset={categoryPreset}
         food={editingFood}
         onClose={() => setModalOpen(false)}
