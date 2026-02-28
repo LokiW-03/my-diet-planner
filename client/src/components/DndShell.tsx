@@ -4,8 +4,9 @@ import { DndContext, DragEndEvent } from "@dnd-kit/core";
 import { MealBoard } from "@/client/src/components/MealBoard";
 import { FoodLibrary } from "@/client/src/components/FoodLibrary";
 import { ExportButton } from "@/client/src/components/ExportButton";
-import type { Category, CategoryId, FoodCategory, FoodItem, FoodId, MealKey } from "@/shared/models";
-import { TARGETS } from "@/shared/targets";
+import type { CategoryId, FoodCategory, FoodItem, FoodId, MealEntry } from "@/shared/models";
+import type { MealKey, TargetName } from "@/shared/defaults";
+import { TARGETS_BY_NAME } from "@/shared/defaults";
 
 export default function DndShell({
     categories,
@@ -25,10 +26,10 @@ export default function DndShell({
 }: {
     categories: FoodCategory[];
     foods: FoodItem[];
-    meals: Record<MealKey, any[]>;
+    meals: Record<MealKey, MealEntry[]>;
     mealTotals: Record<MealKey, { kcal: number; protein: number }>;
     totals: { kcal: number; protein: number };
-    dayType: "FULL" | "HALF" | "REST";
+    dayType: TargetName;
     onRemoveEntry: (meal: MealKey, entryId: string) => void;
     onPortionChange: (meal: MealKey, entryId: string, portion: number) => void;
     onEditFood: (foodId: FoodId) => void;
@@ -43,27 +44,34 @@ export default function DndShell({
         const overId = ev.over ? String(ev.over.id) : null;
         if (!overId) return;
         if (!overId.startsWith("drop:")) return;
-        const toMeal = overId.split(":")[1] as MealKey;
+
+        const toMeal = overId.slice("drop:".length) as MealKey;
 
         if (activeId.startsWith("lib:")) {
-            const foodId = activeId.split(":")[1];
-            addEntryToMeal(toMeal, foodId as FoodId);
+            const foodId = activeId.slice("lib:".length) as unknown as FoodId;
+            addEntryToMeal(toMeal, foodId);
             return;
         }
 
         if (activeId.startsWith("meal:")) {
-            const parts = activeId.split(":");
-            const fromMeal = parts[1] as MealKey;
-            const entryId = parts[2];
+            const rest = activeId.slice("meal:".length);
+            const i = rest.indexOf(":");
+            if (i === -1) return;
+
+            const fromMeal = rest.slice(0, i) as MealKey;
+            const entryId = rest.slice(i + 1);
+
             moveEntry(fromMeal, toMeal, entryId);
             return;
         }
     }
 
-    const target = TARGETS[dayType];
+    const target = TARGETS_BY_NAME[dayType];
     const kcal = Math.round(totals.kcal);
     let stillNeed = 0;
-    if (kcal < target.minKcal) {
+    if (!target) {
+        stillNeed = 0;
+    } else if (kcal < target.minKcal) {
         stillNeed = Math.max(0, Math.round(target.minKcal - kcal));
     } else if (kcal > target.maxKcal) {
         stillNeed = Math.round(target.maxKcal - kcal);

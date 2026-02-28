@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import type { CategoryId, FoodCategory, FoodItem, Unit } from "@/shared/models";
-import { UNITS } from "@/shared/models";
+import type { CategoryId, FoodCategory, FoodItem } from "@/shared/models";
+import type { Unit } from "@/shared/defaults";
+import { UNITS } from "@/shared/defaults";
 import { clampInt } from "@/shared/utils";
-import { CATEGORIES } from "@/shared/models";
+import { CATEGORIES } from "@/shared/defaults";
 import { uid } from "@/shared/utils";
 
 type Props = {
@@ -26,8 +27,6 @@ const initialCategories: FoodCategory[] = CATEGORIES.map((name, i) => ({
     enabled: true,
 }));
 
-const catIdByName = new Map(initialCategories.map((c) => [c.name, c.id] as const));
-const catId = (name: string) => (catIdByName.get(name) ?? ("" as CategoryId));
 
 export function FoodModal({ open, mode, categories, categoryPreset, food, onClose, onSave, onDelete }: Props) {
 

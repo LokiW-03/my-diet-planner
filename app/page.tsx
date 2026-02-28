@@ -3,8 +3,9 @@
 import { useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { usePlannerStore, computeTotals } from "@/client/src/hooks/store";
-import type { Category, CategoryId, FoodCategory, FoodItem, FoodId, MealKey } from "@/shared/models";
-import { MEALS } from "@/shared/models";
+import type { CategoryId, FoodCategory, FoodItem, FoodId } from "@/shared/models";
+import type { Category, MealKey } from "@/shared/defaults";
+import { MEALS, DEFAULT_TARGETS } from "@/shared/defaults";
 import { FoodModal } from "@/client/src/components/FoodModal";
 
 const DndShell = dynamic(() => import("@/client/src/components/DndShell"), { ssr: false });
@@ -81,9 +82,15 @@ export default function Page() {
 
       <div style={wrap}>
         <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
-          <button style={dayBtn(dayType === "FULL")} onClick={() => setDayType("FULL")}>FULL</button>
-          <button style={dayBtn(dayType === "HALF")} onClick={() => setDayType("HALF")}>HALF</button>
-          <button style={dayBtn(dayType === "REST")} onClick={() => setDayType("REST")}>REST</button>
+          {DEFAULT_TARGETS.map((t) => (
+            <button
+              key={t.name}
+              style={dayBtn(dayType === t.name)}
+              onClick={() => setDayType(t.name)}
+            >
+              {t.name}
+            </button>
+          ))}
         </div>
 
         <DndShell

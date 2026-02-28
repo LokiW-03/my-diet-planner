@@ -3,27 +3,25 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type {
-    CategoryId,
     FoodCategory,
     FoodItem,
     MealEntry,
-    MealKey,
     FoodId,
 } from "../../../shared/models";
-import { CATEGORIES } from "../../../shared/models";
+import type { MealKey, TargetName } from "@/shared/defaults";
+import { createEmptyMealsState } from "@/shared/defaults";
 import { uid } from "../../../shared/utils";
-
-const defaultCategoryId = (name: string) => (`cat:${name}` as unknown as CategoryId);
+import { DEFAULTS_VERSION, DEFAULT_CATEGORIES, DEFAULT_FOODS } from "@/shared/defaults";
 
 type MealsState = Record<MealKey, MealEntry[]>;
 
 type PlannerState = {
-    categories: FoodCategory[]; // <-- ADD THIS
+    categories: FoodCategory[];
     foods: FoodItem[];
     meals: MealsState;
 
-    dayType: "FULL" | "HALF" | "REST";
-    setDayType: (t: "FULL" | "HALF" | "REST") => void;
+    dayType: TargetName;
+    setDayType: (t: TargetName) => void;
 
     addFood: (food: Omit<FoodItem, "id">) => void;
     updateFood: (foodId: FoodId, patch: Partial<Omit<FoodItem, "id">>) => void;
@@ -36,47 +34,15 @@ type PlannerState = {
     clearAllMeals: () => void;
 };
 
-const initialCategories: FoodCategory[] = CATEGORIES.map((name, i) => ({
-    id: defaultCategoryId(name),
-    profileId: "local",
-    name,
-    order: i,
-    enabled: true,
-}));
-
-const catIdByName = new Map(initialCategories.map((c) => [c.name, c.id] as const));
-const catId = (name: string) => catIdByName.get(name) ?? defaultCategoryId(CATEGORIES[0]);
-
-const initialFoods: FoodItem[] = [
-    { id: uid("food") as FoodId, name: "Beef A", categoryId: catId("Proteins"), unit: "g", kcalPerUnit: 3.19, proteinPerUnit: 0.26, defaultPortion: 100 },
-    { id: uid("food") as FoodId, name: "Chicken", categoryId: catId("Proteins"), unit: "g", kcalPerUnit: 2.39, proteinPerUnit: 0.27, defaultPortion: 110 },
-    { id: uid("food") as FoodId, name: "Shakes", categoryId: catId("Proteins"), unit: "pc", kcalPerUnit: 265, proteinPerUnit: 23, defaultPortion: 1 },
-
-    { id: uid("food") as FoodId, name: "Broccoli", categoryId: catId("Veggies"), unit: "g", kcalPerUnit: 0.34, proteinPerUnit: 0.028, defaultPortion: 100 },
-    { id: uid("food") as FoodId, name: "PakChoi", categoryId: catId("Veggies"), unit: "g", kcalPerUnit: 0.13, proteinPerUnit: 0.015, defaultPortion: 100 },
-    { id: uid("food") as FoodId, name: "Mixed", categoryId: catId("Veggies"), unit: "g", kcalPerUnit: 0.25, proteinPerUnit: 0.015, defaultPortion: 100 },
-
-    { id: uid("food") as FoodId, name: "Rice", categoryId: catId("Carbs"), unit: "g", kcalPerUnit: 1.30, proteinPerUnit: 0.028, defaultPortion: 80 },
-    { id: uid("food") as FoodId, name: "Dumplings", categoryId: catId("Carbs"), unit: "g", kcalPerUnit: 1.90, proteinPerUnit: 0.078, defaultPortion: 40 },
-    { id: uid("food") as FoodId, name: "Crackers", categoryId: catId("Carbs"), unit: "pc", kcalPerUnit: 35, proteinPerUnit: 0.7, defaultPortion: 2 },
-
-    { id: uid("food") as FoodId, name: "Babybel", categoryId: catId("Others"), unit: "pc", kcalPerUnit: 70, proteinPerUnit: 5, defaultPortion: 1 },
-    { id: uid("food") as FoodId, name: "Crisps", categoryId: catId("Others"), unit: "pc", kcalPerUnit: 150, proteinPerUnit: 2, defaultPortion: 1 },
-];
-
-const emptyMeals: MealsState = {
-    breakfast: [],
-    lunch: [],
-    postworkout: [],
-    dinner: [],
-};
+const newEmptyMeals = () => createEmptyMealsState();
 
 export const usePlannerStore = create<PlannerState>()(
     persist(
         (set, get) => ({
-            categories: initialCategories,
-            foods: initialFoods,
-            meals: emptyMeals,
+            seedVersion: DEFAULTS_VERSION,
+            categories: DEFAULT_CATEGORIES,
+            foods: DEFAULT_FOODS,
+            meals: newEmptyMeals(),
 
             dayType: "FULL",
             setDayType: (t) => set({ dayType: t }),
@@ -100,7 +66,7 @@ export const usePlannerStore = create<PlannerState>()(
                     ) as MealsState,
                 })),
 
-            clearAllMeals: () => set({ meals: emptyMeals }),
+            clearAllMeals: () => set({ meals: newEmptyMeals() }),
 
             addEntryToMeal: (meal, foodId, portion) =>
                 set((s) => {
@@ -148,43 +114,16 @@ export const usePlannerStore = create<PlannerState>()(
         }),
         {
             name: "diet-planner-v1",
-            version: 4,
-            migrate: (persistedState: any, _version: number) => {
-                // Allow old state to load; merge() below will enforce defaults / self-heal.
-                return persistedState ?? {};
-            },
+            version: 1,
+            migrate: (ps: any) => ps ?? {},
             merge: (persistedState, currentState) => {
                 const ps: any = persistedState ?? {};
+                const psSeed = typeof ps.seedVersion === "number" ? ps.seedVersion : 0;
 
-                // start with normal shallow merge
-                const merged: any = { ...currentState, ...ps };
+                // Reset stale local storage when defaults change
+                if (psSeed !== DEFAULTS_VERSION) return currentState;
 
-                // ensure defaults when arrays missing/empty
-                merged.categories =
-                    Array.isArray(ps.categories) && ps.categories.length > 0
-                        ? ps.categories
-                        : currentState.categories;
-
-                merged.foods =
-                    Array.isArray(ps.foods) && ps.foods.length > 0
-                        ? ps.foods
-                        : currentState.foods;
-
-                merged.meals = ps.meals ?? currentState.meals;
-                merged.dayType = ps.dayType ?? currentState.dayType;
-
-                // if foods don’t match any category ids, reset to defaults
-                const catIds = new Set(merged.categories.map((c: any) => String(c.id)));
-                const hasAtLeastOneValidFoodCategory = merged.foods.some((f: any) =>
-                    catIds.has(String(f.categoryId))
-                );
-
-                if (!hasAtLeastOneValidFoodCategory) {
-                    merged.categories = currentState.categories;
-                    merged.foods = currentState.foods;
-                }
-
-                return merged;
+                return { ...currentState, ...ps, seedVersion: DEFAULTS_VERSION };
             },
         }
     )

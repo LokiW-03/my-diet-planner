@@ -2,13 +2,14 @@
 
 import { pdf } from "@react-pdf/renderer";
 import { PdfDoc } from "./PdfDoc";
-import type { FoodItem, MealEntry, MealKey } from "@/shared/models";
+import type { FoodItem, MealEntry } from "@/shared/models";
+import type { MealKey, TargetName } from "@/shared/defaults";
 
 export function ExportButton(props: {
     foods: FoodItem[];
     meals: Record<MealKey, MealEntry[]>;
     totals: { kcal: number; protein: number };
-    dayType: "FULL" | "HALF" | "REST";
+    dayType: TargetName;
 }) {
     return (
         <button

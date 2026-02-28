@@ -1,10 +1,9 @@
 "use client";
 
 import { useMemo } from "react";
-import type { Category, CategoryId, FoodCategory, FoodItem } from "@/shared/models";
-import { CATEGORIES } from "@/shared/models";
+import type { CategoryId, FoodCategory, FoodItem } from "@/shared/models";
+import { CATEGORIES } from "@/shared/defaults";
 import { useDraggable } from "@dnd-kit/core";
-import { uid } from "@/shared/utils";
 
 function FoodChip({ food, onClick }: { food: FoodItem; onClick: () => void }) {
     const id = `lib:${food.id}`;

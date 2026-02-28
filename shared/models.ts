@@ -1,17 +1,9 @@
+import { Unit } from "./defaults";
+
 export type MealId = string & { readonly __brand: "MealId" };
 export type FoodId = string & { readonly __brand: "FoodId" };
 export type TargetId = string & { readonly __brand: "TargetId" };
 export type CategoryId = string & { readonly __brand: "CategoryId" };
-
-export const CATEGORIES = ["Proteins", "Veggies", "Carbs", "Others"] as const;
-export type Category = (typeof CATEGORIES)[number];
-
-export const MEALS = ["breakfast", "lunch", "postworkout", "dinner"] as const;
-export type MealKey = (typeof MEALS)[number];
-
-export const UNITS = ["g", "pc"] as const;
-export type Unit = (typeof UNITS)[number];
-
 
 export type FoodItem = {
     id: FoodId;
