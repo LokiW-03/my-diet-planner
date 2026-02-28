@@ -1,4 +1,4 @@
-import type { CategoryId, FoodCategory, FoodId, FoodItem, MealEntry, Target, TargetId } from "./models";
+import type { CategoryId, FoodCategory, FoodId, FoodItem, MealEntry, Target, TargetId, UserId, UserProfile, MealId, MealDefinition, ProfileId } from "./models";
 
 export const DEFAULTS_VERSION = 1;
 
@@ -16,11 +16,24 @@ export type Unit = (typeof UNITS)[number];
 const slugify = (s: string) =>
     s.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 
+export const defaultMealId = (name: string) => `meal:${name}` as unknown as MealId;
+
+export const defaultProfileId = (name: string) =>
+    (`profile:${name}` as unknown as ProfileId);
+
+
+export const DEFAULT_MEALS: MealDefinition[] = MEALS.map((name, i) => ({
+    id: defaultMealId(name),
+    name,
+    order: i,
+    enabled: true,
+}));
+
 export const defaultFoodId = (name: string) => `food:${slugify(name)}` as unknown as FoodId;
 
 export const DEFAULT_CATEGORIES: FoodCategory[] = CATEGORIES.map((name, i) => ({
     id: defaultCategoryId(name),
-    profileId: "local",
+    profileId: defaultProfileId("local"),
     name,
     order: i,
     enabled: true,
@@ -67,3 +80,40 @@ export type TargetName = (typeof DEFAULT_TARGETS)[number]["name"];
 export const TARGETS_BY_NAME = Object.fromEntries(
     DEFAULT_TARGETS.map((t) => [t.name, t] as const)
 ) as Record<TargetName, Target>;
+
+export const defaultTargets: Record<TargetName, Target> = Object.fromEntries(
+    DEFAULT_TARGETS.map((t) => [t.id, t])
+) as Record<TargetName, Target>;
+
+export const defaultMeals: Record<MealId, MealDefinition> =
+    Object.fromEntries(DEFAULT_MEALS.map((m) => [m.id, m])) as Record<MealId, MealDefinition>;
+
+export const defaultFoods: Record<FoodId, FoodItem> =
+    Object.fromEntries(DEFAULT_FOODS.map((f) => [f.id, f])) as Record<FoodId, FoodItem>;
+
+export const defaultCategories: Record<CategoryId, FoodCategory> =
+    Object.fromEntries(DEFAULT_CATEGORIES.map((c) => [c.id, c])) as Record<CategoryId, FoodCategory>;
+
+
+export const defaultUserId = (name: string) => `user:${slugify(name)}` as unknown as UserId;
+
+export const defaultUserProfile: UserProfile = {
+    userId: defaultUserId("Lok"),
+    profileId: defaultProfileId("local"),
+    userName: "Lok",
+    weightKg: 68.45,
+    targets: defaultTargets,
+    meals: defaultMeals,
+    categories: defaultCategories,
+    foods: defaultFoods,
+};
+
+export function getInitialProfile(stored?: Partial<UserProfile>): UserProfile {
+    return {
+        ...defaultUserProfile,
+        ...stored,
+        targets: { ...defaultUserProfile.targets, ...(stored?.targets || {}) },
+        meals: { ...defaultUserProfile.meals, ...(stored?.meals || {}) },
+        foods: { ...defaultUserProfile.foods, ...(stored?.foods || {}) },
+    };
+}

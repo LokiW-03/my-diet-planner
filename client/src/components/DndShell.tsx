@@ -9,7 +9,6 @@ import type { MealKey, TargetName } from "@/shared/defaults";
 import { TARGETS_BY_NAME } from "@/shared/defaults";
 
 export default function DndShell({
-    categories,
     foods,
     meals,
     mealTotals,
@@ -124,7 +123,7 @@ export default function DndShell({
                 </div>
 
                 <div>
-                    <FoodLibrary categories={categories} foods={foods} onAdd={openAdd} onEdit={openEdit} />
+                    <FoodLibrary onAdd={openAdd} onEdit={openEdit} />
                 </div>
             </div>
         </DndContext>

@@ -2,8 +2,9 @@
 
 import { useMemo } from "react";
 import type { CategoryId, FoodCategory, FoodItem } from "@/shared/models";
-import { CATEGORIES } from "@/shared/defaults";
+import { CATEGORIES, defaultCategories } from "@/shared/defaults";
 import { useDraggable } from "@dnd-kit/core";
+import { useProfile } from "@/client/src/hooks/useProfile";
 
 function FoodChip({ food, onClick }: { food: FoodItem; onClick: () => void }) {
     const id = `lib:${food.id}`;
@@ -27,41 +28,31 @@ function FoodChip({ food, onClick }: { food: FoodItem; onClick: () => void }) {
     );
 }
 
-const defaultCategoryId = (name: string) => (`cat:${name}` as unknown as CategoryId);
-
-const defaultCategories: FoodCategory[] = CATEGORIES.map((name, i) => ({
-    id: defaultCategoryId(name),
-    profileId: "local",
-    name,
-    order: i,
-    enabled: true,
-}));
 
 export function FoodLibrary({
-    categories,
-    foods,
     onAdd,
     onEdit,
 }: {
-    categories: FoodCategory[];
-    foods: FoodItem[];
     onAdd: (categoryId: CategoryId) => void;
     onEdit: (food: FoodItem) => void;
 }) {
 
-    const safeCategories = Array.isArray(categories) && categories.length > 0 ? categories : defaultCategories;
+    const { profile } = useProfile();
 
-    const visibleCats = useMemo(
-        () => safeCategories.filter((c) => c.enabled).slice().sort((a, b) => a.order - b.order),
-        [safeCategories]
-    );
+    const visibleCats = useMemo(() => {
+        return Object.values(profile.categories)
+            .filter((c) => c.enabled)
+            .sort((a, b) => a.order - b.order);
+    }, [profile.categories]);
+
+    const foods = useMemo(() => Object.values(profile.foods), [profile.foods]);
+
     const grouped = useMemo(() => {
         const map = new Map<CategoryId, FoodItem[]>();
         for (const c of visibleCats) map.set(c.id, []);
         for (const f of foods) {
             const bucket = map.get(f.categoryId);
             if (bucket) bucket.push(f);
-            // else: food refers to a missing/disabled category; ignore or handle as "Uncategorized"
         }
         return map;
     }, [foods, visibleCats]);
@@ -69,10 +60,12 @@ export function FoodLibrary({
     return (
         <div style={panel}>
             {visibleCats.map((cat) => (
-                <div key={cat.id} style={{ marginBottom: 14 }}>
+                <div key={String(cat.id)} style={{ marginBottom: 14 }}>
                     <div style={headerRow}>
                         <div style={{ fontWeight: 800 }}>{cat.name}</div>
-                        <button style={plusBtn} onClick={() => onAdd(cat.id)}>+</button>
+                        <button style={plusBtn} onClick={() => onAdd(cat.id)}>
+                            +
+                        </button>
                     </div>
                     <div style={chipWrap}>
                         {(grouped.get(cat.id) ?? []).map((f) => (

@@ -5,7 +5,7 @@ import type { CategoryId, FoodCategory, FoodItem } from "@/shared/models";
 import type { Unit } from "@/shared/defaults";
 import { UNITS } from "@/shared/defaults";
 import { clampInt } from "@/shared/utils";
-import { CATEGORIES } from "@/shared/defaults";
+import { CATEGORIES, defaultCategories } from "@/shared/defaults";
 import { uid } from "@/shared/utils";
 
 type Props = {
@@ -19,14 +19,7 @@ type Props = {
     onDelete?: () => void;
 };
 
-const initialCategories: FoodCategory[] = CATEGORIES.map((name, i) => ({
-    id: uid("cat") as unknown as CategoryId,
-    profileId: "local",
-    name,
-    order: i,
-    enabled: true,
-}));
-
+const initialCategories = defaultCategories;
 
 export function FoodModal({ open, mode, categories, categoryPreset, food, onClose, onSave, onDelete }: Props) {
 

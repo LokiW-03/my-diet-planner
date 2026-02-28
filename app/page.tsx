@@ -1,12 +1,15 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { FaUserCircle } from "react-icons/fa"
 import dynamic from "next/dynamic";
 import { usePlannerStore, computeTotals } from "@/client/src/hooks/store";
 import type { CategoryId, FoodCategory, FoodItem, FoodId } from "@/shared/models";
 import type { Category, MealKey } from "@/shared/defaults";
 import { MEALS, DEFAULT_TARGETS } from "@/shared/defaults";
 import { FoodModal } from "@/client/src/components/FoodModal";
+import { UserProfilePanel } from "@/client/src/components/UserProfilePanel";
+import { useProfile } from "@/client/src/hooks/useProfile";
 
 const DndShell = dynamic(() => import("@/client/src/components/DndShell"), { ssr: false });
 
@@ -50,6 +53,13 @@ export default function Page() {
   const totals = useMemo(() => computeTotals(foods, meals), [foods, meals]);
   const mealTotals = useMemo(() => computeMealTotals(foods, meals), [foods, meals]);
 
+  const { profile } = useProfile();
+  const [showProfile, setShowProfile] = useState(false);
+
+  const targets = useMemo(() => {
+    return Object.values(profile.targets).slice().sort((a, b) => a.name.localeCompare(b.name));
+  }, [profile.targets]);
+
   // modal state
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"add" | "edit">("add");
@@ -82,6 +92,9 @@ export default function Page() {
 
       <div style={wrap}>
         <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
+          <button style={dayBtn(showProfile)} onClick={() => setShowProfile((v) => !v)}>
+            <FaUserCircle size={18} />
+          </button>
           {DEFAULT_TARGETS.map((t) => (
             <button
               key={t.name}
@@ -92,6 +105,12 @@ export default function Page() {
             </button>
           ))}
         </div>
+
+        {showProfile && (
+          <div style={{ marginBottom: 14 }}>
+            <UserProfilePanel />
+          </div>
+        )}
 
         <DndShell
           categories={categories}

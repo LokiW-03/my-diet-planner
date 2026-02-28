@@ -4,6 +4,8 @@ export type MealId = string & { readonly __brand: "MealId" };
 export type FoodId = string & { readonly __brand: "FoodId" };
 export type TargetId = string & { readonly __brand: "TargetId" };
 export type CategoryId = string & { readonly __brand: "CategoryId" };
+export type UserId = string & { readonly __brand: "UserId" };
+export type ProfileId = string & { readonly __brand: "ProfileId" };
 
 export type FoodItem = {
     id: FoodId;
@@ -31,11 +33,13 @@ export type MealDefinition = {
 }
 
 export type UserProfile = {
-    userId: string;
+    userId: UserId;
+    profileId: ProfileId;
     userName: string;
     weightKg: number;
     targets: Record<TargetId, Target>;
     meals: Record<MealId, MealDefinition>;
+    categories: Record<CategoryId, FoodCategory>;
     foods: Record<FoodId, FoodItem>;
 };
 
@@ -49,7 +53,7 @@ export type Target = {
 
 export type FoodCategory = {
     id: CategoryId;
-    profileId: string; // or ProfileId if you brand it later
+    profileId: ProfileId;
     name: string;
     order: number;
     enabled: boolean;
