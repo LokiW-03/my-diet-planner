@@ -10,9 +10,6 @@ export type Category = (typeof CATEGORIES)[number];
 export const MEALS = ["breakfast", "lunch", "dinner"] as const;
 export type MealKey = (typeof MEALS)[number];
 
-export const UNITS = ["g", "pc"] as const;
-export type Unit = (typeof UNITS)[number];
-
 const slugify = (s: string) =>
     s.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 

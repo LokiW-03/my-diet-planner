@@ -1,13 +1,12 @@
 import React from "react";
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 import type { FoodItem, MealEntry } from "@/shared/models";
-import type { MealKey, TargetName } from "@/shared/defaults";
 
 type Props = {
     foods: FoodItem[];
-    meals: Record<MealKey, MealEntry[]>;
+    meals: Record<string, MealEntry[]>;
     totals: { kcal: number; protein: number };
-    dayType: TargetName;
+    dayType: string;
 };
 
 export function PdfDoc({ foods, meals, totals, dayType }: Props) {

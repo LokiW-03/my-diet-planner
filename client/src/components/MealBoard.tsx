@@ -2,8 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useDroppable, useDraggable } from "@dnd-kit/core";
-import type { FoodId, FoodItem, MealEntry } from "@/shared/models";
-import { MEALS, type MealKey } from "@/shared/defaults";
+import type { FoodId, FoodItem, MealEntry, MealDefinition } from "@/shared/models";
 
 function MealEntryChip({
     meal,
@@ -13,7 +12,7 @@ function MealEntryChip({
     onPortionChange,
     onEditFood,
 }: {
-    meal: MealKey;
+    meal: string;
     entry: MealEntry;
     foods: FoodItem[];
     onRemove: () => void;
@@ -93,7 +92,7 @@ function MealPanel({
     onEditFood,
     footer,
 }: {
-    meal: MealKey;
+    meal: string;
     title: string;
     entries: MealEntry[];
     foods: FoodItem[];
@@ -140,33 +139,40 @@ function MealPanel({
 export function MealBoard({
     foods,
     meals,
+    mealDefs,
     mealTotals,
     onRemoveEntry,
     onPortionChange,
     onEditFood,
 }: {
     foods: FoodItem[];
-    meals: Record<MealKey, MealEntry[]>;
-    mealTotals: Record<MealKey, { kcal: number; protein: number }>;
-    onRemoveEntry: (meal: MealKey, entryId: string) => void;
-    onPortionChange: (meal: MealKey, entryId: string, portion: number) => void;
+    meals: Record<string, MealEntry[]>;
+    mealDefs: MealDefinition[];
+    mealTotals: Record<string, { kcal: number; protein: number }>;
+    onRemoveEntry: (mealId: string, entryId: string) => void;
+    onPortionChange: (mealId: string, entryId: string, portion: number) => void;
     onEditFood: (foodId: FoodId) => void;
 }) {
     return (
         <div style={mealGrid}>
-            {MEALS.map((meal) => (
-                <MealPanel
-                    key={meal}
-                    meal={meal}
-                    title={meal.toUpperCase()}
-                    entries={meals[meal]}
-                    foods={foods}
-                    onRemoveEntry={(id) => onRemoveEntry(meal, id)}
-                    onPortionChange={(id, n) => onPortionChange(meal, id, n)}
-                    onEditFood={onEditFood}
-                    footer={`Total: ~${Math.round(mealTotals[meal].kcal)} kcal, ~${Math.round(mealTotals[meal].protein)} g Protein`}
-                />
-            ))}
+            {mealDefs.map((m) => {
+                const mealId = String(m.id);
+                const panelMeals = meals[mealId] ?? [];
+                const panelTotals = mealTotals[mealId] ?? { kcal: 0, protein: 0 };
+                return (
+                    <MealPanel
+                        key={mealId}
+                        meal={mealId}
+                        title={m.name.toUpperCase()}
+                        entries={panelMeals}
+                        foods={foods}
+                        onRemoveEntry={(id) => onRemoveEntry(mealId, id)}
+                        onPortionChange={(id, n) => onPortionChange(mealId, id, n)}
+                        onEditFood={onEditFood}
+                        footer={`Total: ~${Math.round(panelTotals.kcal)} kcal, ~${Math.round(panelTotals.protein)} g Protein`}
+                    />
+                );
+            })}
         </div>
     );
 }

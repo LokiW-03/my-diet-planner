@@ -1,11 +1,12 @@
-import { Unit } from "./defaults";
-
 export type MealId = string & { readonly __brand: "MealId" };
 export type FoodId = string & { readonly __brand: "FoodId" };
 export type TargetId = string & { readonly __brand: "TargetId" };
 export type CategoryId = string & { readonly __brand: "CategoryId" };
 export type UserId = string & { readonly __brand: "UserId" };
 export type ProfileId = string & { readonly __brand: "ProfileId" };
+
+export const UNITS = ["g", "pc"] as const;
+export type Unit = (typeof UNITS)[number];
 
 export type FoodItem = {
     id: FoodId;

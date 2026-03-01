@@ -2,11 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { CategoryId, FoodCategory, FoodItem } from "@/shared/models";
-import type { Unit } from "@/shared/defaults";
-import { UNITS } from "@/shared/defaults";
+import { type Unit, UNITS } from "@/shared/models";
 import { clampInt } from "@/shared/utils";
-import { CATEGORIES, defaultCategories } from "@/shared/defaults";
-import { uid } from "@/shared/utils";
 
 type Props = {
     open: boolean;
@@ -19,15 +16,11 @@ type Props = {
     onDelete?: () => void;
 };
 
-const initialCategories = defaultCategories;
-
 export function FoodModal({ open, mode, categories, categoryPreset, food, onClose, onSave, onDelete }: Props) {
 
-    const safeCategories = categories ?? initialCategories;
-
     const visibleCats = useMemo(
-        () => safeCategories.filter((c) => c.enabled).slice().sort((a, b) => a.order - b.order),
-        [safeCategories]
+        () => (categories ?? []).filter((c) => c.enabled).slice().sort((a, b) => a.order - b.order),
+        [categories]
     );
 
     const initial = useMemo(() => {

@@ -1,8 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import type { CategoryId, FoodCategory, FoodItem } from "@/shared/models";
-import { CATEGORIES, defaultCategories } from "@/shared/defaults";
+import type { CategoryId, FoodItem } from "@/shared/models";
 import { useDraggable } from "@dnd-kit/core";
 import { useProfile } from "@/client/src/hooks/useProfile";
 

@@ -4,61 +4,63 @@ import { useMemo, useState } from "react";
 import { FaUserCircle } from "react-icons/fa"
 import dynamic from "next/dynamic";
 import { usePlannerStore, computeTotals } from "@/client/src/hooks/store";
-import type { CategoryId, FoodCategory, FoodItem, FoodId } from "@/shared/models";
-import type { Category, MealKey } from "@/shared/defaults";
-import { MEALS, DEFAULT_TARGETS } from "@/shared/defaults";
+import type { CategoryId, FoodItem, FoodId, MealDefinition } from "@/shared/models";
 import { FoodModal } from "@/client/src/components/FoodModal";
 import { UserProfilePanel } from "@/client/src/components/UserProfilePanel";
 import { useProfile } from "@/client/src/hooks/useProfile";
 
 const DndShell = dynamic(() => import("@/client/src/components/DndShell"), { ssr: false });
 
-function computeMealTotals(foods: FoodItem[], meals: Record<MealKey, any[]>) {
+function computeMealTotals(
+  foods: FoodItem[],
+  meals: Record<string, any[]>,
+  mealDefs: MealDefinition[]
+) {
   const map = new Map<FoodId, FoodItem>(foods.map((f) => [f.id, f]));
-  const out = {} as Record<MealKey, { kcal: number; protein: number }>;
+  const out = {} as Record<string, { kcal: number; protein: number }>;
 
-  for (const k of MEALS) {
+  for (const m of mealDefs) {
+    const key = String(m.id);
     let kcal = 0, protein = 0;
-
-    for (const e of meals[k]) {
+    for (const e of meals[key] ?? []) {
       const f = map.get(e.foodId as FoodId);
       if (!f) continue;
       kcal += e.portion * f.kcalPerUnit;
       protein += e.portion * f.proteinPerUnit;
     }
-    out[k] = { kcal, protein };
+    out[key] = { kcal, protein };
   }
   return out;
 }
 
 export default function Page() {
-  const categories = usePlannerStore((s) => s.categories);
-  const foods = usePlannerStore((s) => s.foods);
   const meals = usePlannerStore((s) => s.meals);
-
   const dayType = usePlannerStore((s) => s.dayType);
   const setDayType = usePlannerStore((s) => s.setDayType);
-
-  const addFood = usePlannerStore((s) => s.addFood);
-  const updateFood = usePlannerStore((s) => s.updateFood);
-  const removeFood = usePlannerStore((s) => s.removeFood);
-
   const addEntryToMeal = usePlannerStore((s) => s.addEntryToMeal);
   const removeEntryFromMeal = usePlannerStore((s) => s.removeEntryFromMeal);
   const moveEntry = usePlannerStore((s) => s.moveEntry);
   const setEntryPortion = usePlannerStore((s) => s.setEntryPortion);
-
+  const removeEntriesForFood = usePlannerStore((s) => s.removeEntriesForFood);
   const clearAllMeals = usePlannerStore((s) => s.clearAllMeals);
 
-  const totals = useMemo(() => computeTotals(foods, meals), [foods, meals]);
-  const mealTotals = useMemo(() => computeMealTotals(foods, meals), [foods, meals]);
-
-  const { profile } = useProfile();
+  const { profile, addFood, updateFood, removeFood } = useProfile();
   const [showProfile, setShowProfile] = useState(false);
 
-  const targets = useMemo(() => {
-    return Object.values(profile.targets).slice().sort((a, b) => a.name.localeCompare(b.name));
-  }, [profile.targets]);
+  // All data comes from profile
+  const foods = useMemo(() => Object.values(profile.foods), [profile.foods]);
+  const categories = useMemo(() => Object.values(profile.categories), [profile.categories]);
+  const targets = useMemo(
+    () => Object.values(profile.targets).slice().sort((a, b) => a.name.localeCompare(b.name)),
+    [profile.targets]
+  );
+  const mealDefs = useMemo(
+    () => Object.values(profile.meals).filter((m) => m.enabled).sort((a, b) => a.order - b.order),
+    [profile.meals]
+  );
+
+  const totals = useMemo(() => computeTotals(foods, meals), [foods, meals]);
+  const mealTotals = useMemo(() => computeMealTotals(foods, meals, mealDefs), [foods, meals, mealDefs]);
 
   // modal state
   const [modalOpen, setModalOpen] = useState(false);
@@ -66,7 +68,7 @@ export default function Page() {
   const [categoryPreset, setCategoryPreset] = useState<CategoryId | undefined>(undefined);
   const [editingFoodId, setEditingFoodId] = useState<FoodId | null>(null);
 
-  const editingFood = editingFoodId ? foods.find((f) => f.id === editingFoodId) ?? null : null;
+  const editingFood = editingFoodId ? (profile.foods[editingFoodId] ?? null) : null;
 
   function openAdd(catId: CategoryId) {
     setModalMode("add");
@@ -82,7 +84,11 @@ export default function Page() {
     setModalOpen(true);
   }
 
-
+  function handleRemoveFood(foodId: FoodId) {
+    removeFood(foodId);
+    removeEntriesForFood(foodId);
+    setModalOpen(false);
+  }
 
   return (
     <div style={{ ...page, background: "var(--background)" }}>
@@ -95,11 +101,11 @@ export default function Page() {
           <button style={dayBtn(showProfile)} onClick={() => setShowProfile((v) => !v)}>
             <FaUserCircle size={18} />
           </button>
-          {DEFAULT_TARGETS.map((t) => (
+          {targets.map((t) => (
             <button
-              key={t.name}
-              style={dayBtn(dayType === t.name)}
-              onClick={() => setDayType(t.name)}
+              key={String(t.id)}
+              style={dayBtn(dayType === String(t.id))}
+              onClick={() => setDayType(String(t.id))}
             >
               {t.name}
             </button>
@@ -107,22 +113,26 @@ export default function Page() {
         </div>
 
         <DndShell
-          categories={categories}
           foods={foods}
           meals={meals}
+          mealDefs={mealDefs}
           mealTotals={mealTotals}
           totals={totals}
           dayType={dayType}
+          targets={targets}
           weightKg={profile.weightKg}
-          onRemoveEntry={(meal, entryId) => removeEntryFromMeal(meal, entryId)}
-          onPortionChange={(meal, entryId, portion) => setEntryPortion(meal, entryId, portion)}
+          onRemoveEntry={(mealId, entryId) => removeEntryFromMeal(mealId, entryId)}
+          onPortionChange={(mealId, entryId, portion) => setEntryPortion(mealId, entryId, portion)}
           onEditFood={(foodId) => {
-            const f = foods.find((x) => x.id === foodId);
+            const f = profile.foods[foodId];
             if (f) openEdit(f);
           }}
           openAdd={openAdd}
           openEdit={openEdit}
-          addEntryToMeal={addEntryToMeal}
+          addEntryToMeal={(mealId, foodId) => {
+            const food = profile.foods[foodId];
+            addEntryToMeal(mealId, foodId, food?.defaultPortion ?? 100);
+          }}
           moveEntry={moveEntry}
           clearAll={clearAllMeals}
         />
@@ -145,10 +155,7 @@ export default function Page() {
         }}
         onDelete={
           modalMode === "edit" && editingFoodId
-            ? () => {
-              removeFood(editingFoodId);
-              setModalOpen(false);
-            }
+            ? () => handleRemoveFood(editingFoodId)
             : undefined
         }
       />
@@ -160,11 +167,6 @@ const page: React.CSSProperties = { minHeight: "100vh" };
 const topBar: React.CSSProperties = { height: 54, display: "flex", alignItems: "center", justifyContent: "center" };
 
 const wrap: React.CSSProperties = { padding: 18, maxWidth: 1200, margin: "0 auto" };
-
-const mainGrid: React.CSSProperties = { display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 16, alignItems: "start" };
-
-const bottomBar: React.CSSProperties = { marginTop: 14, display: "flex", gap: 14, alignItems: "center" };
-const summaryCard: React.CSSProperties = { border: "1px solid var(--card-border)", borderRadius: 14, padding: 14, minWidth: 220, background: "var(--card-bg)" };
 
 const dayBtn = (active: boolean): React.CSSProperties => ({
   padding: "10px 18px",

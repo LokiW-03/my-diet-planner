@@ -4,16 +4,16 @@ import { DndContext, DragEndEvent } from "@dnd-kit/core";
 import { MealBoard } from "@/client/src/components/MealBoard";
 import { FoodLibrary } from "@/client/src/components/FoodLibrary";
 import { ExportButton } from "@/client/src/components/ExportButton";
-import type { CategoryId, FoodCategory, FoodItem, FoodId, MealEntry } from "@/shared/models";
-import type { MealKey, TargetName } from "@/shared/defaults";
-import { TARGETS_BY_NAME } from "@/shared/defaults";
+import type { FoodItem, FoodId, MealEntry, Target, MealDefinition, CategoryId } from "@/shared/models";
 
 export default function DndShell({
     foods,
     meals,
+    mealDefs,
     mealTotals,
     totals,
     dayType,
+    targets,
     weightKg,
     onRemoveEntry,
     onPortionChange,
@@ -24,20 +24,21 @@ export default function DndShell({
     moveEntry,
     clearAll,
 }: {
-    categories: FoodCategory[];
     foods: FoodItem[];
-    meals: Record<MealKey, MealEntry[]>;
-    mealTotals: Record<MealKey, { kcal: number; protein: number }>;
+    meals: Record<string, MealEntry[]>;
+    mealDefs: MealDefinition[];
+    mealTotals: Record<string, { kcal: number; protein: number }>;
     totals: { kcal: number; protein: number };
-    dayType: TargetName;
+    dayType: string;
+    targets: Target[];
     weightKg?: number;
-    onRemoveEntry: (meal: MealKey, entryId: string) => void;
-    onPortionChange: (meal: MealKey, entryId: string, portion: number) => void;
+    onRemoveEntry: (mealId: string, entryId: string) => void;
+    onPortionChange: (mealId: string, entryId: string, portion: number) => void;
     onEditFood: (foodId: FoodId) => void;
     openAdd: (catId: CategoryId) => void;
     openEdit: (food: FoodItem) => void;
-    addEntryToMeal: (meal: MealKey, foodId: FoodId) => void;
-    moveEntry: (from: MealKey, to: MealKey, entryId: string) => void;
+    addEntryToMeal: (mealId: string, foodId: FoodId) => void;
+    moveEntry: (from: string, to: string, entryId: string) => void;
     clearAll: () => void;
 }) {
     function onDragEnd(ev: DragEndEvent) {
@@ -46,7 +47,7 @@ export default function DndShell({
         if (!overId) return;
         if (!overId.startsWith("drop:")) return;
 
-        const toMeal = overId.slice("drop:".length) as MealKey;
+        const toMeal = overId.slice("drop:".length);  // string MealId
 
         if (activeId.startsWith("lib:")) {
             const foodId = activeId.slice("lib:".length) as unknown as FoodId;
@@ -59,7 +60,7 @@ export default function DndShell({
             const i = rest.indexOf(":");
             if (i === -1) return;
 
-            const fromMeal = rest.slice(0, i) as MealKey;
+            const fromMeal = rest.slice(0, i); // string MealId
             const entryId = rest.slice(i + 1);
 
             moveEntry(fromMeal, toMeal, entryId);
@@ -70,7 +71,7 @@ export default function DndShell({
     const proteinRatio = weightKg && weightKg > 0 ? totals.protein / weightKg : null;
     const proteinGood = proteinRatio === null || (proteinRatio >= 0.8 && proteinRatio <= 2.2);
 
-    const target = TARGETS_BY_NAME[dayType];
+    const target = targets.find((t) => String(t.id) === dayType) ?? null;
     const kcal = Math.round(totals.kcal);
     let stillNeed = 0;
     if (!target) {
@@ -88,6 +89,7 @@ export default function DndShell({
                     <MealBoard
                         foods={foods}
                         meals={meals}
+                        mealDefs={mealDefs}
                         mealTotals={mealTotals}
                         onRemoveEntry={onRemoveEntry}
                         onPortionChange={onPortionChange}
@@ -107,7 +109,7 @@ export default function DndShell({
                             <div style={{ fontWeight: 700, color: "var(--chip-border)" }}>to meet target</div>
                         </div>
 
-                        <ExportButton foods={foods} meals={meals} totals={totals} dayType={dayType} />
+                        <ExportButton foods={foods} meals={meals} totals={totals} dayType={target?.name ?? dayType} />
                         <button
                             style={{
                                 padding: "10px 14px",
