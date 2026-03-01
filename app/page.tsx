@@ -113,6 +113,7 @@ export default function Page() {
           mealTotals={mealTotals}
           totals={totals}
           dayType={dayType}
+          weightKg={profile.weightKg}
           onRemoveEntry={(meal, entryId) => removeEntryFromMeal(meal, entryId)}
           onPortionChange={(meal, entryId, portion) => setEntryPortion(meal, entryId, portion)}
           onEditFood={(foodId) => {

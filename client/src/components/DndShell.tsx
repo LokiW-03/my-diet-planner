@@ -14,6 +14,7 @@ export default function DndShell({
     mealTotals,
     totals,
     dayType,
+    weightKg,
     onRemoveEntry,
     onPortionChange,
     onEditFood,
@@ -29,6 +30,7 @@ export default function DndShell({
     mealTotals: Record<MealKey, { kcal: number; protein: number }>;
     totals: { kcal: number; protein: number };
     dayType: TargetName;
+    weightKg?: number;
     onRemoveEntry: (meal: MealKey, entryId: string) => void;
     onPortionChange: (meal: MealKey, entryId: string, portion: number) => void;
     onEditFood: (foodId: FoodId) => void;
@@ -65,6 +67,9 @@ export default function DndShell({
         }
     }
 
+    const proteinRatio = weightKg && weightKg > 0 ? totals.protein / weightKg : null;
+    const proteinGood = proteinRatio === null || (proteinRatio >= 0.8 && proteinRatio <= 2.2);
+
     const target = TARGETS_BY_NAME[dayType];
     const kcal = Math.round(totals.kcal);
     let stillNeed = 0;
@@ -93,7 +98,7 @@ export default function DndShell({
                         <div style={{ border: "1px solid var(--card-border)", borderRadius: 14, padding: 14, minWidth: 160, background: "var(--background)" }}>
                             <div style={{ fontWeight: 900 }}>TOTAL</div>
                             <div style={{ fontSize: 26, fontWeight: 900 }}>{Math.round(totals.kcal)} kcal</div>
-                            <div style={{ fontWeight: 700 }}>{Math.round(totals.protein)}g Protein</div>
+                            <div style={{ fontWeight: 700, color: proteinGood ? undefined : "var(--danger-fg)" }}>{Math.round(totals.protein)}g Protein</div>
                         </div>
 
                         <div style={{ border: "1px solid var(--card-border)", borderRadius: 14, padding: 14, minWidth: 160, background: "var(--background)", textAlign: "center" }}>

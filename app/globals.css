@@ -15,7 +15,7 @@
   --btn-bg: var(--accent);
   --btn-fg: #ffffff;
   --btn-border: rgba(0, 0, 0, 0.12);
-  --danger-fg: #b00020;
+  --danger-fg: #c53038;
 }
 
 @theme inline {
