@@ -106,12 +106,6 @@ export default function Page() {
           ))}
         </div>
 
-        {showProfile && (
-          <div style={{ marginBottom: 14 }}>
-            <UserProfilePanel />
-          </div>
-        )}
-
         <DndShell
           categories={categories}
           foods={foods}
@@ -132,6 +126,10 @@ export default function Page() {
           clearAll={clearAllMeals}
         />
       </div>
+
+      <UserProfilePanel
+        open={showProfile}
+        onClose={() => setShowProfile(false)} />
 
       <FoodModal
         open={modalOpen}
