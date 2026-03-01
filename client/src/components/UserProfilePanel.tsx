@@ -48,7 +48,7 @@ export function UserProfilePanel({ open, onClose }: UserProfilePanelProps) {
         <div style={overlay} onClick={onClose}>
             <div style={panel} onClick={(e) => e.stopPropagation()}>
                 <div style={panelHeader}>
-                    <h3 style={{ margin: 0 }}>User Profile</h3>
+                    <h3 style={{ margin: 0, color: "var(--background)", fontWeight: 700 }}>User Profile</h3>
                     <button style={closeBtn} onClick={onClose}>✕</button>
                 </div>
 
@@ -87,99 +87,26 @@ export function UserProfilePanel({ open, onClose }: UserProfilePanelProps) {
                                 }
                             />
                         </div>
-                    </div>
 
-                    <div style={section}>
-                        <h4 style={h4}>Targets</h4>
-                        {targets.map((t) => (
-                            <div key={String(t.id)} style={card}>
-                                <div style={row}>
-                                    <label style={label}>ID</label>
-                                    <div style={readonlyBox}>{String(t.id)}</div>
-                                </div>
-                                <div style={row}>
-                                    <label style={label}>Name</label>
-                                    <input
-                                        style={input}
-                                        value={t.name}
-                                        onChange={(e) => updateTarget(t.id, { name: e.target.value })}
-                                    />
-                                </div>
-                                <div style={row2}>
-                                    <div style={{ flex: 1 }}>
-                                        <label style={label}>Min kcal</label>
-                                        <input
-                                            style={input}
-                                            type="number"
-                                            value={t.minKcal}
-                                            onChange={(e) =>
-                                                updateTarget(t.id, { minKcal: Number(e.target.value || 0) })
-                                            }
-                                        />
-                                    </div>
-                                    <div style={{ flex: 1 }}>
-                                        <label style={label}>Max kcal</label>
-                                        <input
-                                            style={input}
-                                            type="number"
-                                            value={t.maxKcal}
-                                            onChange={(e) =>
-                                                updateTarget(t.id, { maxKcal: Number(e.target.value || 0) })
-                                            }
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-
-                    <div style={section}>
-                        <h4 style={h4}>Meals</h4>
-                        {meals.map((m) => (
-                            <div key={String(m.id)} style={card}>
-                                <div style={row}>
-                                    <label style={label}>ID</label>
-                                    <div style={readonlyBox}>{String(m.id)}</div>
-                                </div>
-                                <div style={row}>
-                                    <label style={label}>Name</label>
-                                    <input
-                                        style={input}
-                                        value={m.name}
-                                        onChange={(e) => updateMeal(m.id, { name: e.target.value })}
-                                    />
-                                </div>
-                                <div style={row2}>
-                                    <div style={{ flex: 1 }}>
-                                        <label style={label}>Order</label>
-                                        <input
-                                            style={input}
-                                            type="number"
-                                            value={m.order}
-                                            onChange={(e) =>
-                                                updateMeal(m.id, { order: Number(e.target.value || 0) })
-                                            }
-                                        />
-                                    </div>
-                                    <div style={{ flex: 1 }}>
-                                        <label style={label}>Enabled</label>
-                                        <div style={{ display: "flex", alignItems: "center", height: 38 }}>
-                                            <input
-                                                type="checkbox"
-                                                checked={m.enabled}
-                                                onChange={(e) => updateMeal(m.id, { enabled: e.target.checked })}
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
+                        <button style={saveBtn} onClick={() => onClose()}>Save Profile</button>
                     </div>
                 </div>
             </div>
         </div>
     );
 }
+
+const saveBtn: React.CSSProperties = {
+    display: "block",
+    margin: "0 auto",
+    padding: "10px 14px",
+    borderRadius: 12,
+    border: "1px solid var(--card-border)",
+    background: "var(--card-bg)",
+    color: "var(--background)",
+    fontWeight: 700,
+};
+
 
 const overlay: React.CSSProperties = {
     position: "fixed",
@@ -215,8 +142,9 @@ const closeBtn: React.CSSProperties = {
     background: "none",
     border: "none",
     fontSize: 18,
+    fontWeight: 700,
     cursor: "pointer",
-    color: "var(--foreground)",
+    color: "var(--background)",
     lineHeight: 1,
     padding: 4,
 };
@@ -250,7 +178,7 @@ const row2: React.CSSProperties = {
     gap: 10,
 };
 
-const label: React.CSSProperties = { fontWeight: 700, opacity: 0.85 };
+const label: React.CSSProperties = { fontWeight: 700, opacity: 0.85, color: "var(--background)" };
 
 const input: React.CSSProperties = {
     height: 38,
@@ -273,4 +201,5 @@ const readonlyBox: React.CSSProperties = {
     opacity: 0.9,
     fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
     overflowX: "auto",
+    color: "var(--background)",
 };
