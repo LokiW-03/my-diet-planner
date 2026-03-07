@@ -54,6 +54,7 @@ export default function Page() {
 
   const { profile, addFood, updateFood, removeFood } = useProfile();
   const [showProfile, setShowProfile] = useState(false);
+  const [sessionMealDefs, setSessionMealDefs] = useState<MealDefinition[]>([]);
 
   // All data comes from profile
   const foods = useMemo(() => Object.values(profile.foods), [profile.foods]);
@@ -63,10 +64,10 @@ export default function Page() {
     [profile.targets]
   );
   const mealDefs = useMemo(() => {
-    // if you already compute mealDefs elsewhere, apply only the extra filter:
-    const defs = Object.values(profile.meals)
-      .filter((m) => m.enabled)
-      .filter((m) => !hiddenMeals[String(m.id)])
+    const profileDefs = Object.values(profile.meals).filter((m) => m.enabled);
+
+    const defs = [...profileDefs, ...sessionMealDefs].filter((m) => !hiddenMeals[String(m.id)]);
+
 
     if (mealPanelOrder.length === 0) {
       return defs.sort((a, b) => a.order - b.order);
@@ -80,7 +81,33 @@ export default function Page() {
       return a.order - b.order;;
     });
 
-  }, [profile.meals, hiddenMeals, mealPanelOrder]);
+  }, [profile.meals, sessionMealDefs, hiddenMeals, mealPanelOrder]);
+
+  const handleInsertMealPanel = (index: number) => {
+    const name = window.prompt("Meal name?");
+    if (!name) return;
+
+    const trimmed = name.trim();
+    if (!trimmed) return;
+
+    // numeric id to stay compatible with MealDefinition typing
+    const newId = Date.now() + Math.floor(Math.random() * 1000);
+
+    const newDef: MealDefinition = {
+      id: newId as any,
+      name: trimmed,
+      enabled: true as any,
+      order: 10_000 + sessionMealDefs.length,
+    } as MealDefinition;
+
+    setSessionMealDefs((prev) => [...prev, newDef]);
+
+    // insert into current visual order
+    const ids = mealDefs.map((m) => String(m.id));
+    const clamped = Math.max(0, Math.min(index, ids.length));
+    ids.splice(clamped, 0, String(newId));
+    setMealPanelOrder(ids);
+  };
 
   const totals = useMemo(() => computeTotals(foods, meals), [foods, meals]);
   const mealTotals = useMemo(() => computeMealTotals(foods, meals, mealDefs), [foods, meals, mealDefs]);
@@ -142,6 +169,7 @@ export default function Page() {
             onClick={() => {
               resetHiddenMeals();
               resetMealPanelOrder();
+              setSessionMealDefs([]);
             }}
           >
             <FiRotateCcw size={18} />
@@ -168,6 +196,7 @@ export default function Page() {
             removeMeal(mealId);    // clear chips/entries
           }}
           onReorderMealPanels={(nextOrder) => setMealPanelOrder(nextOrder)}
+          onInsertMealPanel={handleInsertMealPanel}
           openAdd={openAdd}
           openEdit={openEdit}
           addEntryToMeal={(mealId, foodId) => {

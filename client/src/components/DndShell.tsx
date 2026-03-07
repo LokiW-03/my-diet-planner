@@ -21,6 +21,7 @@ export default function DndShell({
     onEditFood,
     onRemoveMeal,
     onReorderMealPanels,
+    onInsertMealPanel,
     openAdd,
     openEdit,
     addEntryToMeal,
@@ -40,6 +41,7 @@ export default function DndShell({
     onEditFood: (foodId: FoodId) => void;
     onRemoveMeal: (mealId: string) => void;
     onReorderMealPanels: (nextOrder: string[]) => void;
+    onInsertMealPanel: (index: number) => void;
     openAdd: (catId: CategoryId) => void;
     openEdit: (food: FoodItem) => void;
     addEntryToMeal: (mealId: string, foodId: FoodId) => void;
@@ -57,55 +59,58 @@ export default function DndShell({
         setActiveId(null);
     }
     function onDragEnd(ev: DragEndEvent) {
-        const activeId = String(ev.active.id);
-        const overId = ev.over ? String(ev.over.id) : null;
+        try {
+            const activeId = String(ev.active.id);
+            const overId = ev.over ? String(ev.over.id) : null;
 
-        if (!overId) return;
+            if (!overId) return;
 
-        if (activeId.startsWith("panel:")) {
-            const fromMealId = activeId.slice("panel:".length);
-            const toMealId = overId.startsWith("panel:")
-                ? overId.slice("panel:".length)
-                : overId.startsWith("drop:")
-                    ? overId.slice("drop:".length)
-                    : "";
+            if (activeId.startsWith("panel:")) {
+                const fromMealId = activeId.slice("panel:".length);
+                const toMealId = overId.startsWith("panel:")
+                    ? overId.slice("panel:".length)
+                    : overId.startsWith("drop:")
+                        ? overId.slice("drop:".length)
+                        : "";
 
-            if (!fromMealId || !toMealId || fromMealId === toMealId) return;
+                if (!fromMealId || !toMealId || fromMealId === toMealId) return;
 
-            const ids = mealDefs.map((m) => String(m.id));
-            const from = ids.indexOf(fromMealId);
-            const to = ids.indexOf(toMealId);
-            if (from === -1 || to === -1 || from === to) return;
+                const ids = mealDefs.map((m) => String(m.id));
+                const from = ids.indexOf(fromMealId);
+                const to = ids.indexOf(toMealId);
+                if (from === -1 || to === -1 || from === to) return;
 
-            const next = ids.slice();
-            const [moved] = next.splice(from, 1);
-            next.splice(to, 0, moved);
+                const next = ids.slice();
+                const [moved] = next.splice(from, 1);
+                next.splice(to, 0, moved);
 
-            onReorderMealPanels(next);
+                onReorderMealPanels(next);
+                return;
+            }
+
+            if (!overId.startsWith("drop:")) return;
+
+            const toMeal = overId.slice("drop:".length);
+
+            if (activeId.startsWith("lib:")) {
+                const foodId = activeId.slice("lib:".length) as unknown as FoodId;
+                addEntryToMeal(toMeal, foodId);
+                return;
+            }
+
+            if (activeId.startsWith("meal:")) {
+                const rest = activeId.slice("meal:".length);
+                const i = rest.indexOf(":");
+                if (i === -1) return;
+
+                const fromMeal = rest.slice(0, i);
+                const entryId = rest.slice(i + 1);
+
+                moveEntry(fromMeal, toMeal, entryId);
+                return;
+            }
+        } finally {
             setActiveId(null);
-            return;
-        }
-
-        if (!overId.startsWith("drop:")) return;
-
-        const toMeal = overId.slice("drop:".length);  // string MealId
-
-        if (activeId.startsWith("lib:")) {
-            const foodId = activeId.slice("lib:".length) as unknown as FoodId;
-            addEntryToMeal(toMeal, foodId);
-            return;
-        }
-
-        if (activeId.startsWith("meal:")) {
-            const rest = activeId.slice("meal:".length);
-            const i = rest.indexOf(":");
-            if (i === -1) return;
-
-            const fromMeal = rest.slice(0, i); // string MealId
-            const entryId = rest.slice(i + 1);
-
-            moveEntry(fromMeal, toMeal, entryId);
-            return;
         }
     }
 
@@ -136,6 +141,7 @@ export default function DndShell({
                         onPortionChange={onPortionChange}
                         onEditFood={onEditFood}
                         onRemoveMeal={onRemoveMeal}
+                        onInsertMealPanel={onInsertMealPanel}
                     />
 
                     <div style={{ marginTop: 14, display: "flex", gap: 14, alignItems: "center" }}>

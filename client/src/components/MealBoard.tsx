@@ -243,6 +243,7 @@ export function MealBoard({
     onPortionChange,
     onEditFood,
     onRemoveMeal,
+    onInsertMealPanel,
 }: {
     foods: FoodItem[];
     meals: Record<string, MealEntry[]>;
@@ -252,6 +253,7 @@ export function MealBoard({
     onPortionChange: (mealId: string, entryId: string, portion: number) => void;
     onEditFood: (foodId: FoodId) => void;
     onRemoveMeal: (mealId: string) => void;
+    onInsertMealPanel: (index: number) => void;
 }) {
     const [collapsedMeals, setCollapsedMeals] = React.useState<Record<string, boolean>>({}); // NEW
     const sortableItems = mealDefs.map((m) => `panel:${String(m.id)}`);
@@ -262,29 +264,44 @@ export function MealBoard({
     return (
         <SortableContext items={sortableItems} strategy={rectSortingStrategy}>
             <div style={mealGrid}>
-                {mealDefs.map((m) => {
+                {mealDefs.map((m, idx) => {
                     const mealId = String(m.id);
                     const panelMeals = meals[mealId] ?? [];
                     const panelTotals = mealTotals[mealId] ?? { kcal: 0, protein: 0 };
                     return (
-                        <MealPanel
-                            key={mealId}
-                            meal={mealId}
-                            title={m.name.toUpperCase()}
-                            entries={panelMeals}
-                            foods={foods}
-                            onRemoveEntry={(id) => onRemoveEntry(mealId, id)}
-                            onPortionChange={(id, n) => onPortionChange(mealId, id, n)}
-                            onEditFood={onEditFood}
-                            onRemoveMeal={onRemoveMeal}
-                            collapsed={!!collapsedMeals[mealId]}
-                            onToggleCollapsed={() => toggleCollapsed(mealId)}
-                            footer={`Total: ~${Math.round(panelTotals.kcal)} kcal, ~${Math.round(panelTotals.protein)} g Protein`}
-                        />
+                        <React.Fragment key={mealId}>
+                            <MealPanel
+                                key={mealId}
+                                meal={mealId}
+                                title={m.name.toUpperCase()}
+                                entries={panelMeals}
+                                foods={foods}
+                                onRemoveEntry={(id) => onRemoveEntry(mealId, id)}
+                                onPortionChange={(id, n) => onPortionChange(mealId, id, n)}
+                                onEditFood={onEditFood}
+                                onRemoveMeal={onRemoveMeal}
+                                collapsed={!!collapsedMeals[mealId]}
+                                onToggleCollapsed={() => toggleCollapsed(mealId)}
+                                footer={`Total: ~${Math.round(panelTotals.kcal)} kcal, ~${Math.round(panelTotals.protein)} g Protein`}
+                            />
+                            <InsertRow onClick={() => onInsertMealPanel(idx + 1)} />
+                        </React.Fragment>
                     );
                 })}
             </div>
         </SortableContext>
+    );
+}
+
+function InsertRow({ onClick }: { onClick: () => void }) {
+    return (
+        <div style={insertRow}>
+            <div style={insertLine} />
+            <button type="button" style={insertBtn} onClick={onClick} title="Insert meal panel here" aria-label="Insert meal panel here">
+                +
+            </button>
+            <div style={insertLine} />
+        </div>
     );
 }
 
@@ -394,6 +411,38 @@ const mealHeaderActions: React.CSSProperties = {
     display: "flex",
     alignItems: "center",
     gap: 10,
+};
+
+const insertRow: React.CSSProperties = {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    padding: "6px 4px",
+};
+
+const insertLine: React.CSSProperties = {
+    flex: 1,
+    height: 0,
+    borderTop: "1px dashed var(--divider)",
+    color: "var(--divider)",
+    opacity: 0.7,
+};
+
+const insertBtn: React.CSSProperties = {
+    width: 34,
+    height: 34,
+    borderRadius: 12,
+    border: "1px solid var(--card-border)",
+    background: "var(--card-bg)",
+    color: "var(--background)",
+    cursor: "pointer",
+    fontWeight: 900,
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 0,
+    lineHeight: 0,
+    opacity: 0.7,
 };
 
 const entryNameBtn: React.CSSProperties = { textAlign: "left", border: "none", background: "transparent", fontWeight: 800, cursor: "pointer", color: "var(--background)" };
