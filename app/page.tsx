@@ -8,6 +8,7 @@ import type { CategoryId, FoodItem, FoodId, MealDefinition } from "@/shared/mode
 import { FoodModal } from "@/client/src/components/FoodModal";
 import { UserProfilePanel } from "@/client/src/components/UserProfilePanel";
 import { useProfile } from "@/client/src/hooks/useProfile";
+import { FiRotateCcw } from "react-icons/fi";
 
 const DndShell = dynamic(() => import("@/client/src/components/DndShell"), { ssr: false });
 
@@ -42,6 +43,10 @@ export default function Page() {
   const moveEntry = usePlannerStore((s) => s.moveEntry);
   const setEntryPortion = usePlannerStore((s) => s.setEntryPortion);
   const removeEntriesForFood = usePlannerStore((s) => s.removeEntriesForFood);
+  const removeMeal = usePlannerStore((s) => s.removeMeal);
+  const hiddenMeals = usePlannerStore((s) => s.hiddenMeals);
+  const hideMealPanel = usePlannerStore((s) => s.hideMealPanel);
+  const resetHiddenMeals = usePlannerStore((s) => s.resetHiddenMeals);
   const clearAllMeals = usePlannerStore((s) => s.clearAllMeals);
 
   const { profile, addFood, updateFood, removeFood } = useProfile();
@@ -54,14 +59,18 @@ export default function Page() {
     () => Object.values(profile.targets).slice().sort((a, b) => a.name.localeCompare(b.name)),
     [profile.targets]
   );
-  const mealDefs = useMemo(
-    () => Object.values(profile.meals).filter((m) => m.enabled).sort((a, b) => a.order - b.order),
-    [profile.meals]
-  );
+  const mealDefs = useMemo(() => {
+    // if you already compute mealDefs elsewhere, apply only the extra filter:
+    return Object.values(profile.meals)
+      .filter((m) => m.enabled)
+      .filter((m) => !hiddenMeals[String(m.id)])
+      .sort((a, b) => a.order - b.order);
+  }, [profile.meals, hiddenMeals]);
 
   const totals = useMemo(() => computeTotals(foods, meals), [foods, meals]);
   const mealTotals = useMemo(() => computeMealTotals(foods, meals, mealDefs), [foods, meals, mealDefs]);
-
+  const hasAnyHiddenPanels = Object.keys(hiddenMeals).length > 0;
+  const hasAnyEntries = Object.keys(meals).length > 0;
   // modal state
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"add" | "edit">("add");
@@ -110,6 +119,17 @@ export default function Page() {
               {t.name}
             </button>
           ))}
+
+          <button
+            type="button"
+            style={dayBtn(false)}
+            disabled={!hasAnyHiddenPanels && !hasAnyEntries}
+            onClick={() => {
+              resetHiddenMeals();
+            }}
+          >
+            <FiRotateCcw size={18} />
+          </button>
         </div>
 
         <DndShell
@@ -126,6 +146,10 @@ export default function Page() {
           onEditFood={(foodId) => {
             const f = profile.foods[foodId];
             if (f) openEdit(f);
+          }}
+          onRemoveMeal={(mealId) => {
+            hideMealPanel(mealId); // hide panel (UI)
+            removeMeal(mealId);    // clear chips/entries
           }}
           openAdd={openAdd}
           openEdit={openEdit}
@@ -159,7 +183,7 @@ export default function Page() {
             : undefined
         }
       />
-    </div>
+    </div >
   );
 }
 

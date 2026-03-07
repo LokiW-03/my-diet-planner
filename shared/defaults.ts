@@ -7,7 +7,7 @@ export const defaultCategoryId = (name: string) => `cat:${name}` as unknown as C
 export const CATEGORIES = ["Proteins", "Veggies", "Carbs", "Others"] as const;
 export type Category = (typeof CATEGORIES)[number];
 
-export const MEALS = ["breakfast", "lunch", "dinner"] as const;
+export const MEALS = ["breakfast", "lunch", "post-workout", "dinner"] as const;
 export type MealKey = (typeof MEALS)[number];
 
 const slugify = (s: string) =>

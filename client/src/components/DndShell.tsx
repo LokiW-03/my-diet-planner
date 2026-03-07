@@ -18,6 +18,7 @@ export default function DndShell({
     onRemoveEntry,
     onPortionChange,
     onEditFood,
+    onRemoveMeal,
     openAdd,
     openEdit,
     addEntryToMeal,
@@ -35,6 +36,7 @@ export default function DndShell({
     onRemoveEntry: (mealId: string, entryId: string) => void;
     onPortionChange: (mealId: string, entryId: string, portion: number) => void;
     onEditFood: (foodId: FoodId) => void;
+    onRemoveMeal: (mealId: string) => void;
     openAdd: (catId: CategoryId) => void;
     openEdit: (food: FoodItem) => void;
     addEntryToMeal: (mealId: string, foodId: FoodId) => void;
@@ -94,6 +96,7 @@ export default function DndShell({
                         onRemoveEntry={onRemoveEntry}
                         onPortionChange={onPortionChange}
                         onEditFood={onEditFood}
+                        onRemoveMeal={onRemoveMeal}
                     />
 
                     <div style={{ marginTop: 14, display: "flex", gap: 14, alignItems: "center" }}>

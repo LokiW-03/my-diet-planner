@@ -16,8 +16,14 @@ type PlannerState = {
     dayType: string;
     setDayType: (targetId: string) => void;
 
+    hiddenMeals: Record<string, true>; // MealIds of meals that are currently hidden in the UI
+    hideMealPanel: (mealId: string) => void;
+    showMealPanel: (mealId: string) => void;
+    resetHiddenMeals: () => void;
+
     addEntryToMeal: (mealId: string, foodId: FoodId, portion: number) => void;
     removeEntryFromMeal: (mealId: string, entryId: string) => void;
+    removeMeal: (mealId: string) => void;
     moveEntry: (from: string, to: string, entryId: string) => void;
     setEntryPortion: (mealId: string, entryId: string, portion: number) => void;
     removeEntriesForFood: (foodId: FoodId) => void;
@@ -29,6 +35,14 @@ export const usePlannerStore = create<PlannerState>()(
         (set) => ({
             meals: {},
             dayType: defaultTargetId("FULL"),
+            hiddenMeals: {} as Record<string, true>,
+            hideMealPanel: (mealId: string) => set((s) => ({ hiddenMeals: { ...s.hiddenMeals, [mealId]: true } })),
+            showMealPanel: (mealId: string) => set((s) => {
+                const newHidden = { ...s.hiddenMeals };
+                delete newHidden[mealId];
+                return { hiddenMeals: newHidden };
+            }),
+            resetHiddenMeals: () => set({ hiddenMeals: {} }),
 
             setDayType: (t) => set({ dayType: t }),
 
@@ -42,6 +56,13 @@ export const usePlannerStore = create<PlannerState>()(
                 set((s) => ({
                     meals: { ...s.meals, [mealId]: (s.meals[mealId] ?? []).filter((e) => e.entryId !== entryId) },
                 })),
+
+            removeMeal: (mealId) =>
+                set((s) => {
+                    const newMeals = { ...s.meals };
+                    delete newMeals[mealId];
+                    return { meals: newMeals };
+                }),
 
             moveEntry: (from, to, entryId) =>
                 set((s) => {
@@ -79,7 +100,13 @@ export const usePlannerStore = create<PlannerState>()(
 
             clearAllMeals: () => set({ meals: {} }),
         }),
-        { name: "diet-planner-v2" }
+        {
+            name: "diet-planner-v2",
+            partialize: (s) => ({
+                meals: s.meals,
+                dayType: s.dayType,
+            }),
+        }
     )
 );
 

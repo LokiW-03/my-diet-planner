@@ -3,6 +3,8 @@
 import React, { useEffect, useState } from "react";
 import { useDroppable, useDraggable } from "@dnd-kit/core";
 import type { FoodId, FoodItem, MealEntry, MealDefinition } from "@/shared/models";
+import { FaTrash } from "react-icons/fa";
+import { IoMdArrowDropdown, IoMdArrowDropright } from "react-icons/io";
 
 function MealEntryChip({
     meal,
@@ -90,6 +92,9 @@ function MealPanel({
     onRemoveEntry,
     onPortionChange,
     onEditFood,
+    onRemoveMeal,
+    collapsed,
+    onToggleCollapsed,
     footer,
 }: {
     meal: string;
@@ -99,39 +104,93 @@ function MealPanel({
     onRemoveEntry: (entryId: string) => void;
     onPortionChange: (entryId: string, n: number) => void;
     onEditFood: (foodId: FoodId) => void;
+    onRemoveMeal: (mealId: string) => void;
+    collapsed: boolean;
+    onToggleCollapsed?: () => void;
     footer: string;
 }) {
     const { setNodeRef, isOver } = useDroppable({ id: `drop:${meal}` });
 
     return (
         <div style={{ ...mealPanel, outline: isOver ? "2px solid var(--accent)" : "1px solid var(--card-border)" }}>
-            <div style={mealTitle}>{title}</div>
-            <div ref={setNodeRef} style={mealDropZone}>
-                {entries.length === 0 ? <div style={{ color: "var(--muted)" }}>Drag items here</div> : null}
-                {entries.map((e) => (
-                    <MealEntryChip
-                        key={e.entryId}
-                        meal={meal}
-                        entry={e}
-                        foods={foods}
-                        onRemove={() => onRemoveEntry(e.entryId)}
-                        onPortionChange={(n) => onPortionChange(e.entryId, n)}
-                        onEditFood={() => onEditFood(e.foodId)}
-                    />
-                ))}
+            <div style={mealHeader}>
+                <div style={mealTitle}>{title}</div>
+
+                <div style={mealHeaderActions}>
+                    <button
+                        style={mealCollapseBtn}
+                        onClick={onToggleCollapsed}
+                        title={collapsed ? "Expand" : "Collapse"}
+                    >
+                        {collapsed ? <IoMdArrowDropright /> : <IoMdArrowDropdown />}
+                    </button>
+
+                    {onRemoveMeal ? (
+                        <button style={mealRemoveBtn} onClick={() => onRemoveMeal(meal)} title="Remove meal">
+                            <FaTrash />
+                        </button>
+                    ) : null}
+                </div>
             </div>
-            <div style={mealFooter}>
-                <div>{footer}</div>
-                <button
-                    style={clearBtn}
-                    onClick={() => {
-                        entries.forEach((e) => onRemoveEntry(e.entryId));
+
+
+            {collapsed ? (
+                <div
+                    // ref={setNodeRef}
+                    style={{
+                        ...mealDropZone,
+                        minHeight: 44,
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        gap: 10,
+                        padding: "8px 10px",
+                        border: "1px dashed var(--divider)",
+                        borderRadius: 12,
                     }}
-                    title="Clear all items"
                 >
-                    Clear
-                </button>
-            </div>
+                    <div style={{ color: "var(--muted)", fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis" }}>
+                        {entries.length} item{entries.length === 1 ? "" : "s"} • {footer}
+                    </div>
+
+                    <button
+                        style={clearBtn}
+                        onClick={() => entries.forEach((e) => onRemoveEntry(e.entryId))}
+                        title="Clear all items"
+                    >
+                        Clear
+                    </button>
+                </div>
+            ) : (
+                <>
+                    <div ref={setNodeRef} style={mealDropZone}>
+                        {entries.length === 0 ? <div style={{ color: "var(--muted)" }}>Drag items here</div> : null}
+                        {entries.map((e) => (
+                            <MealEntryChip
+                                key={e.entryId}
+                                meal={meal}
+                                entry={e}
+                                foods={foods}
+                                onRemove={() => onRemoveEntry(e.entryId)}
+                                onPortionChange={(n) => onPortionChange(e.entryId, n)}
+                                onEditFood={() => onEditFood(e.foodId)}
+                            />
+                        ))}
+                    </div>
+                    <div style={mealFooter}>
+                        <div>{footer}</div>
+                        <button
+                            style={clearBtn}
+                            onClick={() => {
+                                entries.forEach((e) => onRemoveEntry(e.entryId));
+                            }}
+                            title="Clear all items"
+                        >
+                            Clear
+                        </button>
+                    </div>
+                </>
+            )}
         </div>
     );
 }
@@ -144,6 +203,7 @@ export function MealBoard({
     onRemoveEntry,
     onPortionChange,
     onEditFood,
+    onRemoveMeal,
 }: {
     foods: FoodItem[];
     meals: Record<string, MealEntry[]>;
@@ -152,7 +212,13 @@ export function MealBoard({
     onRemoveEntry: (mealId: string, entryId: string) => void;
     onPortionChange: (mealId: string, entryId: string, portion: number) => void;
     onEditFood: (foodId: FoodId) => void;
+    onRemoveMeal: (mealId: string) => void;
 }) {
+    const [collapsedMeals, setCollapsedMeals] = React.useState<Record<string, boolean>>({}); // NEW
+
+    const toggleCollapsed = (mealId: string) => {
+        setCollapsedMeals((prev) => ({ ...prev, [mealId]: !prev[mealId] }));
+    };
     return (
         <div style={mealGrid}>
             {mealDefs.map((m) => {
@@ -169,6 +235,9 @@ export function MealBoard({
                         onRemoveEntry={(id) => onRemoveEntry(mealId, id)}
                         onPortionChange={(id, n) => onPortionChange(mealId, id, n)}
                         onEditFood={onEditFood}
+                        onRemoveMeal={onRemoveMeal}
+                        collapsed={!!collapsedMeals[mealId]}
+                        onToggleCollapsed={() => toggleCollapsed(mealId)}
                         footer={`Total: ~${Math.round(panelTotals.kcal)} kcal, ~${Math.round(panelTotals.protein)} g Protein`}
                     />
                 );
@@ -188,6 +257,14 @@ const mealPanel: React.CSSProperties = {
 
 const mealTitle: React.CSSProperties = { fontWeight: 900, fontSize: 18, marginBottom: 10, color: "var(--background)" };
 
+const mealHeader: React.CSSProperties = {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 10,
+    marginBottom: 10,
+};
+
 const mealDropZone: React.CSSProperties = { minHeight: 110, display: "flex", flexDirection: "column", gap: 8 };
 
 const mealFooter: React.CSSProperties = {
@@ -199,6 +276,22 @@ const mealFooter: React.CSSProperties = {
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
+};
+
+const mealRemoveBtn: React.CSSProperties = {
+    width: 30,
+    height: 30,
+    borderRadius: 10,
+    border: "1px solid var(--card-border)",
+    background: "var(--card-bg)",
+    color: "var(--danger-fg)",
+    cursor: "pointer",
+    fontWeight: 900,
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 0,
+    lineHeight: 0,
 };
 
 const clearBtn: React.CSSProperties = {
@@ -222,6 +315,28 @@ const entryBox: React.CSSProperties = {
     background: "var(--card-bg)",
 };
 
+const mealCollapseBtn: React.CSSProperties = {
+    width: 30,
+    height: 30,
+    borderRadius: 10,
+    border: "1px solid var(--card-border)",
+    background: "var(--card-bg)",
+    color: "var(--background)",
+    cursor: "pointer",
+    fontWeight: 900,
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 0,
+    lineHeight: 0,
+};
+
+const mealHeaderActions: React.CSSProperties = {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+};
+
 const entryNameBtn: React.CSSProperties = { textAlign: "left", border: "none", background: "transparent", fontWeight: 800, cursor: "pointer", color: "var(--background)" };
 const portionInput: React.CSSProperties = { width: 80, padding: 6, borderRadius: 8, border: "1px solid var(--card-border)", color: "var(--background)" };
-const removeBtn: React.CSSProperties = { width: 34, height: 34, borderRadius: 10, border: "1px solid #999", background: "black", cursor: "pointer" };
+const removeBtn: React.CSSProperties = { width: 30, height: 30, borderRadius: 10, border: "1px solid #999", background: "black", cursor: "pointer" };
