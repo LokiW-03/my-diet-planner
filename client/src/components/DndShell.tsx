@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { DndContext, DragEndEvent } from "@dnd-kit/core";
 import { MealBoard } from "@/client/src/components/MealBoard";
 import { FoodLibrary } from "@/client/src/components/FoodLibrary";
@@ -19,6 +20,7 @@ export default function DndShell({
     onPortionChange,
     onEditFood,
     onRemoveMeal,
+    onReorderMealPanels,
     openAdd,
     openEdit,
     addEntryToMeal,
@@ -37,16 +39,53 @@ export default function DndShell({
     onPortionChange: (mealId: string, entryId: string, portion: number) => void;
     onEditFood: (foodId: FoodId) => void;
     onRemoveMeal: (mealId: string) => void;
+    onReorderMealPanels: (nextOrder: string[]) => void;
     openAdd: (catId: CategoryId) => void;
     openEdit: (food: FoodItem) => void;
     addEntryToMeal: (mealId: string, foodId: FoodId) => void;
     moveEntry: (from: string, to: string, entryId: string) => void;
     clearAll: () => void;
 }) {
+
+    const [_, setActiveId] = React.useState<string | null>(null);
+
+    function onDragStart(ev: any) {
+        setActiveId(String(ev.active?.id ?? null));
+    }
+
+    function onDragCancel() {
+        setActiveId(null);
+    }
     function onDragEnd(ev: DragEndEvent) {
         const activeId = String(ev.active.id);
         const overId = ev.over ? String(ev.over.id) : null;
+
         if (!overId) return;
+
+        if (activeId.startsWith("panel:")) {
+            const fromMealId = activeId.slice("panel:".length);
+            const toMealId = overId.startsWith("panel:")
+                ? overId.slice("panel:".length)
+                : overId.startsWith("drop:")
+                    ? overId.slice("drop:".length)
+                    : "";
+
+            if (!fromMealId || !toMealId || fromMealId === toMealId) return;
+
+            const ids = mealDefs.map((m) => String(m.id));
+            const from = ids.indexOf(fromMealId);
+            const to = ids.indexOf(toMealId);
+            if (from === -1 || to === -1 || from === to) return;
+
+            const next = ids.slice();
+            const [moved] = next.splice(from, 1);
+            next.splice(to, 0, moved);
+
+            onReorderMealPanels(next);
+            setActiveId(null);
+            return;
+        }
+
         if (!overId.startsWith("drop:")) return;
 
         const toMeal = overId.slice("drop:".length);  // string MealId
@@ -85,7 +124,7 @@ export default function DndShell({
     }
 
     return (
-        <DndContext onDragEnd={onDragEnd}>
+        <DndContext onDragEnd={onDragEnd} onDragStart={onDragStart} onDragCancel={onDragCancel}>
             <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 16, alignItems: "start" }}>
                 <div>
                     <MealBoard

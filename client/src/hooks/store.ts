@@ -21,6 +21,10 @@ type PlannerState = {
     showMealPanel: (mealId: string) => void;
     resetHiddenMeals: () => void;
 
+    mealPanelOrder: string[];
+    setMealPanelOrder: (order: string[]) => void;
+    resetMealPanelOrder: () => void;
+
     addEntryToMeal: (mealId: string, foodId: FoodId, portion: number) => void;
     removeEntryFromMeal: (mealId: string, entryId: string) => void;
     removeMeal: (mealId: string) => void;
@@ -43,6 +47,10 @@ export const usePlannerStore = create<PlannerState>()(
                 return { hiddenMeals: newHidden };
             }),
             resetHiddenMeals: () => set({ hiddenMeals: {} }),
+
+            mealPanelOrder: [],
+            setMealPanelOrder: (order) => set({ mealPanelOrder: order }),
+            resetMealPanelOrder: () => set({ mealPanelOrder: [] }),
 
             setDayType: (t) => set({ dayType: t }),
 

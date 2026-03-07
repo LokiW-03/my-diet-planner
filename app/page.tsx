@@ -47,6 +47,9 @@ export default function Page() {
   const hiddenMeals = usePlannerStore((s) => s.hiddenMeals);
   const hideMealPanel = usePlannerStore((s) => s.hideMealPanel);
   const resetHiddenMeals = usePlannerStore((s) => s.resetHiddenMeals);
+  const mealPanelOrder = usePlannerStore((s) => s.mealPanelOrder);
+  const setMealPanelOrder = usePlannerStore((s) => s.setMealPanelOrder);
+  const resetMealPanelOrder = usePlannerStore((s) => s.resetMealPanelOrder);
   const clearAllMeals = usePlannerStore((s) => s.clearAllMeals);
 
   const { profile, addFood, updateFood, removeFood } = useProfile();
@@ -61,11 +64,23 @@ export default function Page() {
   );
   const mealDefs = useMemo(() => {
     // if you already compute mealDefs elsewhere, apply only the extra filter:
-    return Object.values(profile.meals)
+    const defs = Object.values(profile.meals)
       .filter((m) => m.enabled)
       .filter((m) => !hiddenMeals[String(m.id)])
-      .sort((a, b) => a.order - b.order);
-  }, [profile.meals, hiddenMeals]);
+
+    if (mealPanelOrder.length === 0) {
+      return defs.sort((a, b) => a.order - b.order);
+    }
+
+    const idx = new Map(mealPanelOrder.map((id, i) => [id, i]));
+    return defs.sort((a, b) => {
+      const ai = idx.get(String(a.id)) ?? Number.POSITIVE_INFINITY;
+      const bi = idx.get(String(b.id)) ?? Number.POSITIVE_INFINITY;
+      if (ai !== bi) return ai - bi;
+      return a.order - b.order;;
+    });
+
+  }, [profile.meals, hiddenMeals, mealPanelOrder]);
 
   const totals = useMemo(() => computeTotals(foods, meals), [foods, meals]);
   const mealTotals = useMemo(() => computeMealTotals(foods, meals, mealDefs), [foods, meals, mealDefs]);
@@ -126,6 +141,7 @@ export default function Page() {
             disabled={!hasAnyHiddenPanels && !hasAnyEntries}
             onClick={() => {
               resetHiddenMeals();
+              resetMealPanelOrder();
             }}
           >
             <FiRotateCcw size={18} />
@@ -151,6 +167,7 @@ export default function Page() {
             hideMealPanel(mealId); // hide panel (UI)
             removeMeal(mealId);    // clear chips/entries
           }}
+          onReorderMealPanels={(nextOrder) => setMealPanelOrder(nextOrder)}
           openAdd={openAdd}
           openEdit={openEdit}
           addEntryToMeal={(mealId, foodId) => {

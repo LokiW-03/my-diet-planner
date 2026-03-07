@@ -2,6 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import { useDroppable, useDraggable } from "@dnd-kit/core";
+import { SortableContext, rectSortingStrategy, useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import type { FoodId, FoodItem, MealEntry, MealDefinition } from "@/shared/models";
 import { FaTrash } from "react-icons/fa";
 import { IoMdArrowDropdown, IoMdArrowDropright } from "react-icons/io";
@@ -109,14 +111,51 @@ function MealPanel({
     onToggleCollapsed?: () => void;
     footer: string;
 }) {
-    const { setNodeRef, isOver } = useDroppable({ id: `drop:${meal}` });
+    const { setNodeRef: setDropRef, isOver } = useDroppable({ id: `drop:${meal}` });
+
+    const {
+        setNodeRef: setPanelRef,
+        setActivatorNodeRef,
+        attributes,
+        listeners,
+        transform,
+        transition,
+        isDragging,
+    } = useSortable({ id: `panel:${meal}` });
+
+    const baseTransform = CSS.Transform.toString(transform);
+    const animatedTransform = baseTransform ? `${baseTransform}${isDragging ? " scale(1.02)" : ""}` : undefined;
+
 
     return (
-        <div style={{ ...mealPanel, outline: isOver ? "2px solid var(--accent)" : "1px solid var(--card-border)" }}>
+        <div
+            ref={setPanelRef}
+            style={{
+                ...mealPanel,
+                outline: isOver ? "2px solid var(--accent)" : "1px solid var(--card-border)",
+                transform: animatedTransform,
+                transition: transition ? `${transition}, box-shadow 160ms ease, opacity 160ms ease` : "box-shadow 160ms ease, opacity 160ms ease",
+                opacity: isDragging ? 0.92 : 1,
+                boxShadow: isDragging
+                    ? "0 18px 45px rgba(0,0,0,0.20)"
+                    : mealPanel.boxShadow,
+                zIndex: isDragging ? 50 : "auto",
+            }}>
             <div style={mealHeader}>
                 <div style={mealTitle}>{title}</div>
 
                 <div style={mealHeaderActions}>
+                    <button
+                        type="button"
+                        ref={setActivatorNodeRef}
+                        {...attributes}
+                        {...listeners}
+                        style={mealDragHandle}
+                        title="Drag to reorder"
+                        aria-label={`Drag to reorder ${title}`}
+                    >
+                        ⋮⋮
+                    </button>
                     <button
                         style={mealCollapseBtn}
                         onClick={onToggleCollapsed}
@@ -136,7 +175,7 @@ function MealPanel({
 
             {collapsed ? (
                 <div
-                    // ref={setNodeRef}
+                    ref={setDropRef}
                     style={{
                         ...mealDropZone,
                         minHeight: 44,
@@ -163,7 +202,7 @@ function MealPanel({
                 </div>
             ) : (
                 <>
-                    <div ref={setNodeRef} style={mealDropZone}>
+                    <div ref={setDropRef} style={mealDropZone}>
                         {entries.length === 0 ? <div style={{ color: "var(--muted)" }}>Drag items here</div> : null}
                         {entries.map((e) => (
                             <MealEntryChip
@@ -215,34 +254,37 @@ export function MealBoard({
     onRemoveMeal: (mealId: string) => void;
 }) {
     const [collapsedMeals, setCollapsedMeals] = React.useState<Record<string, boolean>>({}); // NEW
+    const sortableItems = mealDefs.map((m) => `panel:${String(m.id)}`);
 
     const toggleCollapsed = (mealId: string) => {
         setCollapsedMeals((prev) => ({ ...prev, [mealId]: !prev[mealId] }));
     };
     return (
-        <div style={mealGrid}>
-            {mealDefs.map((m) => {
-                const mealId = String(m.id);
-                const panelMeals = meals[mealId] ?? [];
-                const panelTotals = mealTotals[mealId] ?? { kcal: 0, protein: 0 };
-                return (
-                    <MealPanel
-                        key={mealId}
-                        meal={mealId}
-                        title={m.name.toUpperCase()}
-                        entries={panelMeals}
-                        foods={foods}
-                        onRemoveEntry={(id) => onRemoveEntry(mealId, id)}
-                        onPortionChange={(id, n) => onPortionChange(mealId, id, n)}
-                        onEditFood={onEditFood}
-                        onRemoveMeal={onRemoveMeal}
-                        collapsed={!!collapsedMeals[mealId]}
-                        onToggleCollapsed={() => toggleCollapsed(mealId)}
-                        footer={`Total: ~${Math.round(panelTotals.kcal)} kcal, ~${Math.round(panelTotals.protein)} g Protein`}
-                    />
-                );
-            })}
-        </div>
+        <SortableContext items={sortableItems} strategy={rectSortingStrategy}>
+            <div style={mealGrid}>
+                {mealDefs.map((m) => {
+                    const mealId = String(m.id);
+                    const panelMeals = meals[mealId] ?? [];
+                    const panelTotals = mealTotals[mealId] ?? { kcal: 0, protein: 0 };
+                    return (
+                        <MealPanel
+                            key={mealId}
+                            meal={mealId}
+                            title={m.name.toUpperCase()}
+                            entries={panelMeals}
+                            foods={foods}
+                            onRemoveEntry={(id) => onRemoveEntry(mealId, id)}
+                            onPortionChange={(id, n) => onPortionChange(mealId, id, n)}
+                            onEditFood={onEditFood}
+                            onRemoveMeal={onRemoveMeal}
+                            collapsed={!!collapsedMeals[mealId]}
+                            onToggleCollapsed={() => toggleCollapsed(mealId)}
+                            footer={`Total: ~${Math.round(panelTotals.kcal)} kcal, ~${Math.round(panelTotals.protein)} g Protein`}
+                        />
+                    );
+                })}
+            </div>
+        </SortableContext>
     );
 }
 
@@ -266,6 +308,23 @@ const mealHeader: React.CSSProperties = {
 };
 
 const mealDropZone: React.CSSProperties = { minHeight: 110, display: "flex", flexDirection: "column", gap: 8 };
+
+const mealDragHandle: React.CSSProperties = {
+    width: 30,
+    height: 30,
+    borderRadius: 10,
+    border: "1px solid var(--card-border)",
+    background: "var(--card-bg)",
+    color: "var(--muted)",
+    cursor: "grab",
+    fontWeight: 900,
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 0,
+    lineHeight: 0,
+    touchAction: "none",
+};
 
 const mealFooter: React.CSSProperties = {
     marginTop: 10,
