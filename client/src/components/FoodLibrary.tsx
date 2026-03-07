@@ -1,9 +1,9 @@
 "use client";
 
 import { useMemo } from "react";
-import type { Category, FoodItem } from "@/lib/models";
-import { CATEGORIES } from "@/lib/models";
+import type { CategoryId, FoodItem } from "@/shared/models";
 import { useDraggable } from "@dnd-kit/core";
+import { useProfile } from "@/client/src/hooks/useProfile";
 
 function FoodChip({ food, onClick }: { food: FoodItem; onClick: () => void }) {
     const id = `lib:${food.id}`;
@@ -27,33 +27,48 @@ function FoodChip({ food, onClick }: { food: FoodItem; onClick: () => void }) {
     );
 }
 
+
 export function FoodLibrary({
-    foods,
     onAdd,
     onEdit,
 }: {
-    foods: FoodItem[];
-    onAdd: (category: Category) => void;
+    onAdd: (categoryId: CategoryId) => void;
     onEdit: (food: FoodItem) => void;
 }) {
+
+    const { profile } = useProfile();
+
+    const visibleCats = useMemo(() => {
+        return Object.values(profile.categories)
+            .filter((c) => c.enabled)
+            .sort((a, b) => a.order - b.order);
+    }, [profile.categories]);
+
+    const foods = useMemo(() => Object.values(profile.foods), [profile.foods]);
+
     const grouped = useMemo(() => {
-        const map = new Map<Category, FoodItem[]>();
-        for (const c of CATEGORIES) map.set(c, []);
-        for (const f of foods) map.get(f.category)!.push(f);
+        const map = new Map<CategoryId, FoodItem[]>();
+        for (const c of visibleCats) map.set(c.id, []);
+        for (const f of foods) {
+            const bucket = map.get(f.categoryId);
+            if (bucket) bucket.push(f);
+        }
         return map;
-    }, [foods]);
+    }, [foods, visibleCats]);
 
     return (
         <div style={panel}>
-            {CATEGORIES.map((cat) => (
-                <div key={cat} style={{ marginBottom: 14 }}>
+            {visibleCats.map((cat) => (
+                <div key={String(cat.id)} style={{ marginBottom: 14 }}>
                     <div style={headerRow}>
-                        <div style={{ fontWeight: 800 }}>{cat}</div>
-                        <button style={plusBtn} onClick={() => onAdd(cat)}>+</button>
+                        <div style={{ fontWeight: 800 }}>{cat.name}</div>
+                        <button style={plusBtn} onClick={() => onAdd(cat.id)}>
+                            +
+                        </button>
                     </div>
                     <div style={chipWrap}>
-                        {grouped.get(cat)!.map((f) => (
-                            <FoodChip key={f.id} food={f} onClick={() => onEdit(f)} />
+                        {(grouped.get(cat.id) ?? []).map((f) => (
+                            <FoodChip key={String(f.id)} food={f} onClick={() => onEdit(f)} />
                         ))}
                     </div>
                     <div style={divider} />
