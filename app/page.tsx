@@ -8,7 +8,7 @@ import type { CategoryId, FoodItem, FoodId, MealDefinition } from "@/shared/mode
 import { FoodModal } from "@/client/src/components/FoodModal";
 import { UserProfilePanel } from "@/client/src/components/UserProfilePanel";
 import { useProfile } from "@/client/src/hooks/useProfile";
-import { FiRotateCcw } from "react-icons/fi";
+import { FiRotateCcw, FiChevronDown } from "react-icons/fi";
 
 const DndShell = dynamic(() => import("@/client/src/components/DndShell"), { ssr: false });
 
@@ -148,19 +148,33 @@ export default function Page() {
       </header>
 
       <div style={wrap}>
-        <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
+        <div style={{ display: "flex", gap: 10, marginBottom: 14, alignItems: "center" }}>
           <button style={dayBtn(showProfile)} onClick={() => setShowProfile((v) => !v)}>
             <FaUserCircle size={18} />
           </button>
-          {targets.map((t) => (
-            <button
-              key={String(t.id)}
-              style={dayBtn(dayType === String(t.id))}
-              onClick={() => setDayType(String(t.id))}
-            >
-              {t.name}
-            </button>
-          ))}
+          {targets.length > 0 && (
+            <>
+              <div style={targetLabel}>Target:</div>
+
+              <div style={selectWrap}>
+                <select
+                  aria-label="Target"
+                  style={daySelect}
+                  value={dayType}
+                  onChange={(e) => setDayType(e.target.value)}
+                >
+                  {targets.map((t) => (
+                    <option key={String(t.id)} value={String(t.id)}>
+                      {t.name}
+                    </option>
+                  ))}
+                </select>
+                <span style={selectArrow} aria-hidden="true">
+                  <FiChevronDown size={22} />
+                </span>
+              </div>
+            </>
+          )}
 
           <button
             type="button"
@@ -247,3 +261,36 @@ const dayBtn = (active: boolean): React.CSSProperties => ({
   fontWeight: 900,
   opacity: 1,
 });
+
+const selectWrap: React.CSSProperties = {
+  position: "relative",
+  display: "inline-flex",
+  alignItems: "center",
+};
+
+const selectArrow: React.CSSProperties = {
+  position: "absolute",
+  right: 14,
+  pointerEvents: "none",
+  color: "var(--background)",
+};
+
+// Hide native arrow + add right padding for custom arrow
+const daySelect: React.CSSProperties = {
+  padding: "10px 46px 10px 18px",
+  borderRadius: 12,
+  border: "1px solid var(--btn-border)",
+  background: "var(--card-bg)",
+  color: "var(--background)",
+  fontWeight: 900,
+  height: 44,
+  appearance: "none",
+  WebkitAppearance: "none",
+  MozAppearance: "none",
+};
+
+const targetLabel: React.CSSProperties = {
+  marginLeft: 10,
+  fontWeight: 900,
+  color: "var(--foreground)",
+};
