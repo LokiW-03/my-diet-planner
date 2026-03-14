@@ -114,8 +114,12 @@ export default function DndShell({
         }
     }
 
-    const proteinRatio = weightKg && weightKg > 0 ? totals.protein / weightKg : null;
-    const proteinGood = proteinRatio === null || (proteinRatio >= 0.8 && proteinRatio <= 2.2);
+    const proteinToColour = () => {
+        const proteinRatio = weightKg && weightKg > 0 ? totals.protein / weightKg : null;
+        if (proteinRatio == null || (proteinRatio <= 0.8 || proteinRatio >= 2.2)) return "var(--danger-fg)";
+        if (proteinRatio < 1.0 || proteinRatio > 2.0) return "var(--warning-fg)";
+        if (proteinRatio >= 1.0 && proteinRatio <= 2.0) return "var(--healthy-fg)";
+    }
 
     const target = targets.find((t) => String(t.id) === dayType) ?? null;
     const kcal = Math.round(totals.kcal);
@@ -148,7 +152,7 @@ export default function DndShell({
                         <div style={{ border: "1px solid var(--card-border)", borderRadius: 14, padding: 14, minWidth: 160, background: "var(--background)" }}>
                             <div style={{ fontWeight: 900 }}>TOTAL</div>
                             <div style={{ fontSize: 26, fontWeight: 900 }}>{Math.round(totals.kcal)} kcal</div>
-                            <div style={{ fontWeight: 700, color: proteinGood ? undefined : "var(--danger-fg)" }}>{Math.round(totals.protein)}g Protein</div>
+                            <div style={{ fontWeight: 700, color: proteinToColour() }}>{Math.round(totals.protein)}g Protein</div>
                         </div>
 
                         <div style={{ border: "1px solid var(--card-border)", borderRadius: 14, padding: 14, minWidth: 160, background: "var(--background)", textAlign: "center" }}>
