@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { DndContext, DragEndEvent } from "@dnd-kit/core";
+import { DndContext, DragEndEvent, DragStartEvent } from "@dnd-kit/core";
 import { MealBoard } from "@/client/src/components/MealBoard";
 import { FoodLibrary } from "@/client/src/components/FoodLibrary";
 import { ExportButton } from "@/client/src/components/ExportButton";
@@ -27,13 +27,12 @@ export default function DndShell({
     addEntryToMeal,
     moveEntry,
     clearAll,
-    onSaveMealPanelsToDefault,
 }: DndShellProps
 ) {
 
-    const [_, setActiveId] = React.useState<string | null>(null);
+    const [, setActiveId] = React.useState<string | null>(null);
 
-    function onDragStart(ev: any) {
+    function onDragStart(ev: DragStartEvent) {
         setActiveId(String(ev.active?.id ?? null));
     }
 
@@ -150,23 +149,6 @@ export default function DndShell({
                             <div style={{ fontWeight: 700, color: "var(--chip-border)" }}>to meet target</div>
                         </div>
 
-                        <button
-                            style={{
-                                padding: "10px 14px",
-                                borderRadius: 12,
-                                border: "1px solid var(--btn-border)",
-                                background: "var(--btn-bg)",
-                                fontWeight: 700,
-                                color: "var(--btn-fg)",
-                                cursor: "pointer",
-                            }}
-                            onClick={() => onSaveMealPanelsToDefault(mealDefs.map((m) => m.id))}
-                            title="Save meal panels (including removed/disabled) as DB defaults"
-                            type="button"
-                        >
-                            Save
-                        </button>
-
                         <ExportButton foods={foods} meals={meals} totals={totals} dayType={target?.name ?? dayType} />
                         <button
                             style={{
@@ -216,5 +198,4 @@ type DndShellProps = {
     addEntryToMeal: (mealId: MealId, foodId: FoodId) => void;
     moveEntry: (from: MealId, to: MealId, entryId: string) => void;
     clearAll: () => void;
-    onSaveMealPanelsToDefault: (orderedMealIds: MealId[]) => Promise<void> | void;
 }

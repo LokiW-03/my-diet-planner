@@ -1,0 +1,76 @@
+$control-h: 44px;
+
+.bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 14px;
+    align-items: center;
+}
+
+.group {
+    padding: 6px 6px;
+    border: 1px solid var(--card-bg);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.groupLabel {
+    margin-left: 10px;
+    font-weight: 900;
+    color: var(--foreground);
+}
+
+.btn {
+    height: $control-h;
+    width: $control-h;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+
+    border-radius: 12px;
+    border: 1px solid var(--btn-border);
+    background: var(--card-bg);
+    color: var(--background);
+    font-weight: 900;
+    opacity: 1;
+    cursor: pointer;
+
+    &:hover {
+        background: var(--btn-bg);
+        color: var(--btn-fg);
+    }
+}
+
+.btnActive {
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+}
+
+.selectWrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+.selectArrow {
+    position: absolute;
+    right: 14px;
+    pointer-events: none;
+    color: var(--background);
+}
+
+.daySelect {
+    padding: 0 46px 0 18px;
+    border-radius: 12px;
+    border: 1px solid var(--btn-border);
+    background: var(--card-bg);
+    color: var(--background);
+    font-weight: 900;
+    height: $control-h;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+}

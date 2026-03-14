@@ -1,20 +1,19 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { FaUserCircle } from "react-icons/fa"
 import dynamic from "next/dynamic";
 import { usePlannerStore, computeTotals } from "@/client/src/hooks/store";
-import type { CategoryId, FoodItem, FoodId, MealDefinition, MealId } from "@/shared/models";
+import type { CategoryId, FoodItem, FoodId, MealDefinition, MealEntry } from "@/shared/models";
 import { FoodModal } from "@/client/src/components/FoodModal";
 import { UserProfilePanel } from "@/client/src/components/UserProfilePanel";
 import { useProfile } from "@/client/src/hooks/useProfile";
-import { FiRotateCcw, FiChevronDown } from "react-icons/fi";
+import { TopToolBar } from "@/client/src/components/TopToolBar/TopToolBar";
 
 const DndShell = dynamic(() => import("@/client/src/components/DndShell"), { ssr: false });
 
 function computeMealTotals(
   foods: FoodItem[],
-  meals: Record<string, any[]>,
+  meals: Record<string, MealEntry[]>,
   mealDefs: MealDefinition[]
 ) {
   const map = new Map<FoodId, FoodItem>(foods.map((f) => [f.id, f]));
@@ -139,46 +138,20 @@ export default function Page() {
       </header>
 
       <div style={wrap}>
-        <div style={{ display: "flex", gap: 10, marginBottom: 14, alignItems: "center" }}>
-          <button style={dayBtn(showProfile)} onClick={() => setShowProfile((v) => !v)}>
-            <FaUserCircle size={18} />
-          </button>
-          {targets.length > 0 && (
-            <>
-              <div style={targetLabel}>Target:</div>
 
-              <div style={selectWrap}>
-                <select
-                  aria-label="Target"
-                  style={daySelect}
-                  value={dayType}
-                  onChange={(e) => setDayType(e.target.value)}
-                >
-                  {targets.map((t) => (
-                    <option key={String(t.id)} value={String(t.id)}>
-                      {t.name}
-                    </option>
-                  ))}
-                </select>
-                <span style={selectArrow} aria-hidden="true">
-                  <FiChevronDown size={22} />
-                </span>
-              </div>
-            </>
-          )}
-
-          <button
-            type="button"
-            style={dayBtn(false)}
-            onClick={() => {
-              resetMealPanelsToDefault();
-              resetHiddenMeals();
-              resetMealPanelOrder();
-            }}
-          >
-            <FiRotateCcw size={18} />
-          </button>
-        </div>
+        <TopToolBar
+          showProfile={showProfile}
+          onToggleProfile={() => setShowProfile((v) => !v)}
+          targets={targets}
+          dayType={dayType}
+          onDayTypeChange={setDayType}
+          onSaveDefaults={() => void saveMealPanelsAsDefault(mealDefs.map((m) => m.id))}
+          onReset={() => {
+            resetMealPanelsToDefault();
+            resetHiddenMeals();
+            resetMealPanelOrder();
+          }}
+        />
 
         <DndShell
           foods={foods}
@@ -209,9 +182,6 @@ export default function Page() {
           }}
           moveEntry={moveEntry}
           clearAll={clearAllMeals}
-          onSaveMealPanelsToDefault={async (orderedMealIds) => {
-            await saveMealPanelsAsDefault(orderedMealIds);
-          }}
         />
       </div>
 
@@ -242,49 +212,4 @@ export default function Page() {
 
 const page: React.CSSProperties = { minHeight: "100vh" };
 const topBar: React.CSSProperties = { height: 54, display: "flex", alignItems: "center", justifyContent: "center" };
-
 const wrap: React.CSSProperties = { padding: 18, maxWidth: 1200, margin: "0 auto" };
-
-const dayBtn = (active: boolean): React.CSSProperties => ({
-  padding: "10px 18px",
-  borderRadius: 12,
-  border: "1px solid var(--btn-border)",
-  background: active ? "var(--btn-bg)" : "var(--card-bg)",
-  color: active ? "var(--btn-fg)" : "var(--background)",
-  fontWeight: 900,
-  opacity: 1,
-  cursor: "pointer",
-});
-
-const selectWrap: React.CSSProperties = {
-  position: "relative",
-  display: "inline-flex",
-  alignItems: "center",
-};
-
-const selectArrow: React.CSSProperties = {
-  position: "absolute",
-  right: 14,
-  pointerEvents: "none",
-  color: "var(--background)",
-};
-
-// Hide native arrow + add right padding for custom arrow
-const daySelect: React.CSSProperties = {
-  padding: "10px 46px 10px 18px",
-  borderRadius: 12,
-  border: "1px solid var(--btn-border)",
-  background: "var(--card-bg)",
-  color: "var(--background)",
-  fontWeight: 900,
-  height: 44,
-  appearance: "none",
-  WebkitAppearance: "none",
-  MozAppearance: "none",
-};
-
-const targetLabel: React.CSSProperties = {
-  marginLeft: 10,
-  fontWeight: 900,
-  color: "var(--foreground)",
-};

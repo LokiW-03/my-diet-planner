@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useDroppable, useDraggable } from "@dnd-kit/core";
 import { SortableContext, rectSortingStrategy, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -21,13 +21,15 @@ function MealEntryChip({
     const id = `meal:${mealId}:${entry.entryId}`;
     const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id });
 
-    const [portionText, setPortionText] = useState(String(entry.portion));
-
-    useEffect(() => {
-        setPortionText(String(entry.portion));
-    }, [entry.portion]);
+    const [portionText, setPortionText] = useState<string | null>(null);
 
     if (!food) return null;
+
+    const displayedPortion = portionText ?? String(entry.portion);
+
+    function handleFocus() {
+        setPortionText(String(entry.portion));
+    }
 
     function handleChange(v: string) {
         setPortionText(v);
@@ -38,11 +40,15 @@ function MealEntryChip({
     }
 
     function handleBlur() {
+        if (portionText == null) return;
+
         if (portionText === "" || !Number.isFinite(Number(portionText))) {
-            setPortionText(String(entry.portion));
-        } else {
-            onPortionChange(Math.trunc(Number(portionText)));
+            setPortionText(null);
+            return;
         }
+
+        onPortionChange(Math.trunc(Number(portionText)));
+        setPortionText(null);
     }
 
     return (
@@ -68,8 +74,9 @@ function MealEntryChip({
                 <input
                     style={portionInput}
                     type="number"
-                    value={portionText}
+                    value={displayedPortion}
                     onChange={(e) => handleChange(e.target.value)}
+                    onFocus={handleFocus}
                     onBlur={handleBlur}
                 />
                 <span style={{ fontWeight: 700 }}>{food.unit}</span>

@@ -26,12 +26,10 @@ export function UserProfilePanel({ open, onClose }: UserProfilePanelProps) {
                             <div style={readonlyBox}>{String(profile.userId)}</div>
                         </div>
 
-                        {"profileId" in profile && (
-                            <div style={row}>
-                                <label style={label}>Profile ID</label>
-                                <div style={readonlyBox}>{String((profile as any).profileId)}</div>
-                            </div>
-                        )}
+                        <div style={row}>
+                            <label style={label}>Profile ID</label>
+                            <div style={readonlyBox}>{String(profile.profileId)}</div>
+                        </div>
 
                         <div style={row}>
                             <label style={label}>Name</label>
