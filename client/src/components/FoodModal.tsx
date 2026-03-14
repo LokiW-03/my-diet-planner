@@ -167,7 +167,6 @@ export function FoodModal({ open, mode, categories, categoryPreset, food, onClos
 }
 
 const styles: Record<string, React.CSSProperties> = {
-    // ...existing code...
     backdrop: {
         position: "fixed",
         inset: 0,

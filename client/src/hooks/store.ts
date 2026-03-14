@@ -121,12 +121,19 @@ export const usePlannerStore = create<PlannerState>()(
 );
 
 // selector helpers
-export function computeTotals(foods: FoodItem[], meals: Record<string, MealEntry[]>) {
+export function computeTotals(
+    foods: FoodItem[],
+    meals: Record<string, MealEntry[]>,
+    includeMealIds?: string[]
+) {
     const foodMap = new Map<FoodId, FoodItem>(foods.map((f) => [f.id, f]));
     let kcal = 0;
     let protein = 0;
 
-    for (const entries of Object.values(meals)) {
+    const include = includeMealIds ? new Set(includeMealIds.map(String)) : null;
+
+    for (const [mealId, entries] of Object.entries(meals)) {
+        if (include && !include.has(String(mealId))) continue;
         for (const e of entries) {
             const f = foodMap.get(e.foodId);
             if (!f) continue;

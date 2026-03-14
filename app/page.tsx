@@ -100,7 +100,10 @@ export default function Page() {
     setMealPanelOrder(ids);
   };
 
-  const totals = useMemo(() => computeTotals(foods, meals), [foods, meals]);
+  const totals = useMemo(
+    () => computeTotals(foods, meals, mealDefs.map((m) => String(m.id))),
+    [foods, meals, mealDefs]
+  );
   const mealTotals = useMemo(() => computeMealTotals(foods, meals, mealDefs), [foods, meals, mealDefs]);
 
   // modal state
