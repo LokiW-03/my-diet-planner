@@ -1,7 +1,5 @@
 "use client";
 
-import { useMemo } from "react";
-import type { MealDefinition, MealId, Target, TargetId } from "@/shared/models";
 import { useProfile } from "@/client/src/hooks/useProfile";
 
 interface UserProfilePanelProps {
@@ -10,38 +8,7 @@ interface UserProfilePanelProps {
 }
 
 export function UserProfilePanel({ open, onClose }: UserProfilePanelProps) {
-    const { profile, setProfile } = useProfile();
-
-    const targets = useMemo(
-        () => Object.values(profile.targets).slice().sort((a, b) => a.name.localeCompare(b.name)),
-        [profile.targets]
-    );
-
-    const meals = useMemo(
-        () => Object.values(profile.meals).slice().sort((a, b) => a.order - b.order),
-        [profile.meals]
-    );
-
-    const updateTarget = (id: TargetId, patch: Partial<Target>) => {
-        setProfile((p) => ({
-            ...p,
-            targets: {
-                ...p.targets,
-                [id]: { ...p.targets[id], ...patch },
-            },
-        }));
-    };
-
-    const updateMeal = (id: MealId, patch: Partial<MealDefinition>) => {
-        setProfile((p) => ({
-            ...p,
-            meals: {
-                ...p.meals,
-                [id]: { ...p.meals[id], ...patch },
-            },
-        }));
-    };
-
+    const { profile, updateUser, saveProfileAsDefault } = useProfile();
     if (!open) return null;
 
     return (
@@ -71,7 +38,7 @@ export function UserProfilePanel({ open, onClose }: UserProfilePanelProps) {
                             <input
                                 style={input}
                                 value={profile.userName}
-                                onChange={(e) => setProfile((p) => ({ ...p, userName: e.target.value }))}
+                                onChange={(e) => updateUser({ userName: e.target.value })}
                             />
                         </div>
 
@@ -82,13 +49,17 @@ export function UserProfilePanel({ open, onClose }: UserProfilePanelProps) {
                                 type="number"
                                 step="0.1"
                                 value={profile.weightKg}
-                                onChange={(e) =>
-                                    setProfile((p) => ({ ...p, weightKg: Number(e.target.value || 0) }))
-                                }
+                                onChange={(e) => updateUser({ weightKg: Number(e.target.value || 0) })}
                             />
                         </div>
 
-                        <button style={saveBtn} onClick={() => onClose()}>Save Profile</button>
+                        <button style={saveBtn}
+                            onClick={async () => {
+                                await saveProfileAsDefault();
+                                onClose();
+                            }}>
+                            Save Profile
+                        </button>
                     </div>
                 </div>
             </div>

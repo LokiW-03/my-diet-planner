@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { FaUserCircle } from "react-icons/fa"
 import dynamic from "next/dynamic";
 import { usePlannerStore, computeTotals } from "@/client/src/hooks/store";
-import type { CategoryId, FoodItem, FoodId, MealDefinition } from "@/shared/models";
+import type { CategoryId, FoodItem, FoodId, MealDefinition, MealId } from "@/shared/models";
 import { FoodModal } from "@/client/src/components/FoodModal";
 import { UserProfilePanel } from "@/client/src/components/UserProfilePanel";
 import { useProfile } from "@/client/src/hooks/useProfile";
@@ -45,16 +45,14 @@ export default function Page() {
   const removeEntriesForFood = usePlannerStore((s) => s.removeEntriesForFood);
   const removeMeal = usePlannerStore((s) => s.removeMeal);
   const hiddenMeals = usePlannerStore((s) => s.hiddenMeals);
-  const hideMealPanel = usePlannerStore((s) => s.hideMealPanel);
   const resetHiddenMeals = usePlannerStore((s) => s.resetHiddenMeals);
   const mealPanelOrder = usePlannerStore((s) => s.mealPanelOrder);
   const setMealPanelOrder = usePlannerStore((s) => s.setMealPanelOrder);
   const resetMealPanelOrder = usePlannerStore((s) => s.resetMealPanelOrder);
   const clearAllMeals = usePlannerStore((s) => s.clearAllMeals);
 
-  const { profile, addFood, updateFood, removeFood } = useProfile();
+  const { profile, addFood, updateFood, removeFood, addMeal, disableMeal, resetMealPanelsToDefault, saveMealPanelsAsDefault } = useProfile();
   const [showProfile, setShowProfile] = useState(false);
-  const [sessionMealDefs, setSessionMealDefs] = useState<MealDefinition[]>([]);
 
   // All data comes from profile
   const foods = useMemo(() => Object.values(profile.foods), [profile.foods]);
@@ -66,7 +64,7 @@ export default function Page() {
   const mealDefs = useMemo(() => {
     const profileDefs = Object.values(profile.meals).filter((m) => m.enabled);
 
-    const defs = [...profileDefs, ...sessionMealDefs].filter((m) => !hiddenMeals[String(m.id)]);
+    const defs = [...profileDefs].filter((m) => !hiddenMeals[String(m.id)]);
 
 
     if (mealPanelOrder.length === 0) {
@@ -81,7 +79,7 @@ export default function Page() {
       return a.order - b.order;;
     });
 
-  }, [profile.meals, sessionMealDefs, hiddenMeals, mealPanelOrder]);
+  }, [profile.meals, hiddenMeals, mealPanelOrder]);
 
   const handleInsertMealPanel = (index: number) => {
     const name = window.prompt("Meal name?");
@@ -90,17 +88,11 @@ export default function Page() {
     const trimmed = name.trim();
     if (!trimmed) return;
 
-    // numeric id to stay compatible with MealDefinition typing
-    const newId = Date.now() + Math.floor(Math.random() * 1000);
-
-    const newDef: MealDefinition = {
-      id: newId as any,
+    const newId = addMeal({
       name: trimmed,
-      enabled: true as any,
-      order: 10_000 + sessionMealDefs.length,
-    } as MealDefinition;
-
-    setSessionMealDefs((prev) => [...prev, newDef]);
+      enabled: true,
+      order: 10_000,
+    });
 
     // insert into current visual order
     const ids = mealDefs.map((m) => String(m.id));
@@ -111,8 +103,7 @@ export default function Page() {
 
   const totals = useMemo(() => computeTotals(foods, meals), [foods, meals]);
   const mealTotals = useMemo(() => computeMealTotals(foods, meals, mealDefs), [foods, meals, mealDefs]);
-  const hasAnyHiddenPanels = Object.keys(hiddenMeals).length > 0;
-  const hasAnyEntries = Object.keys(meals).length > 0;
+
   // modal state
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"add" | "edit">("add");
@@ -179,11 +170,10 @@ export default function Page() {
           <button
             type="button"
             style={dayBtn(false)}
-            disabled={!hasAnyHiddenPanels && !hasAnyEntries}
             onClick={() => {
+              resetMealPanelsToDefault();
               resetHiddenMeals();
               resetMealPanelOrder();
-              setSessionMealDefs([]);
             }}
           >
             <FiRotateCcw size={18} />
@@ -206,7 +196,7 @@ export default function Page() {
             if (f) openEdit(f);
           }}
           onRemoveMeal={(mealId) => {
-            hideMealPanel(mealId); // hide panel (UI)
+            disableMeal(mealId);
             removeMeal(mealId);    // clear chips/entries
           }}
           onReorderMealPanels={(nextOrder) => setMealPanelOrder(nextOrder)}
@@ -219,6 +209,9 @@ export default function Page() {
           }}
           moveEntry={moveEntry}
           clearAll={clearAllMeals}
+          onSaveMealPanelsToDefault={async (orderedMealIds) => {
+            await saveMealPanelsAsDefault(orderedMealIds);
+          }}
         />
       </div>
 
@@ -260,6 +253,7 @@ const dayBtn = (active: boolean): React.CSSProperties => ({
   color: active ? "var(--btn-fg)" : "var(--background)",
   fontWeight: 900,
   opacity: 1,
+  cursor: "pointer",
 });
 
 const selectWrap: React.CSSProperties = {

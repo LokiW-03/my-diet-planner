@@ -5,7 +5,7 @@ import { DndContext, DragEndEvent } from "@dnd-kit/core";
 import { MealBoard } from "@/client/src/components/MealBoard";
 import { FoodLibrary } from "@/client/src/components/FoodLibrary";
 import { ExportButton } from "@/client/src/components/ExportButton";
-import type { FoodItem, FoodId, MealEntry, Target, MealDefinition, CategoryId } from "@/shared/models";
+import type { FoodItem, FoodId, MealEntry, Target, MealDefinition, CategoryId, MealId } from "@/shared/models";
 
 export default function DndShell({
     foods,
@@ -27,27 +27,9 @@ export default function DndShell({
     addEntryToMeal,
     moveEntry,
     clearAll,
-}: {
-    foods: FoodItem[];
-    meals: Record<string, MealEntry[]>;
-    mealDefs: MealDefinition[];
-    mealTotals: Record<string, { kcal: number; protein: number }>;
-    totals: { kcal: number; protein: number };
-    dayType: string;
-    targets: Target[];
-    weightKg?: number;
-    onRemoveEntry: (mealId: string, entryId: string) => void;
-    onPortionChange: (mealId: string, entryId: string, portion: number) => void;
-    onEditFood: (foodId: FoodId) => void;
-    onRemoveMeal: (mealId: string) => void;
-    onReorderMealPanels: (nextOrder: string[]) => void;
-    onInsertMealPanel: (index: number) => void;
-    openAdd: (catId: CategoryId) => void;
-    openEdit: (food: FoodItem) => void;
-    addEntryToMeal: (mealId: string, foodId: FoodId) => void;
-    moveEntry: (from: string, to: string, entryId: string) => void;
-    clearAll: () => void;
-}) {
+    onSaveMealPanelsToDefault,
+}: DndShellProps
+) {
 
     const [_, setActiveId] = React.useState<string | null>(null);
 
@@ -90,7 +72,11 @@ export default function DndShell({
 
             if (!overId.startsWith("drop:")) return;
 
-            const toMeal = overId.slice("drop:".length);
+            const mealIdByKey = new Map(mealDefs.map((m) => [String(m.id), m.id] as const));
+
+            const toMealKey = overId.slice("drop:".length);
+            const toMeal = mealIdByKey.get(toMealKey);
+            if (!toMeal) return;
 
             if (activeId.startsWith("lib:")) {
                 const foodId = activeId.slice("lib:".length) as unknown as FoodId;
@@ -100,11 +86,14 @@ export default function DndShell({
 
             if (activeId.startsWith("meal:")) {
                 const rest = activeId.slice("meal:".length);
-                const i = rest.indexOf(":");
-                if (i === -1) return;
+                const i = rest.lastIndexOf(":");
+                if (i == -1) return;
 
-                const fromMeal = rest.slice(0, i);
+                const fromMealKey = rest.slice(0, i);
                 const entryId = rest.slice(i + 1);
+
+                const fromMeal = mealIdByKey.get(fromMealKey);
+                if (!fromMeal) return;
 
                 moveEntry(fromMeal, toMeal, entryId);
                 return;
@@ -161,6 +150,23 @@ export default function DndShell({
                             <div style={{ fontWeight: 700, color: "var(--chip-border)" }}>to meet target</div>
                         </div>
 
+                        <button
+                            style={{
+                                padding: "10px 14px",
+                                borderRadius: 12,
+                                border: "1px solid var(--btn-border)",
+                                background: "var(--btn-bg)",
+                                fontWeight: 700,
+                                color: "var(--btn-fg)",
+                                cursor: "pointer",
+                            }}
+                            onClick={() => onSaveMealPanelsToDefault(mealDefs.map((m) => m.id))}
+                            title="Save meal panels (including removed/disabled) as DB defaults"
+                            type="button"
+                        >
+                            Save
+                        </button>
+
                         <ExportButton foods={foods} meals={meals} totals={totals} dayType={target?.name ?? dayType} />
                         <button
                             style={{
@@ -174,6 +180,7 @@ export default function DndShell({
                             }}
                             onClick={clearAll}
                             title="Clear all meals"
+                            type="button"
                         >
                             Clear All
                         </button>
@@ -187,4 +194,27 @@ export default function DndShell({
             </div>
         </DndContext>
     );
+}
+
+type DndShellProps = {
+    foods: FoodItem[];
+    meals: Record<string, MealEntry[]>;
+    mealDefs: MealDefinition[];
+    mealTotals: Record<string, { kcal: number; protein: number }>;
+    totals: { kcal: number; protein: number };
+    dayType: string;
+    targets: Target[];
+    weightKg?: number;
+    onRemoveEntry: (mealId: MealId, entryId: string) => void;
+    onPortionChange: (mealId: MealId, entryId: string, portion: number) => void;
+    onEditFood: (foodId: FoodId) => void;
+    onRemoveMeal: (mealId: MealId) => void;
+    onReorderMealPanels: (nextOrder: string[]) => void;
+    onInsertMealPanel: (index: number) => void;
+    openAdd: (catId: CategoryId) => void;
+    openEdit: (food: FoodItem) => void;
+    addEntryToMeal: (mealId: MealId, foodId: FoodId) => void;
+    moveEntry: (from: MealId, to: MealId, entryId: string) => void;
+    clearAll: () => void;
+    onSaveMealPanelsToDefault: (orderedMealIds: MealId[]) => Promise<void> | void;
 }

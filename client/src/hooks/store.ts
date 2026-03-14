@@ -113,6 +113,8 @@ export const usePlannerStore = create<PlannerState>()(
             partialize: (s) => ({
                 meals: s.meals,
                 dayType: s.dayType,
+                hiddenMeals: s.hiddenMeals,
+                mealPanelOrder: s.mealPanelOrder,
             }),
         }
     )

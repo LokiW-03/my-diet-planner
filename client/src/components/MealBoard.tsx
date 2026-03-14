@@ -4,27 +4,21 @@ import React, { useEffect, useState } from "react";
 import { useDroppable, useDraggable } from "@dnd-kit/core";
 import { SortableContext, rectSortingStrategy, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import type { FoodId, FoodItem, MealEntry, MealDefinition } from "@/shared/models";
+import type { FoodId, FoodItem, MealEntry, MealDefinition, MealId } from "@/shared/models";
 import { FaTrash } from "react-icons/fa";
 import { IoMdArrowDropdown, IoMdArrowDropright } from "react-icons/io";
 
 function MealEntryChip({
-    meal,
+    mealId,
     entry,
     foods,
     onRemove,
     onPortionChange,
     onEditFood,
-}: {
-    meal: string;
-    entry: MealEntry;
-    foods: FoodItem[];
-    onRemove: () => void;
-    onPortionChange: (n: number) => void;
-    onEditFood: () => void;
-}) {
+}: mealEntryProps
+) {
     const food = foods.find((f) => f.id === entry.foodId);
-    const id = `meal:${meal}:${entry.entryId}`;
+    const id = `meal:${mealId}:${entry.entryId}`;
     const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id });
 
     const [portionText, setPortionText] = useState(String(entry.portion));
@@ -87,7 +81,7 @@ function MealEntryChip({
 }
 
 function MealPanel({
-    meal,
+    mealId,
     title,
     entries,
     foods,
@@ -98,20 +92,10 @@ function MealPanel({
     collapsed,
     onToggleCollapsed,
     footer,
-}: {
-    meal: string;
-    title: string;
-    entries: MealEntry[];
-    foods: FoodItem[];
-    onRemoveEntry: (entryId: string) => void;
-    onPortionChange: (entryId: string, n: number) => void;
-    onEditFood: (foodId: FoodId) => void;
-    onRemoveMeal: (mealId: string) => void;
-    collapsed: boolean;
-    onToggleCollapsed?: () => void;
-    footer: string;
-}) {
-    const { setNodeRef: setDropRef, isOver } = useDroppable({ id: `drop:${meal}` });
+}: mealPanelProps
+) {
+    const mealKey = String(mealId)
+    const { setNodeRef: setDropRef, isOver } = useDroppable({ id: `drop:${mealKey}` });
 
     const {
         setNodeRef: setPanelRef,
@@ -121,7 +105,7 @@ function MealPanel({
         transform,
         transition,
         isDragging,
-    } = useSortable({ id: `panel:${meal}` });
+    } = useSortable({ id: `panel:${mealKey}` });
 
     const baseTransform = CSS.Transform.toString(transform);
     const animatedTransform = baseTransform ? `${baseTransform}${isDragging ? " scale(1.02)" : ""}` : undefined;
@@ -165,7 +149,7 @@ function MealPanel({
                     </button>
 
                     {onRemoveMeal ? (
-                        <button style={mealRemoveBtn} onClick={() => onRemoveMeal(meal)} title="Remove meal">
+                        <button style={mealRemoveBtn} onClick={() => onRemoveMeal(mealId)} title="Remove meal">
                             <FaTrash />
                         </button>
                     ) : null}
@@ -207,7 +191,7 @@ function MealPanel({
                         {entries.map((e) => (
                             <MealEntryChip
                                 key={e.entryId}
-                                meal={meal}
+                                mealId={mealId}
                                 entry={e}
                                 foods={foods}
                                 onRemove={() => onRemoveEntry(e.entryId)}
@@ -244,17 +228,8 @@ export function MealBoard({
     onEditFood,
     onRemoveMeal,
     onInsertMealPanel,
-}: {
-    foods: FoodItem[];
-    meals: Record<string, MealEntry[]>;
-    mealDefs: MealDefinition[];
-    mealTotals: Record<string, { kcal: number; protein: number }>;
-    onRemoveEntry: (mealId: string, entryId: string) => void;
-    onPortionChange: (mealId: string, entryId: string, portion: number) => void;
-    onEditFood: (foodId: FoodId) => void;
-    onRemoveMeal: (mealId: string) => void;
-    onInsertMealPanel: (index: number) => void;
-}) {
+}: mealBoardProps
+) {
     const [collapsedMeals, setCollapsedMeals] = React.useState<Record<string, boolean>>({}); // NEW
     const sortableItems = mealDefs.map((m) => `panel:${String(m.id)}`);
 
@@ -265,23 +240,24 @@ export function MealBoard({
         <SortableContext items={sortableItems} strategy={rectSortingStrategy}>
             <div style={mealGrid}>
                 {mealDefs.map((m, idx) => {
-                    const mealId = String(m.id);
-                    const panelMeals = meals[mealId] ?? [];
-                    const panelTotals = mealTotals[mealId] ?? { kcal: 0, protein: 0 };
+                    const mealKey = String(m.id);
+
+                    const panelMeals = meals[mealKey] ?? [];
+                    const panelTotals = mealTotals[mealKey] ?? { kcal: 0, protein: 0 };
                     return (
-                        <React.Fragment key={mealId}>
+                        <React.Fragment key={m.id}>
                             <MealPanel
-                                key={mealId}
-                                meal={mealId}
+                                key={m.id}
+                                mealId={m.id}
                                 title={m.name.toUpperCase()}
                                 entries={panelMeals}
                                 foods={foods}
-                                onRemoveEntry={(id) => onRemoveEntry(mealId, id)}
-                                onPortionChange={(id, n) => onPortionChange(mealId, id, n)}
+                                onRemoveEntry={(id) => onRemoveEntry(m.id, id)}
+                                onPortionChange={(id, n) => onPortionChange(m.id, id, n)}
                                 onEditFood={onEditFood}
                                 onRemoveMeal={onRemoveMeal}
-                                collapsed={!!collapsedMeals[mealId]}
-                                onToggleCollapsed={() => toggleCollapsed(mealId)}
+                                collapsed={!!collapsedMeals[mealKey]}
+                                onToggleCollapsed={() => toggleCollapsed(mealKey)}
                                 footer={`Total: ~${Math.round(panelTotals.kcal)} kcal, ~${Math.round(panelTotals.protein)} g Protein`}
                             />
                             <InsertRow onClick={() => onInsertMealPanel(idx + 1)} />
@@ -303,6 +279,41 @@ function InsertRow({ onClick }: { onClick: () => void }) {
             <div style={insertLine} />
         </div>
     );
+}
+
+type mealEntryProps = {
+    mealId: MealId;
+    entry: MealEntry;
+    foods: FoodItem[];
+    onRemove: () => void;
+    onPortionChange: (n: number) => void;
+    onEditFood: () => void;
+}
+
+type mealPanelProps = {
+    mealId: MealId;
+    title: string;
+    entries: MealEntry[];
+    foods: FoodItem[];
+    onRemoveEntry: (entryId: string) => void;
+    onPortionChange: (entryId: string, n: number) => void;
+    onEditFood: (foodId: FoodId) => void;
+    onRemoveMeal: (mealId: MealId) => void;
+    collapsed: boolean;
+    onToggleCollapsed?: () => void;
+    footer: string;
+}
+
+type mealBoardProps = {
+    foods: FoodItem[];
+    meals: Record<string, MealEntry[]>;
+    mealDefs: MealDefinition[];
+    mealTotals: Record<string, { kcal: number; protein: number }>;
+    onRemoveEntry: (mealId: MealId, entryId: string) => void;
+    onPortionChange: (mealId: MealId, entryId: string, portion: number) => void;
+    onEditFood: (foodId: FoodId) => void;
+    onRemoveMeal: (mealId: MealId) => void;
+    onInsertMealPanel: (index: number) => void;
 }
 
 const mealGrid: React.CSSProperties = { display: "grid", gap: 14 };
