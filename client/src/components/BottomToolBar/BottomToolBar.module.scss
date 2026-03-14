@@ -1,0 +1,65 @@
+.root {
+    margin-top: 14px;
+    display: flex;
+    gap: 14px;
+    align-items: center;
+}
+
+.card {
+    border: 1px solid var(--card-border);
+    border-radius: 14px;
+    padding: 14px;
+    min-width: 160px;
+    background: var(--background);
+}
+
+.cardCenter {
+    text-align: center;
+}
+
+.title {
+    font-weight: 900;
+}
+
+.value {
+    font-size: 26px;
+    font-weight: 900;
+}
+
+.protein {
+    font-weight: 700;
+}
+
+.stillNeedTitle {
+    font-weight: 900;
+    color: var(--chip-border);
+}
+
+.stillNeedSub {
+    font-weight: 700;
+    color: var(--chip-border);
+}
+
+.button {
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: 1px solid var(--card-border);
+    background: var(--card-bg);
+    color: var(--background);
+    font-weight: 700;
+    cursor: pointer;
+
+    &:hover {
+        background: var(--btn-bg);
+        color: var(--btn-fg);
+    }
+
+    &.danger {
+        color: var(--danger-fg);
+
+        &:hover {
+            background: var(--danger-fg);
+            color: var(--danger-hover-fg);
+        }
+    }
+}

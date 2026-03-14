@@ -1,0 +1,59 @@
+.panel {
+    border: 1px solid var(--card-border);
+    border-radius: 14px;
+    padding: 14px;
+    min-height: 420px;
+}
+
+.category {
+    margin-bottom: 14px;
+}
+
+.headerRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.categoryName {
+    font-weight: 800;
+}
+
+.plusBtn {
+    width: 38px;
+    height: 38px;
+    border-radius: 999px;
+    border: 1px solid var(--card-border);
+    background: var(--card-bg);
+    font-size: 22px;
+    color: var(--background);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.chipWrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.chip {
+    padding: 8px 12px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    background: var(--btn-bg);
+    cursor: grab;
+    color: var(--btn-fg);
+    font-weight: 800;
+    box-shadow: 0 4px 10px rgba(41, 33, 33, 0.06);
+}
+
+.divider {
+    height: 1px;
+    background: var(--divider);
+    margin-top: 12px;
+}

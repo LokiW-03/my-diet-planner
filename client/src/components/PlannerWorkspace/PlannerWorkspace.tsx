@@ -2,12 +2,13 @@
 
 import React from "react";
 import { DndContext, DragEndEvent, DragStartEvent } from "@dnd-kit/core";
-import { MealBoard } from "@/client/src/components/MealBoard";
-import { FoodLibrary } from "@/client/src/components/FoodLibrary";
-import { ExportButton } from "@/client/src/components/ExportButton";
+import { MealBoard } from "@/client/src/components/MealBoard/MealBoard";
+import { FoodLibrary } from "@/client/src/components/FoodLibrary/FoodLibrary";
+import { BottomToolBar } from "@/client/src/components/BottomToolBar/BottomToolBar";
 import type { FoodItem, FoodId, MealEntry, Target, MealDefinition, CategoryId, MealId } from "@/shared/models";
+import styles from "./PlannerWorkspace.module.scss";
 
-export default function DndShell({
+export default function PlannerWorkspace({
     foods,
     meals,
     mealDefs,
@@ -27,7 +28,7 @@ export default function DndShell({
     addEntryToMeal,
     moveEntry,
     clearAll,
-}: DndShellProps
+}: PlannerWorkspaceProps
 ) {
 
     const [, setActiveId] = React.useState<string | null>(null);
@@ -102,11 +103,12 @@ export default function DndShell({
         }
     }
 
-    const proteinToColour = () => {
+    const proteinToColour = (): string => {
         const proteinRatio = weightKg && weightKg > 0 ? totals.protein / weightKg : null;
         if (proteinRatio == null || (proteinRatio <= 0.8 || proteinRatio >= 2.2)) return "var(--danger-fg)";
         if (proteinRatio < 1.0 || proteinRatio > 2.0) return "var(--warning-fg)";
         if (proteinRatio >= 1.0 && proteinRatio <= 2.0) return "var(--healthy-fg)";
+        return "var(--danger-fg)";
     }
 
     const target = targets.find((t) => String(t.id) === dayType) ?? null;
@@ -122,7 +124,7 @@ export default function DndShell({
 
     return (
         <DndContext onDragEnd={onDragEnd} onDragStart={onDragStart} onDragCancel={onDragCancel}>
-            <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 16, alignItems: "start" }}>
+            <div className={styles.grid}>
                 <div>
                     <MealBoard
                         foods={foods}
@@ -136,38 +138,15 @@ export default function DndShell({
                         onInsertMealPanel={onInsertMealPanel}
                     />
 
-                    <div style={{ marginTop: 14, display: "flex", gap: 14, alignItems: "center" }}>
-                        <div style={{ border: "1px solid var(--card-border)", borderRadius: 14, padding: 14, minWidth: 160, background: "var(--background)" }}>
-                            <div style={{ fontWeight: 900 }}>TOTAL</div>
-                            <div style={{ fontSize: 26, fontWeight: 900 }}>{Math.round(totals.kcal)} kcal</div>
-                            <div style={{ fontWeight: 700, color: proteinToColour() }}>{Math.round(totals.protein)}g Protein</div>
-                        </div>
-
-                        <div style={{ border: "1px solid var(--card-border)", borderRadius: 14, padding: 14, minWidth: 160, background: "var(--background)", textAlign: "center" }}>
-                            <div style={{ fontWeight: 900, color: "var(--chip-border)" }}>STILL NEED</div>
-                            <div style={{ fontSize: 26, fontWeight: 900 }}>{stillNeed} kcal</div>
-                            <div style={{ fontWeight: 700, color: "var(--chip-border)" }}>to meet target</div>
-                        </div>
-
-                        <ExportButton foods={foods} meals={meals} totals={totals} dayType={target?.name ?? dayType} />
-                        <button
-                            style={{
-                                padding: "10px 14px",
-                                borderRadius: 12,
-                                border: "1px solid var(--card-border)",
-                                background: "var(--card-bg)",
-                                fontWeight: 700,
-                                color: "var(--danger-fg)",
-                                cursor: "pointer",
-                            }}
-                            onClick={clearAll}
-                            title="Clear all meals"
-                            type="button"
-                        >
-                            Clear All
-                        </button>
-
-                    </div>
+                    <BottomToolBar
+                        foods={foods}
+                        meals={meals}
+                        totals={totals}
+                        proteinColor={proteinToColour()}
+                        stillNeedKcal={stillNeed}
+                        exportDayType={target?.name ?? dayType}
+                        onClearAll={clearAll}
+                    />
                 </div>
 
                 <div>
@@ -178,7 +157,7 @@ export default function DndShell({
     );
 }
 
-type DndShellProps = {
+type PlannerWorkspaceProps = {
     foods: FoodItem[];
     meals: Record<string, MealEntry[]>;
     mealDefs: MealDefinition[];

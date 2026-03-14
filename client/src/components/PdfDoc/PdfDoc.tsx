@@ -1,15 +1,8 @@
-import React from "react";
-import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+import { Document, Page, Text, View } from "@react-pdf/renderer";
 import type { FoodItem, MealEntry } from "@/shared/models";
+import { pdfStyles as styles } from "./PdfDoc.styles";
 
-type Props = {
-    foods: FoodItem[];
-    meals: Record<string, MealEntry[]>;
-    totals: { kcal: number; protein: number };
-    dayType: string;
-};
-
-export function PdfDoc({ foods, meals, totals, dayType }: Props) {
+export function PdfDoc({ foods, meals, totals, dayType }: PDFProps) {
     const map = new Map(foods.map((f) => [f.id, f]));
 
     return (
@@ -50,14 +43,9 @@ export function PdfDoc({ foods, meals, totals, dayType }: Props) {
     );
 }
 
-const styles = StyleSheet.create({
-    page: { padding: 24, fontSize: 12 },
-    title: { fontSize: 18, marginBottom: 6 },
-    sub: { marginBottom: 4 },
-    section: { marginTop: 14, paddingTop: 10, borderTopWidth: 1, borderTopColor: "#e6e6e6" },
-    mealTitle: { fontSize: 14, marginBottom: 8 },
-    muted: { color: "#444" },
-    row: { flexDirection: "row", marginBottom: 4 },
-    cellName: { width: "46%" },
-    cell: { width: "18%" },
-});
+type PDFProps = {
+    foods: FoodItem[];
+    meals: Record<string, MealEntry[]>;
+    totals: { kcal: number; protein: number };
+    dayType: string;
+};

@@ -4,12 +4,12 @@ import { useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { usePlannerStore, computeTotals } from "@/client/src/hooks/store";
 import type { CategoryId, FoodItem, FoodId, MealDefinition, MealEntry } from "@/shared/models";
-import { FoodModal } from "@/client/src/components/FoodModal";
-import { UserProfilePanel } from "@/client/src/components/UserProfilePanel";
+import { FoodModal } from "@/client/src/components/FoodModal/FoodModal";
+import { UserProfileModal } from "@/client/src/components/UserProfileModal/UserProfileModal";
 import { useProfile } from "@/client/src/hooks/useProfile";
 import { TopToolBar } from "@/client/src/components/TopToolBar/TopToolBar";
 
-const DndShell = dynamic(() => import("@/client/src/components/DndShell"), { ssr: false });
+const DndShell = dynamic(() => import("@/client/src/components/PlannerWorkspace/PlannerWorkspace"), { ssr: false });
 
 function computeMealTotals(
   foods: FoodItem[],
@@ -188,7 +188,7 @@ export default function Page() {
         />
       </div>
 
-      <UserProfilePanel
+      <UserProfileModal
         open={showProfile}
         onClose={() => setShowProfile(false)} />
 

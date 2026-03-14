@@ -7,6 +7,7 @@ import { CSS } from "@dnd-kit/utilities";
 import type { FoodId, FoodItem, MealEntry, MealDefinition, MealId } from "@/shared/models";
 import { FaTrash } from "react-icons/fa";
 import { IoMdArrowDropdown, IoMdArrowDropright } from "react-icons/io";
+import styles from "./MealBoard.module.scss";
 
 function MealEntryChip({
     mealId,
@@ -54,14 +55,14 @@ function MealEntryChip({
     return (
         <div
             ref={setNodeRef}
+            className={styles.entryBox}
             style={{
-                ...entryBox,
                 opacity: isDragging ? 0.5 : 1,
                 transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
             }}
         >
             <button
-                style={entryNameBtn}
+                className={styles.entryNameBtn}
                 onClick={onEditFood}
                 title="Click to edit food"
                 {...listeners}
@@ -70,19 +71,21 @@ function MealEntryChip({
                 {food.name}
             </button>
 
-            <div style={{ display: "flex", gap: 6, alignItems: "center", color: "var(--background)" }}>
+            <div className={styles.portionWrap}>
                 <input
-                    style={portionInput}
+                    className={styles.portionInput}
                     type="number"
                     value={displayedPortion}
                     onChange={(e) => handleChange(e.target.value)}
                     onFocus={handleFocus}
                     onBlur={handleBlur}
                 />
-                <span style={{ fontWeight: 700 }}>{food.unit}</span>
+                <span className={styles.unit}>{food.unit}</span>
             </div>
 
-            <button style={removeBtn} onClick={onRemove} title="Remove">✕</button>
+            <button className={styles.removeBtn} onClick={onRemove} title="Remove">
+                ✕
+            </button>
         </div>
     );
 }
@@ -121,34 +124,33 @@ function MealPanel({
     return (
         <div
             ref={setPanelRef}
+            className={styles.mealPanel}
             style={{
-                ...mealPanel,
                 outline: isOver ? "2px solid var(--accent)" : "1px solid var(--card-border)",
                 transform: animatedTransform,
                 transition: transition ? `${transition}, box-shadow 160ms ease, opacity 160ms ease` : "box-shadow 160ms ease, opacity 160ms ease",
                 opacity: isDragging ? 0.92 : 1,
-                boxShadow: isDragging
-                    ? "0 18px 45px rgba(0,0,0,0.20)"
-                    : mealPanel.boxShadow,
+                boxShadow: isDragging ? "0 18px 45px rgba(0,0,0,0.20)" : undefined,
                 zIndex: isDragging ? 50 : "auto",
-            }}>
-            <div style={mealHeader}>
-                <div style={mealTitle}>{title}</div>
+            }}
+        >
+            <div className={styles.mealHeader}>
+                <div className={styles.mealTitle}>{title}</div>
 
-                <div style={mealHeaderActions}>
+                <div className={styles.mealHeaderActions}>
                     <button
                         type="button"
                         ref={setActivatorNodeRef}
                         {...attributes}
                         {...listeners}
-                        style={mealDragHandle}
+                        className={styles.mealDragHandle}
                         title="Drag to reorder"
                         aria-label={`Drag to reorder ${title}`}
                     >
                         ⋮⋮
                     </button>
                     <button
-                        style={mealCollapseBtn}
+                        className={styles.mealCollapseBtn}
                         onClick={onToggleCollapsed}
                         title={collapsed ? "Expand" : "Collapse"}
                     >
@@ -156,7 +158,7 @@ function MealPanel({
                     </button>
 
                     {onRemoveMeal ? (
-                        <button style={mealRemoveBtn} onClick={() => onRemoveMeal(mealId)} title="Remove meal">
+                        <button className={styles.mealRemoveBtn} onClick={() => onRemoveMeal(mealId)} title="Remove meal">
                             <FaTrash />
                         </button>
                     ) : null}
@@ -167,24 +169,14 @@ function MealPanel({
             {collapsed ? (
                 <div
                     ref={setDropRef}
-                    style={{
-                        ...mealDropZone,
-                        minHeight: 44,
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        gap: 10,
-                        padding: "8px 10px",
-                        border: "1px dashed var(--divider)",
-                        borderRadius: 12,
-                    }}
+                    className={`${styles.mealDropZone} ${styles.mealDropZoneCollapsed}`}
                 >
-                    <div style={{ color: "var(--muted)", fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis" }}>
+                    <div className={styles.collapsedInfo}>
                         {entries.length} item{entries.length === 1 ? "" : "s"} • {footer}
                     </div>
 
                     <button
-                        style={clearBtn}
+                        className={styles.clearBtn}
                         onClick={() => entries.forEach((e) => onRemoveEntry(e.entryId))}
                         title="Clear all items"
                     >
@@ -193,8 +185,8 @@ function MealPanel({
                 </div>
             ) : (
                 <>
-                    <div ref={setDropRef} style={mealDropZone}>
-                        {entries.length === 0 ? <div style={{ color: "var(--muted)" }}>Drag items here</div> : null}
+                    <div ref={setDropRef} className={styles.mealDropZone}>
+                        {entries.length === 0 ? <div className={styles.emptyHint}>Drag items here</div> : null}
                         {entries.map((e) => (
                             <MealEntryChip
                                 key={e.entryId}
@@ -207,10 +199,10 @@ function MealPanel({
                             />
                         ))}
                     </div>
-                    <div style={mealFooter}>
+                    <div className={styles.mealFooter}>
                         <div>{footer}</div>
                         <button
-                            style={clearBtn}
+                            className={styles.clearBtn}
                             onClick={() => {
                                 entries.forEach((e) => onRemoveEntry(e.entryId));
                             }}
@@ -245,7 +237,7 @@ export function MealBoard({
     };
     return (
         <SortableContext items={sortableItems} strategy={rectSortingStrategy}>
-            <div style={mealGrid}>
+            <div className={styles.mealGrid}>
                 {mealDefs.map((m, idx) => {
                     const mealKey = String(m.id);
 
@@ -278,12 +270,12 @@ export function MealBoard({
 
 function InsertRow({ onClick }: { onClick: () => void }) {
     return (
-        <div style={insertRow}>
-            <div style={insertLine} />
-            <button type="button" style={insertBtn} onClick={onClick} title="Insert meal panel here" aria-label="Insert meal panel here">
+        <div className={styles.insertRow}>
+            <div className={styles.insertLine} />
+            <button type="button" className={styles.insertBtn} onClick={onClick} title="Insert meal panel here" aria-label="Insert meal panel here">
                 +
             </button>
-            <div style={insertLine} />
+            <div className={styles.insertLine} />
         </div>
     );
 }
@@ -322,147 +314,3 @@ type mealBoardProps = {
     onRemoveMeal: (mealId: MealId) => void;
     onInsertMealPanel: (index: number) => void;
 }
-
-const mealGrid: React.CSSProperties = { display: "grid", gap: 14 };
-const mealPanel: React.CSSProperties = {
-    borderRadius: 14,
-    padding: 12,
-    background: "var(--card-bg)",
-    border: "1px solid var(--card-border)",
-    boxShadow: "0 6px 18px rgba(0,0,0,0.06)",
-};
-
-const mealTitle: React.CSSProperties = { fontWeight: 900, fontSize: 18, marginBottom: 10, color: "var(--background)" };
-
-const mealHeader: React.CSSProperties = {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 10,
-    marginBottom: 10,
-};
-
-const mealDropZone: React.CSSProperties = { minHeight: 110, display: "flex", flexDirection: "column", gap: 8 };
-
-const mealDragHandle: React.CSSProperties = {
-    width: 30,
-    height: 30,
-    borderRadius: 10,
-    border: "1px solid var(--card-border)",
-    background: "var(--card-bg)",
-    color: "var(--muted)",
-    cursor: "grab",
-    fontWeight: 900,
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 0,
-    lineHeight: 0,
-    touchAction: "none",
-};
-
-const mealFooter: React.CSSProperties = {
-    marginTop: 10,
-    paddingTop: 8,
-    borderTop: "1px solid var(--divider)",
-    fontWeight: 700,
-    color: "var(--muted)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-};
-
-const mealRemoveBtn: React.CSSProperties = {
-    width: 30,
-    height: 30,
-    borderRadius: 10,
-    border: "1px solid var(--card-border)",
-    background: "var(--card-bg)",
-    color: "var(--danger-fg)",
-    cursor: "pointer",
-    fontWeight: 900,
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 0,
-    lineHeight: 0,
-};
-
-const clearBtn: React.CSSProperties = {
-    padding: "6px 10px",
-    borderRadius: 8,
-    border: "1px solid var(--card-border)",
-    background: "var(--card-bg)",
-    color: "var(--danger-fg)",
-    cursor: "pointer",
-    fontWeight: 700,
-};
-
-const entryBox: React.CSSProperties = {
-    display: "grid",
-    gridTemplateColumns: "1fr 120px 36px",
-    gap: 8,
-    alignItems: "center",
-    border: "1px solid var(--card-border)",
-    borderRadius: 12,
-    padding: "8px 10px",
-    background: "var(--card-bg)",
-};
-
-const mealCollapseBtn: React.CSSProperties = {
-    width: 30,
-    height: 30,
-    borderRadius: 10,
-    border: "1px solid var(--card-border)",
-    background: "var(--card-bg)",
-    color: "var(--background)",
-    cursor: "pointer",
-    fontWeight: 900,
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 0,
-    lineHeight: 0,
-};
-
-const mealHeaderActions: React.CSSProperties = {
-    display: "flex",
-    alignItems: "center",
-    gap: 10,
-};
-
-const insertRow: React.CSSProperties = {
-    display: "flex",
-    alignItems: "center",
-    gap: 10,
-    padding: "6px 4px",
-};
-
-const insertLine: React.CSSProperties = {
-    flex: 1,
-    height: 0,
-    borderTop: "1px dashed var(--divider)",
-    color: "var(--divider)",
-    opacity: 0.7,
-};
-
-const insertBtn: React.CSSProperties = {
-    width: 34,
-    height: 34,
-    borderRadius: 12,
-    border: "1px solid var(--card-border)",
-    background: "var(--card-bg)",
-    color: "var(--background)",
-    cursor: "pointer",
-    fontWeight: 900,
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 0,
-    lineHeight: 0,
-    opacity: 0.7,
-};
-
-const entryNameBtn: React.CSSProperties = { textAlign: "left", border: "none", background: "transparent", fontWeight: 800, cursor: "pointer", color: "var(--background)" };
-const portionInput: React.CSSProperties = { width: 80, padding: 6, borderRadius: 8, border: "1px solid var(--card-border)", color: "var(--background)" };
-const removeBtn: React.CSSProperties = { width: 30, height: 30, borderRadius: 10, border: "1px solid #999", background: "black", cursor: "pointer" };
