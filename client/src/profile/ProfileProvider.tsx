@@ -18,9 +18,12 @@ export type ProfileContextValue = {
     updateUser: (patch: Partial<Pick<UserProfile, "userName" | "weightKg">>) => void;
 
     // CRUD for targets (local cache)
-    addTarget(target: Omit<Target, "id">): void;
+    addTarget(target: Omit<Target, "id">): TargetId;
     updateTarget(targetId: TargetId, patch: Partial<Omit<Target, "id">>): void;
     removeTarget(targetId: TargetId): void;
+
+    // Reset targets to app defaults (defaults.ts)
+    resetTargetsToDefault: () => void;
 
     // CRUD for meal panels (local cache)
     addMeal: (meal: Omit<MealDefinition, "id">) => MealId;
@@ -92,14 +95,16 @@ export function ProfileProvider({
 
     const removeFood = useCallback((foodId: FoodId) => {
         setProfile((p) => {
-            const { [foodId]: _removed, ...rest } = p.foods;
+            const { [foodId]: removed, ...rest } = p.foods;
+            void removed;
             return { ...p, foods: rest as UserProfile["foods"] };
         });
     }, []);
 
-    const addTarget = useCallback((target: Omit<Target, "id">) => {
+    const addTarget = useCallback((target: Omit<Target, "id">): TargetId => {
         const id = uid("target") as TargetId;
         setProfile((p) => ({ ...p, targets: { ...p.targets, [id]: { ...target, id } } }));
+        return id;
     }, []);
 
     const updateTarget = useCallback((targetId: TargetId, patch: Partial<Omit<Target, "id">>) => {
@@ -108,9 +113,17 @@ export function ProfileProvider({
 
     const removeTarget = useCallback((targetId: TargetId) => {
         setProfile((p) => {
-            const { [targetId]: _removed, ...rest } = p.targets;
+            const { [targetId]: removed, ...rest } = p.targets;
+            void removed;
             return { ...p, targets: rest as UserProfile["targets"] };
         });
+    }, []);
+
+    const resetTargetsToDefault = useCallback(() => {
+        setProfile((p) => ({
+            ...p,
+            targets: { ...defaultUserProfile.targets },
+        }));
     }, []);
 
     const addMeal = useCallback((meal: Omit<MealDefinition, "id">): MealId => {
@@ -147,7 +160,8 @@ export function ProfileProvider({
         }));
     }, []);
 
-    const saveMealPanelsAsDefault = useCallback(async (_orderedEnabledMealIds: MealId[]) => {
+    const saveMealPanelsAsDefault = useCallback(async (orderedEnabledMealIds: MealId[]) => {
+        void orderedEnabledMealIds;
         return Promise.resolve();
     }, []);
 
@@ -160,6 +174,7 @@ export function ProfileProvider({
             addTarget,
             updateTarget,
             removeTarget,
+            resetTargetsToDefault,
             addMeal,
             updateMeal,
             disableMeal,
@@ -177,6 +192,7 @@ export function ProfileProvider({
             addTarget,
             updateTarget,
             removeTarget,
+            resetTargetsToDefault,
             addMeal,
             updateMeal,
             disableMeal,

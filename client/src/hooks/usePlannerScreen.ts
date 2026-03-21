@@ -7,6 +7,7 @@ import { usePlannerStore } from "@/client/src/hooks/useStore";
 import { useFoodModal } from "@/client/src/hooks/useFoodModal";
 import { useMealPanel } from "@/client/src/hooks/useMealPanel";
 import { useModel } from "@/client/src/hooks/useModel";
+import { useTargetModal } from "@/client/src/hooks/useTargetModal";
 import type { FoodId, MealId } from "@/shared/models";
 
 export function usePlannerScreen() {
@@ -43,10 +44,15 @@ export function usePlannerScreen() {
     addFood,
     updateFood,
     removeFood,
+    addTarget,
+    updateTarget,
+    removeTarget,
+    resetTargetsToDefault,
     addMeal,
     disableMeal,
     resetMealPanelsToDefault,
     saveMealPanelsAsDefault,
+    saveProfileAsDefault,
   } = useProfile();
 
   const model = useModel({ profile, plannerState });
@@ -56,7 +62,7 @@ export function usePlannerScreen() {
       removeFood(foodId);
       plannerActions.removeEntriesForFood(foodId);
     },
-    [plannerActions.removeEntriesForFood, removeFood],
+    [plannerActions, removeFood],
   );
 
   const foodModal = useFoodModal({
@@ -72,7 +78,7 @@ export function usePlannerScreen() {
       const portion = food?.defaultPortion ?? 100;
       plannerActions.addEntryToMeal(mealId, foodId, portion);
     },
-    [plannerActions.addEntryToMeal, profile.foods],
+    [plannerActions, profile.foods],
   );
 
   const openEditById = useCallback(
@@ -96,6 +102,17 @@ export function usePlannerScreen() {
     removeMeal: plannerActions.removeMeal,
   });
 
+  const targetModal = useTargetModal({
+    targetsById: profile.targets,
+    dayType: plannerState.dayType,
+    setDayType: plannerActions.setDayType,
+    addTarget,
+    updateTarget,
+    removeTarget,
+    resetTargetsToDefault,
+    saveProfileAsDefault,
+  });
+
   return {
     model,
     ui: foodModal.ui,
@@ -103,6 +120,7 @@ export function usePlannerScreen() {
       ...plannerActions,
       ...mealPanel.actions,
       ...foodModal.actions,
+      ...targetModal.actions,
       // glue actions
       openEditById,
       removeFoodAndEntries,
