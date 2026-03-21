@@ -6,6 +6,7 @@ import { usePlannerScreen } from "@/client/src/hooks/usePlannerScreen";
 import { TopToolBar } from "@/client/src/components/TopToolBar/TopToolBar";
 import { UserProfileModal } from "@/client/src/components/UserProfileModal/UserProfileModal";
 import { FoodModal } from "@/client/src/components/FoodModal/FoodModal";
+import { TargetModal } from "@/client/src/components/TargetModal/TargetModal";
 import styles from "./PlannerScreen.module.scss";
 
 const DndShell = dynamic(
@@ -16,6 +17,7 @@ const DndShell = dynamic(
 export default function PlannerScreen() {
     const { model, ui, actions } = usePlannerScreen();
     const [showProfile, setShowProfile] = useState(false);
+    const [showTargets, setShowTargets] = useState(false);
 
     return (
         <div className={styles.page}>
@@ -27,6 +29,7 @@ export default function PlannerScreen() {
                 <TopToolBar
                     showProfile={showProfile}
                     onToggleProfile={() => setShowProfile((v) => !v)}
+                    onEditTargets={() => setShowTargets(true)}
                     targets={model.targets}
                     dayType={model.dayType}
                     onDayTypeChange={actions.setDayType}
@@ -73,6 +76,22 @@ export default function PlannerScreen() {
                         : undefined
                 }
             />
+
+            {showTargets && (
+                <TargetModal
+                    open={showTargets}
+                    targets={model.targets}
+                    onClose={() => setShowTargets(false)}
+                    onAddTarget={actions.addTarget}
+                    onUpdateTarget={actions.updateTarget}
+                    onRemoveTarget={actions.removeTargetAndFixDayType}
+                    onResetToDefault={actions.resetTargetsToDefault}
+                    onSaveAsDefault={async () => {
+                        await actions.saveTargetsAsDefault();
+                        setShowTargets(false);
+                    }}
+                />
+            )}
         </div>
     );
 }

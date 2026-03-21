@@ -1,13 +1,16 @@
 "use client";
 
-import { FaUserCircle } from "react-icons/fa";
-import { FiChevronDown, FiRotateCcw, FiSave } from "react-icons/fi";
+import { FaUserCircle, FaEdit, FaSave } from "react-icons/fa";
+import { FaRotateRight } from "react-icons/fa6";
+import { FiChevronDown } from "react-icons/fi";
 import type { Target, TargetId } from "@/shared/models";
 import styles from "./TopToolBar.module.scss";
 
 type TopToolBarProps = {
     showProfile: boolean;
     onToggleProfile: () => void;
+
+    onEditTargets: () => void;
 
     targets: Target[];
     dayType: TargetId;
@@ -20,6 +23,7 @@ type TopToolBarProps = {
 export function TopToolBar({
     showProfile,
     onToggleProfile,
+    onEditTargets,
     targets,
     dayType,
     onDayTypeChange,
@@ -30,7 +34,9 @@ export function TopToolBar({
         <div className={styles.bar}>
             <div className={styles.group}>
                 <button
-                    className={showProfile ? `${styles.btn} ${styles.btnActive}` : styles.btn}
+                    className={
+                        showProfile ? `${styles.btn} ${styles.btnActive}` : styles.btn
+                    }
                     onClick={onToggleProfile}
                     type="button"
                 >
@@ -39,7 +45,6 @@ export function TopToolBar({
             </div>
 
             <div className={styles.group}>
-
                 {targets.length > 0 && (
                     <>
                         <div className={styles.groupLabel}>Target:</div>
@@ -68,6 +73,14 @@ export function TopToolBar({
                         </div>
                     </>
                 )}
+                <button
+                    className={`${styles.btn} ${styles.editBtn}`}
+                    onClick={onEditTargets}
+                    type="button"
+                    title="Edit targets"
+                >
+                    <FaEdit size={18} />
+                </button>
             </div>
 
             <div className={styles.group}>
@@ -78,11 +91,11 @@ export function TopToolBar({
                     title="Save meal panels (including removed/disabled) as DB defaults"
                     onClick={onSaveDefaults}
                 >
-                    <FiSave size={18} />
+                    <FaSave size={18} />
                 </button>
 
                 <button type="button" className={styles.btn} onClick={onReset}>
-                    <FiRotateCcw size={18} />
+                    <FaRotateRight size={18} />
                 </button>
             </div>
         </div>

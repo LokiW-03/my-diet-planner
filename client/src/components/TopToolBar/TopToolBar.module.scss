@@ -49,6 +49,12 @@ $control-h: 44px;
     color: var(--btn-fg);
 }
 
+.editBtn {
+    svg {
+        transform: translateX(2px);
+    }
+}
+
 .selectWrap {
     position: relative;
     display: inline-flex;
