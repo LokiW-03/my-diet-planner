@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { CategoryId, FoodCategory, FoodItem } from "@/shared/models";
 import { type Unit, UNITS } from "@/shared/models";
 import { clampInt } from "@/shared/utils";
+import styles from "./FoodModal.module.scss";
 
 type Props = {
     open: boolean;
@@ -62,21 +63,21 @@ export function FoodModal({ open, mode, categories, categoryPreset, food, onClos
     const canSave = name.trim().length > 0 && String(categoryId).length > 0;
 
     return (
-        <div style={styles.backdrop} onMouseDown={onClose}>
-            <div style={styles.modal} onMouseDown={(e) => e.stopPropagation()}>
-                <h2 style={{ marginTop: 0, color: "var(--background)" }}>
+        <div className={styles.backdrop} onMouseDown={onClose}>
+            <div className={styles.modal} onMouseDown={(e) => e.stopPropagation()}>
+                <h2 className={styles.title}>
                     {mode === "add" ? "Add Food" : "Edit Food"}
                 </h2>
 
-                <div style={styles.row}>
-                    <label style={styles.label}>Name</label>
-                    <input style={styles.input} value={name} onChange={(e) => setName(e.target.value)} />
+                <div className={styles.row}>
+                    <label className={styles.label}>Name</label>
+                    <input className={styles.input} value={name} onChange={(e) => setName(e.target.value)} />
                 </div>
 
-                <div style={styles.row}>
-                    <label style={styles.label}>Category</label>
+                <div className={styles.row}>
+                    <label className={styles.label}>Category</label>
                     <select
-                        style={styles.input}
+                        className={styles.input}
                         value={String(categoryId)}
                         onChange={(e) => setCategoryId(e.target.value as unknown as CategoryId)}
                     >
@@ -88,9 +89,9 @@ export function FoodModal({ open, mode, categories, categoryPreset, food, onClos
                     </select>
                 </div>
 
-                <div style={styles.row}>
-                    <label style={styles.label}>Unit</label>
-                    <select style={styles.input} value={unit} onChange={(e) => setUnit(e.target.value as Unit)}>
+                <div className={styles.row}>
+                    <label className={styles.label}>Unit</label>
+                    <select className={styles.input} value={unit} onChange={(e) => setUnit(e.target.value as Unit)}>
                         {UNITS.map((u) => (
                             <option key={u} value={u}>
                                 {u}
@@ -99,51 +100,52 @@ export function FoodModal({ open, mode, categories, categoryPreset, food, onClos
                     </select>
                 </div>
 
-                <div style={styles.row}>
-                    <label style={styles.label}>Kcal per {unit}</label>
+                <div className={styles.row}>
+                    <label className={styles.label}>Kcal per {unit}</label>
                     <input
-                        style={styles.input}
+                        className={styles.input}
                         type="number"
                         value={kcalPerUnit}
                         onChange={(e) => setKcal(Number(e.target.value))}
                     />
                 </div>
 
-                <div style={styles.row}>
-                    <label style={styles.label}>Protein per {unit}</label>
+                <div className={styles.row}>
+                    <label className={styles.label}>Protein per {unit}</label>
                     <input
-                        style={styles.input}
+                        className={styles.input}
                         type="number"
                         value={proteinPerUnit}
                         onChange={(e) => setProtein(Number(e.target.value))}
                     />
                 </div>
 
-                <div style={styles.row}>
-                    <label style={styles.label}>Default portion ({unit})</label>
+                <div className={styles.row}>
+                    <label className={styles.label}>Default portion ({unit})</label>
                     <input
-                        style={styles.input}
+                        className={styles.input}
                         type="number"
                         value={defaultPortion}
                         onChange={(e) => setPortion(clampInt(Number(e.target.value), 0, 100000))}
                     />
                 </div>
 
-                <div style={{ display: "flex", justifyContent: "space-between", marginTop: 16 }}>
-                    <div>
+                <div className={styles.footer}>
+                    <div className={styles.footerLeft}>
                         {mode === "edit" && onDelete && (
-                            <button style={styles.dangerBtn} onClick={onDelete}>
+                            <button className={`${styles.btn} ${styles.dangerBtn}`} onClick={onDelete} type="button">
                                 Delete
                             </button>
                         )}
                     </div>
-                    <div style={{ display: "flex", gap: 8 }}>
-                        <button style={styles.btn} onClick={onClose}>
+                    <div className={styles.footerRight}>
+                        <button className={styles.btn} onClick={onClose} type="button">
                             Cancel
                         </button>
                         <button
-                            style={styles.btnPrimary}
+                            className={`${styles.btn} ${styles.btnPrimary}`}
                             disabled={!canSave}
+                            type="button"
                             onClick={() => {
                                 if (!canSave) return;
                                 onSave({
@@ -165,31 +167,3 @@ export function FoodModal({ open, mode, categories, categoryPreset, food, onClos
         </div>
     );
 }
-
-const styles: Record<string, React.CSSProperties> = {
-    // ...existing code...
-    backdrop: {
-        position: "fixed",
-        inset: 0,
-        background: "rgba(0,0,0,0.25)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 16,
-        zIndex: 50,
-    },
-    modal: {
-        width: 520,
-        maxWidth: "100%",
-        background: "var(--card-bg)",
-        borderRadius: 12,
-        padding: 16,
-        boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
-    },
-    row: { display: "grid", gridTemplateColumns: "160px 1fr", gap: 12, marginBottom: 10, alignItems: "center" },
-    label: { fontWeight: 600, color: "var(--background)" },
-    input: { padding: 8, borderRadius: 8, border: "1px solid var(--card-border)", background: "var(--background)" },
-    btn: { padding: "8px 12px", borderRadius: 10, border: "1px solid var(--card-border)", background: "var(--background)" },
-    btnPrimary: { padding: "8px 12px", borderRadius: 10, border: "1px solid var(--btn-border)", background: "var(--btn-bg)", color: "var(--btn-fg)" },
-    dangerBtn: { padding: "8px 12px", borderRadius: 10, border: "1px solid var(--danger-fg)", background: "var(--card-bg)", color: "var(--danger-fg)" },
-};
