@@ -194,8 +194,6 @@ function TargetModalFooter({ onAdd, onReset, onSaveAsDefault }: FooterProps) {
     );
 }
 
-
-
 function toDraft(t: Target): DraftTarget {
     return {
         key: String(t.id),
