@@ -5,17 +5,6 @@ import styles from "./ModalShell.module.scss";
 
 export type ModalShellSize = "md" | "lg";
 
-type Props = {
-    open: boolean;
-    title: string;
-    onClose: () => void;
-    size?: ModalShellSize;
-    maxHeight?: string;
-    showCloseButton?: boolean;
-    footer?: React.ReactNode;
-    children: React.ReactNode;
-};
-
 export function ModalShell({
     open,
     title,
@@ -25,7 +14,7 @@ export function ModalShell({
     showCloseButton = true,
     footer,
     children,
-}: Props) {
+}: ModalShellProps) {
     useEffect(() => {
         if (!open) return;
 
@@ -64,3 +53,14 @@ export function ModalShell({
         </div>
     );
 }
+
+type ModalShellProps = {
+    open: boolean;
+    title: string;
+    onClose: () => void;
+    size?: ModalShellSize;
+    maxHeight?: string;
+    showCloseButton?: boolean;
+    footer?: React.ReactNode;
+    children: React.ReactNode;
+};

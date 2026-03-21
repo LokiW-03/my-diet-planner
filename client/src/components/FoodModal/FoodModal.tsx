@@ -7,18 +7,8 @@ import { clampInt } from "@/shared/utils";
 import { ModalShell } from "@/client/src/components/ModalShell/ModalShell";
 import styles from "./FoodModal.module.scss";
 
-type Props = {
-    open: boolean;
-    mode: "add" | "edit";
-    categories: FoodCategory[]; // <-- provide categories from store/API
-    categoryPreset?: CategoryId; // <-- preset by id now
-    food?: FoodItem | null;
-    onClose: () => void;
-    onSave: (v: Omit<FoodItem, "id">) => void;
-    onDelete?: () => void;
-};
 
-export function FoodModal({ open, mode, categories, categoryPreset, food, onClose, onSave, onDelete }: Props) {
+export function FoodModal({ open, mode, categories, categoryPreset, food, onClose, onSave, onDelete }: FoodModalProps) {
 
     const visibleCats = useMemo(
         () => (categories ?? []).filter((c) => c.enabled).slice().sort((a, b) => a.order - b.order),
@@ -168,3 +158,15 @@ export function FoodModal({ open, mode, categories, categoryPreset, food, onClos
         </ModalShell>
     );
 }
+
+
+type FoodModalProps = {
+    open: boolean;
+    mode: "add" | "edit";
+    categories: FoodCategory[]; // <-- provide categories from store/API
+    categoryPreset?: CategoryId; // <-- preset by id now
+    food?: FoodItem | null;
+    onClose: () => void;
+    onSave: (v: Omit<FoodItem, "id">) => void;
+    onDelete?: () => void;
+};
