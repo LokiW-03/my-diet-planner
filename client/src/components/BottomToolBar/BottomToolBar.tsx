@@ -2,13 +2,14 @@
 
 import React from "react";
 import { pdf } from "@react-pdf/renderer";
-import type { FoodItem, MealEntry } from "@/shared/models";
+import type { FoodItem, MealDefinition, MealEntry } from "@/shared/models";
 import { PdfDoc } from "../PdfDoc/PdfDoc";
 import styles from "./BottomToolBar.module.scss";
 
 type Props = {
     foods: FoodItem[];
     meals: Record<string, MealEntry[]>;
+    mealDefs: MealDefinition[];
     totals: { kcal: number; protein: number };
     proteinColor: string;
     stillNeedKcal: number;
@@ -19,6 +20,7 @@ type Props = {
 export function BottomToolBar({
     foods,
     meals,
+    mealDefs,
     totals,
     proteinColor,
     stillNeedKcal,
@@ -45,7 +47,13 @@ export function BottomToolBar({
                 className={styles.button}
                 onClick={async () => {
                     const blob = await pdf(
-                        <PdfDoc foods={foods} meals={meals} totals={totals} dayType={exportDayType} />
+                        <PdfDoc
+                            foods={foods}
+                            meals={meals}
+                            mealDefs={mealDefs}
+                            totals={totals}
+                            dayType={exportDayType}
+                        />
                     ).toBlob();
 
                     const url = URL.createObjectURL(blob);

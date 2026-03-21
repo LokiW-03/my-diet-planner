@@ -141,6 +141,7 @@ export default function PlannerWorkspace({
                     <BottomToolBar
                         foods={foods}
                         meals={meals}
+                        mealDefs={mealDefs}
                         totals={totals}
                         proteinColor={proteinToColour()}
                         stillNeedKcal={stillNeed}

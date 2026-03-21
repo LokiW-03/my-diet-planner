@@ -1,8 +1,8 @@
 import { Document, Page, Text, View } from "@react-pdf/renderer";
-import type { FoodItem, MealEntry } from "@/shared/models";
+import type { FoodItem, MealDefinition, MealEntry } from "@/shared/models";
 import { pdfStyles as styles } from "./PdfDoc.styles";
 
-export function PdfDoc({ foods, meals, totals, dayType }: PDFProps) {
+export function PdfDoc({ foods, meals, mealDefs, totals, dayType }: PDFProps) {
     const map = new Map(foods.map((f) => [f.id, f]));
 
     return (
@@ -14,30 +14,41 @@ export function PdfDoc({ foods, meals, totals, dayType }: PDFProps) {
                     Total: {Math.round(totals.kcal)} kcal, {Math.round(totals.protein)} g protein
                 </Text>
 
-                {Object.entries(meals).map(([mealKey, entries]) => (
-                    <View key={mealKey} style={styles.section}>
-                        <Text style={styles.mealTitle}>{mealKey.toUpperCase()}</Text>
+                {mealDefs.map((m) => {
+                    const mealKey = String(m.id);
+                    const entries = meals[mealKey] ?? [];
+                    const printable = entries
+                        .map((e) => {
+                            const f = map.get(e.foodId);
+                            if (!f) return null;
+                            const kcal = e.portion * f.kcalPerUnit;
+                            const p = e.portion * f.proteinPerUnit;
+                            return (
+                                <View key={e.entryId} style={styles.row}>
+                                    <Text style={styles.cellName}>{f.name}</Text>
+                                    <Text style={styles.cell}>
+                                        {e.portion}
+                                        {f.unit}
+                                    </Text>
+                                    <Text style={styles.cell}>{Math.round(kcal)} kcal</Text>
+                                    <Text style={styles.cell}>{Math.round(p)} g</Text>
+                                </View>
+                            );
+                        })
+                        .filter(Boolean);
 
-                        {entries.length === 0 ? (
-                            <Text style={styles.muted}>No items</Text>
-                        ) : (
-                            entries.map((e) => {
-                                const f = map.get(e.foodId);
-                                if (!f) return null;
-                                const kcal = e.portion * f.kcalPerUnit;
-                                const p = e.portion * f.proteinPerUnit;
-                                return (
-                                    <View key={e.entryId} style={styles.row}>
-                                        <Text style={styles.cellName}>{f.name}</Text>
-                                        <Text style={styles.cell}>{e.portion}{f.unit}</Text>
-                                        <Text style={styles.cell}>{Math.round(kcal)} kcal</Text>
-                                        <Text style={styles.cell}>{Math.round(p)} g</Text>
-                                    </View>
-                                );
-                            })
-                        )}
-                    </View>
-                ))}
+                    return (
+                        <View key={mealKey} style={styles.section}>
+                            <Text style={styles.mealTitle}>{m.name.toUpperCase()}</Text>
+
+                            {printable.length === 0 ? (
+                                <Text style={styles.muted}>No items</Text>
+                            ) : (
+                                printable
+                            )}
+                        </View>
+                    );
+                })}
             </Page>
         </Document>
     );
@@ -46,6 +57,7 @@ export function PdfDoc({ foods, meals, totals, dayType }: PDFProps) {
 type PDFProps = {
     foods: FoodItem[];
     meals: Record<string, MealEntry[]>;
+    mealDefs: MealDefinition[];
     totals: { kcal: number; protein: number };
     dayType: string;
 };
