@@ -16,7 +16,7 @@ export function TargetModal({
     onRemoveTarget,
     onResetToDefault,
     onSaveAsDefault,
-}: Props) {
+}: TargetModalProps) {
     const [draft, setDraft] = useState<DraftTarget[]>(() => targets.map(toDraft));
     const shouldScrollToBottomRef = useRef(false);
 
@@ -214,7 +214,7 @@ export type DraftTarget = {
     maxKcal: string;
 };
 
-type Props = {
+type TargetModalProps = {
     open: boolean;
     targets: Target[];
     onClose: () => void;

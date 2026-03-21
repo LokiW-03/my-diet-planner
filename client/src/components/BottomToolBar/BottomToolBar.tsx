@@ -6,17 +6,6 @@ import type { FoodItem, MealDefinition, MealEntry, MealId } from "@/shared/model
 import { PdfDoc } from "../PdfDoc/PdfDoc";
 import styles from "./BottomToolBar.module.scss";
 
-type Props = {
-    foods: FoodItem[];
-    meals: Record<MealId, MealEntry[]>;
-    mealDefs: MealDefinition[];
-    totals: { kcal: number; protein: number };
-    proteinColor: string;
-    stillNeedKcal: number;
-    exportDayType: string;
-    onClearAll: () => void;
-};
-
 export function BottomToolBar({
     foods,
     meals,
@@ -26,7 +15,7 @@ export function BottomToolBar({
     stillNeedKcal,
     exportDayType,
     onClearAll,
-}: Props) {
+}: BottomToolBarProps) {
     return (
         <div className={styles.root}>
             <div className={styles.card}>
@@ -79,4 +68,15 @@ export function BottomToolBar({
         </div>
     );
 }
+
+type BottomToolBarProps = {
+    foods: FoodItem[];
+    meals: Record<MealId, MealEntry[]>;
+    mealDefs: MealDefinition[];
+    totals: { kcal: number; protein: number };
+    proteinColor: string;
+    stillNeedKcal: number;
+    exportDayType: string;
+    onClearAll: () => void;
+};
 
