@@ -21,10 +21,6 @@ export default function PlannerScreen() {
 
     return (
         <div className={styles.page}>
-            <header className={styles.topBar}>
-                <div className={styles.title}>Diet-Planner</div>
-            </header>
-
             <div className={styles.wrap}>
                 <TopToolBar
                     showProfile={showProfile}
