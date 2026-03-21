@@ -1,0 +1,25 @@
+.page {
+	min-height: 100vh;
+	background: var(--background);
+}
+
+.topBar {
+	height: 54px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: var(--topbar-bg);
+	color: var(--topbar-fg);
+}
+
+.title {
+	font-weight: 900;
+	font-size: 18px;
+}
+
+.wrap {
+	padding: 18px;
+	max-width: 1200px;
+	margin: 0 auto;
+}
+
