@@ -1,5 +1,5 @@
 import { Document, Page, Text, View } from "@react-pdf/renderer";
-import type { FoodItem, MealDefinition, MealEntry } from "@/shared/models";
+import type { FoodItem, MealDefinition, MealEntry, MealId } from "@/shared/models";
 import { pdfStyles as styles } from "./PdfDoc.styles";
 
 export function PdfDoc({ foods, meals, mealDefs, totals, dayType }: PDFProps) {
@@ -16,7 +16,7 @@ export function PdfDoc({ foods, meals, mealDefs, totals, dayType }: PDFProps) {
 
                 {mealDefs.map((m) => {
                     const mealKey = String(m.id);
-                    const entries = meals[mealKey] ?? [];
+                    const entries = meals[m.id] ?? [];
                     const printable = entries
                         .map((e) => {
                             const f = map.get(e.foodId);
@@ -56,7 +56,7 @@ export function PdfDoc({ foods, meals, mealDefs, totals, dayType }: PDFProps) {
 
 type PDFProps = {
     foods: FoodItem[];
-    meals: Record<string, MealEntry[]>;
+    meals: Record<MealId, MealEntry[]>;
     mealDefs: MealDefinition[];
     totals: { kcal: number; protein: number };
     dayType: string;

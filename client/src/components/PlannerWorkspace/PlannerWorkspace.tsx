@@ -5,7 +5,7 @@ import { DndContext, DragEndEvent, DragStartEvent } from "@dnd-kit/core";
 import { MealBoard } from "@/client/src/components/MealBoard/MealBoard";
 import { FoodLibrary } from "@/client/src/components/FoodLibrary/FoodLibrary";
 import { BottomToolBar } from "@/client/src/components/BottomToolBar/BottomToolBar";
-import type { FoodItem, FoodId, MealEntry, Target, MealDefinition, CategoryId, MealId } from "@/shared/models";
+import type { FoodItem, FoodId, MealEntry, Target, MealDefinition, CategoryId, MealId, TargetId } from "@/shared/models";
 import styles from "./PlannerWorkspace.module.scss";
 
 export default function PlannerWorkspace({
@@ -57,6 +57,7 @@ export default function PlannerWorkspace({
 
                 if (!fromMealId || !toMealId || fromMealId === toMealId) return;
 
+                const mealIdByKey = new Map(mealDefs.map((m) => [String(m.id), m.id] as const));
                 const ids = mealDefs.map((m) => String(m.id));
                 const from = ids.indexOf(fromMealId);
                 const to = ids.indexOf(toMealId);
@@ -66,7 +67,10 @@ export default function PlannerWorkspace({
                 const [moved] = next.splice(from, 1);
                 next.splice(to, 0, moved);
 
-                onReorderMealPanels(next);
+                const nextIds = next
+                    .map((k) => mealIdByKey.get(k))
+                    .filter(Boolean) as MealId[];
+                onReorderMealPanels(nextIds);
                 return;
             }
 
@@ -111,7 +115,7 @@ export default function PlannerWorkspace({
         return "var(--danger-fg)";
     }
 
-    const target = targets.find((t) => String(t.id) === dayType) ?? null;
+    const target = targets.find((t) => t.id === dayType) ?? null;
     const kcal = Math.round(totals.kcal);
     let stillNeed = 0;
     if (!target) {
@@ -145,7 +149,7 @@ export default function PlannerWorkspace({
                         totals={totals}
                         proteinColor={proteinToColour()}
                         stillNeedKcal={stillNeed}
-                        exportDayType={target?.name ?? dayType}
+                        exportDayType={target?.name ?? String(dayType)}
                         onClearAll={clearAll}
                     />
                 </div>
@@ -160,18 +164,18 @@ export default function PlannerWorkspace({
 
 type PlannerWorkspaceProps = {
     foods: FoodItem[];
-    meals: Record<string, MealEntry[]>;
+    meals: Record<MealId, MealEntry[]>;
     mealDefs: MealDefinition[];
-    mealTotals: Record<string, { kcal: number; protein: number }>;
+    mealTotals: Record<MealId, { kcal: number; protein: number }>;
     totals: { kcal: number; protein: number };
-    dayType: string;
+    dayType: TargetId;
     targets: Target[];
     weightKg?: number;
     onRemoveEntry: (mealId: MealId, entryId: string) => void;
     onPortionChange: (mealId: MealId, entryId: string, portion: number) => void;
     onEditFood: (foodId: FoodId) => void;
     onRemoveMeal: (mealId: MealId) => void;
-    onReorderMealPanels: (nextOrder: string[]) => void;
+    onReorderMealPanels: (nextOrder: MealId[]) => void;
     onInsertMealPanel: (index: number) => void;
     openAdd: (catId: CategoryId) => void;
     openEdit: (food: FoodItem) => void;

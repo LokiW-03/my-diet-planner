@@ -70,7 +70,7 @@ export function usePlannerScreen() {
     (mealId: MealId, foodId: FoodId) => {
       const food = profile.foods[foodId];
       const portion = food?.defaultPortion ?? 100;
-      plannerActions.addEntryToMeal(String(mealId), foodId, portion);
+      plannerActions.addEntryToMeal(mealId, foodId, portion);
     },
     [plannerActions.addEntryToMeal, profile.foods],
   );

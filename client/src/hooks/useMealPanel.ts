@@ -29,9 +29,9 @@ export function useMealPanel({
       });
 
       // insert into current visual order
-      const ids = mealDefs.map((m) => String(m.id));
+      const ids = mealDefs.map((m) => m.id);
       const clamped = Math.max(0, Math.min(index, ids.length));
-      ids.splice(clamped, 0, String(newId));
+      ids.splice(clamped, 0, newId);
       setMealPanelOrder(ids);
     },
     [addMeal, mealDefs, setMealPanelOrder],
@@ -40,7 +40,7 @@ export function useMealPanel({
   const removeMealPanel = useCallback(
     (mealId: MealId) => {
       disableMeal(mealId);
-      removeMeal(String(mealId));
+      removeMeal(mealId);
     },
     [disableMeal, removeMeal],
   );
@@ -72,8 +72,8 @@ type MealPanelProps = {
   disableMeal: (mealId: MealId) => void;
   resetMealPanelsToDefault: () => void;
   saveMealPanelsAsDefault: (orderedEnabledMealIds: MealId[]) => Promise<void>;
-  setMealPanelOrder: (order: string[]) => void;
+  setMealPanelOrder: (order: MealId[]) => void;
   resetMealPanelOrder: () => void;
   resetHiddenMeals: () => void;
-  removeMeal: (mealId: string) => void;
+  removeMeal: (mealId: MealId) => void;
 };

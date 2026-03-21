@@ -2,19 +2,19 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { MealEntry, FoodId } from "../../../shared/models";
+import type { MealEntry, FoodId, MealId, TargetId } from "../../../shared/models";
 import { defaultTargetId } from "@/shared/defaults";
 import { uid } from "../../../shared/utils";
 
 export const usePlannerStore = create<PlannerState>()(
   persist(
     (set) => ({
-      meals: {},
+      meals: {} as MealsState,
       dayType: defaultTargetId("FULL"),
-      hiddenMeals: {} as Record<string, true>,
-      hideMealPanel: (mealId: string) =>
+      hiddenMeals: {} as Record<MealId, true>,
+      hideMealPanel: (mealId: MealId) =>
         set((s) => ({ hiddenMeals: { ...s.hiddenMeals, [mealId]: true } })),
-      showMealPanel: (mealId: string) =>
+      showMealPanel: (mealId: MealId) =>
         set((s) => {
           const newHidden = { ...s.hiddenMeals };
           delete newHidden[mealId];
@@ -107,29 +107,29 @@ export const usePlannerStore = create<PlannerState>()(
 );
 
 // Meals are keyed by MealId (string) — dynamic, driven by profile
-type MealsState = Record<string, MealEntry[]>;
+type MealsState = Record<MealId, MealEntry[]>;
 
 type PlannerState = {
   meals: MealsState;
 
   // The ID of the currently selected Target (from profile.targets)
-  dayType: string;
-  setDayType: (targetId: string) => void;
+  dayType: TargetId;
+  setDayType: (targetId: TargetId) => void;
 
-  hiddenMeals: Record<string, true>; // MealIds of meals that are currently hidden in the UI
-  hideMealPanel: (mealId: string) => void;
-  showMealPanel: (mealId: string) => void;
+  hiddenMeals: Record<MealId, true>; // MealIds of meals that are currently hidden in the UI
+  hideMealPanel: (mealId: MealId) => void;
+  showMealPanel: (mealId: MealId) => void;
   resetHiddenMeals: () => void;
 
-  mealPanelOrder: string[];
-  setMealPanelOrder: (order: string[]) => void;
+  mealPanelOrder: MealId[];
+  setMealPanelOrder: (order: MealId[]) => void;
   resetMealPanelOrder: () => void;
 
-  addEntryToMeal: (mealId: string, foodId: FoodId, portion: number) => void;
-  removeEntryFromMeal: (mealId: string, entryId: string) => void;
-  removeMeal: (mealId: string) => void;
-  moveEntry: (from: string, to: string, entryId: string) => void;
-  setEntryPortion: (mealId: string, entryId: string, portion: number) => void;
+  addEntryToMeal: (mealId: MealId, foodId: FoodId, portion: number) => void;
+  removeEntryFromMeal: (mealId: MealId, entryId: string) => void;
+  removeMeal: (mealId: MealId) => void;
+  moveEntry: (from: MealId, to: MealId, entryId: string) => void;
+  setEntryPortion: (mealId: MealId, entryId: string, portion: number) => void;
   removeEntriesForFood: (foodId: FoodId) => void;
   clearAllMeals: () => void;
 };

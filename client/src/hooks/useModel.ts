@@ -5,7 +5,7 @@ import {
   computeMealTotals,
   computeTotals,
 } from "@/client/src/utils/computeTotals";
-import type { MealEntry, UserProfile } from "@/shared/models";
+import type { MealEntry, MealId, TargetId, UserProfile } from "@/shared/models";
 
 export function useModel({
   profile,
@@ -30,7 +30,7 @@ export function useModel({
   const mealDefs = useMemo(() => {
     const profileDefs = Object.values(profile.meals).filter((m) => m.enabled);
     const defs = [...profileDefs].filter(
-      (m) => !plannerState.hiddenMeals[String(m.id)],
+      (m) => !plannerState.hiddenMeals[m.id],
     );
 
     if (plannerState.mealPanelOrder.length === 0) {
@@ -39,8 +39,8 @@ export function useModel({
 
     const idx = new Map(plannerState.mealPanelOrder.map((id, i) => [id, i]));
     return defs.sort((a, b) => {
-      const ai = idx.get(String(a.id)) ?? Number.POSITIVE_INFINITY;
-      const bi = idx.get(String(b.id)) ?? Number.POSITIVE_INFINITY;
+      const ai = idx.get(a.id) ?? Number.POSITIVE_INFINITY;
+      const bi = idx.get(b.id) ?? Number.POSITIVE_INFINITY;
       if (ai !== bi) return ai - bi;
       return a.order - b.order;
     });
@@ -51,7 +51,7 @@ export function useModel({
       computeTotals(
         foods,
         plannerState.meals,
-        mealDefs.map((m) => String(m.id)),
+        mealDefs.map((m) => m.id),
       ),
     [foods, plannerState.meals, mealDefs],
   );
@@ -77,8 +77,8 @@ export function useModel({
 }
 
 type PlannerState = {
-  meals: Record<string, MealEntry[]>;
-  dayType: string;
-  hiddenMeals: Record<string, true>;
-  mealPanelOrder: string[];
+  meals: Record<MealId, MealEntry[]>;
+  dayType: TargetId;
+  hiddenMeals: Record<MealId, true>;
+  mealPanelOrder: MealId[];
 };

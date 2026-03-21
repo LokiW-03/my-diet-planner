@@ -2,13 +2,13 @@
 
 import React from "react";
 import { pdf } from "@react-pdf/renderer";
-import type { FoodItem, MealDefinition, MealEntry } from "@/shared/models";
+import type { FoodItem, MealDefinition, MealEntry, MealId } from "@/shared/models";
 import { PdfDoc } from "../PdfDoc/PdfDoc";
 import styles from "./BottomToolBar.module.scss";
 
 type Props = {
     foods: FoodItem[];
-    meals: Record<string, MealEntry[]>;
+    meals: Record<MealId, MealEntry[]>;
     mealDefs: MealDefinition[];
     totals: { kcal: number; protein: number };
     proteinColor: string;

@@ -2,7 +2,7 @@
 
 import { FaUserCircle } from "react-icons/fa";
 import { FiChevronDown, FiRotateCcw, FiSave } from "react-icons/fi";
-import type { Target } from "@/shared/models";
+import type { Target, TargetId } from "@/shared/models";
 import styles from "./TopToolBar.module.scss";
 
 type TopToolBarProps = {
@@ -10,8 +10,8 @@ type TopToolBarProps = {
     onToggleProfile: () => void;
 
     targets: Target[];
-    dayType: string;
-    onDayTypeChange: (next: string) => void;
+    dayType: TargetId;
+    onDayTypeChange: (next: TargetId) => void;
 
     onSaveDefaults: () => void;
     onReset: () => void;
@@ -49,7 +49,12 @@ export function TopToolBar({
                                 aria-label="Target"
                                 className={styles.daySelect}
                                 value={dayType}
-                                onChange={(e) => onDayTypeChange(e.target.value)}
+                                onChange={(e) => {
+                                    const next = targets.find(
+                                        (t) => String(t.id) === e.target.value,
+                                    );
+                                    if (next) onDayTypeChange(next.id);
+                                }}
                             >
                                 {targets.map((t) => (
                                     <option key={String(t.id)} value={String(t.id)}>

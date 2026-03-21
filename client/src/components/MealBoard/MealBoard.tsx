@@ -241,8 +241,8 @@ export function MealBoard({
                 {mealDefs.map((m, idx) => {
                     const mealKey = String(m.id);
 
-                    const panelMeals = meals[mealKey] ?? [];
-                    const panelTotals = mealTotals[mealKey] ?? { kcal: 0, protein: 0 };
+                    const panelMeals = meals[m.id] ?? [];
+                    const panelTotals = mealTotals[m.id] ?? { kcal: 0, protein: 0 };
                     return (
                         <React.Fragment key={m.id}>
                             <MealPanel
@@ -305,9 +305,9 @@ type mealPanelProps = {
 
 type mealBoardProps = {
     foods: FoodItem[];
-    meals: Record<string, MealEntry[]>;
+    meals: Record<MealId, MealEntry[]>;
     mealDefs: MealDefinition[];
-    mealTotals: Record<string, { kcal: number; protein: number }>;
+    mealTotals: Record<MealId, { kcal: number; protein: number }>;
     onRemoveEntry: (mealId: MealId, entryId: string) => void;
     onPortionChange: (mealId: MealId, entryId: string, portion: number) => void;
     onEditFood: (foodId: FoodId) => void;
