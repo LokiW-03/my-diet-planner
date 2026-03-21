@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { CategoryId, FoodCategory, FoodItem } from "@/shared/models";
 import { type Unit, UNITS } from "@/shared/models";
 import { clampInt } from "@/shared/utils";
+import { ModalShell } from "@/client/src/components/ModalShell/ModalShell";
 import styles from "./FoodModal.module.scss";
 
 type Props = {
@@ -63,74 +64,13 @@ export function FoodModal({ open, mode, categories, categoryPreset, food, onClos
     const canSave = name.trim().length > 0 && String(categoryId).length > 0;
 
     return (
-        <div className={styles.backdrop} onMouseDown={onClose}>
-            <div className={styles.modal} onMouseDown={(e) => e.stopPropagation()}>
-                <h2 className={styles.title}>
-                    {mode === "add" ? "Add Food" : "Edit Food"}
-                </h2>
-
-                <div className={styles.row}>
-                    <label className={styles.label}>Name</label>
-                    <input className={styles.input} value={name} onChange={(e) => setName(e.target.value)} />
-                </div>
-
-                <div className={styles.row}>
-                    <label className={styles.label}>Category</label>
-                    <select
-                        className={styles.input}
-                        value={String(categoryId)}
-                        onChange={(e) => setCategoryId(e.target.value as unknown as CategoryId)}
-                    >
-                        {visibleCats.map((c) => (
-                            <option key={String(c.id)} value={String(c.id)}>
-                                {c.name}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-
-                <div className={styles.row}>
-                    <label className={styles.label}>Unit</label>
-                    <select className={styles.input} value={unit} onChange={(e) => setUnit(e.target.value as Unit)}>
-                        {UNITS.map((u) => (
-                            <option key={u} value={u}>
-                                {u}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-
-                <div className={styles.row}>
-                    <label className={styles.label}>Kcal per {unit}</label>
-                    <input
-                        className={styles.input}
-                        type="number"
-                        value={kcalPerUnit}
-                        onChange={(e) => setKcal(Number(e.target.value))}
-                    />
-                </div>
-
-                <div className={styles.row}>
-                    <label className={styles.label}>Protein per {unit}</label>
-                    <input
-                        className={styles.input}
-                        type="number"
-                        value={proteinPerUnit}
-                        onChange={(e) => setProtein(Number(e.target.value))}
-                    />
-                </div>
-
-                <div className={styles.row}>
-                    <label className={styles.label}>Default portion ({unit})</label>
-                    <input
-                        className={styles.input}
-                        type="number"
-                        value={defaultPortion}
-                        onChange={(e) => setPortion(clampInt(Number(e.target.value), 0, 100000))}
-                    />
-                </div>
-
-                <div className={styles.footer}>
+        <ModalShell
+            open={open}
+            title={mode === "add" ? "Add Food" : "Edit Food"}
+            onClose={onClose}
+            size="md"
+            footer={
+                <>
                     <div className={styles.footerLeft}>
                         {mode === "edit" && onDelete && (
                             <button className={`${styles.btn} ${styles.dangerBtn}`} onClick={onDelete} type="button">
@@ -162,8 +102,69 @@ export function FoodModal({ open, mode, categories, categoryPreset, food, onClos
                             Save
                         </button>
                     </div>
-                </div>
+                </>
+            }
+        >
+            <div className={styles.row}>
+                <label className={styles.label}>Name</label>
+                <input className={styles.input} value={name} onChange={(e) => setName(e.target.value)} />
             </div>
-        </div>
+
+            <div className={styles.row}>
+                <label className={styles.label}>Category</label>
+                <select
+                    className={styles.input}
+                    value={String(categoryId)}
+                    onChange={(e) => setCategoryId(e.target.value as unknown as CategoryId)}
+                >
+                    {visibleCats.map((c) => (
+                        <option key={String(c.id)} value={String(c.id)}>
+                            {c.name}
+                        </option>
+                    ))}
+                </select>
+            </div>
+
+            <div className={styles.row}>
+                <label className={styles.label}>Unit</label>
+                <select className={styles.input} value={unit} onChange={(e) => setUnit(e.target.value as Unit)}>
+                    {UNITS.map((u) => (
+                        <option key={u} value={u}>
+                            {u}
+                        </option>
+                    ))}
+                </select>
+            </div>
+
+            <div className={styles.row}>
+                <label className={styles.label}>Kcal per {unit}</label>
+                <input
+                    className={styles.input}
+                    type="number"
+                    value={kcalPerUnit}
+                    onChange={(e) => setKcal(Number(e.target.value))}
+                />
+            </div>
+
+            <div className={styles.row}>
+                <label className={styles.label}>Protein per {unit}</label>
+                <input
+                    className={styles.input}
+                    type="number"
+                    value={proteinPerUnit}
+                    onChange={(e) => setProtein(Number(e.target.value))}
+                />
+            </div>
+
+            <div className={styles.row}>
+                <label className={styles.label}>Default portion ({unit})</label>
+                <input
+                    className={styles.input}
+                    type="number"
+                    value={defaultPortion}
+                    onChange={(e) => setPortion(clampInt(Number(e.target.value), 0, 100000))}
+                />
+            </div>
+        </ModalShell>
     );
 }
