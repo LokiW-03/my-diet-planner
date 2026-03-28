@@ -6,8 +6,200 @@ import { SortableContext, rectSortingStrategy, useSortable } from "@dnd-kit/sort
 import { CSS } from "@dnd-kit/utilities";
 import type { FoodId, FoodItem, MealEntry, MealDefinition, MealId } from "@/shared/models";
 import { FaTrash } from "react-icons/fa";
-import { IoMdArrowDropdown, IoMdArrowDropright } from "react-icons/io";
+import { IoMdArrowDropdown, IoMdArrowDropleft } from "react-icons/io";
 import styles from "./MealBoard.module.scss";
+
+
+export function MealBoard({
+    foods,
+    meals,
+    mealDefs,
+    mealTotals,
+    onRemoveEntry,
+    onPortionChange,
+    onEditFood,
+    onRemoveMeal,
+    onInsertMealPanel,
+}: mealBoardProps
+) {
+    const [collapsedMeals, setCollapsedMeals] = useState<Record<string, boolean>>({}); // NEW
+    const sortableItems = mealDefs.map((m) => `panel:${String(m.id)}`);
+
+    const toggleCollapsed = (mealId: string) => {
+        setCollapsedMeals((prev) => ({ ...prev, [mealId]: !prev[mealId] }));
+    };
+    return (
+        <SortableContext items={sortableItems} strategy={rectSortingStrategy}>
+            <div className={styles.mealGrid}>
+                {mealDefs.map((m, idx) => {
+                    const mealKey = String(m.id);
+
+                    const panelMeals = meals[m.id] ?? [];
+                    const panelTotals = mealTotals[m.id] ?? { kcal: 0, protein: 0 };
+                    return (
+                        <React.Fragment key={m.id}>
+                            <MealPanel
+                                key={m.id}
+                                mealId={m.id}
+                                title={m.name.toUpperCase()}
+                                entries={panelMeals}
+                                foods={foods}
+                                onRemoveEntry={(id) => onRemoveEntry(m.id, id)}
+                                onPortionChange={(id, n) => onPortionChange(m.id, id, n)}
+                                onEditFood={onEditFood}
+                                onRemoveMeal={onRemoveMeal}
+                                collapsed={!!collapsedMeals[mealKey]}
+                                onToggleCollapsed={() => toggleCollapsed(mealKey)}
+                                footer={`Total: ~${Math.round(panelTotals.kcal)} kcal, ~${Math.round(panelTotals.protein)} g Protein`}
+                            />
+                            <InsertRow onClick={() => onInsertMealPanel(idx + 1)} />
+                        </React.Fragment>
+                    );
+                })}
+            </div>
+        </SortableContext>
+    );
+}
+
+
+function MealPanel({
+    mealId,
+    title,
+    entries,
+    foods,
+    onRemoveEntry,
+    onPortionChange,
+    onEditFood,
+    onRemoveMeal,
+    collapsed,
+    onToggleCollapsed,
+    footer,
+}: mealPanelProps
+) {
+    const mealKey = String(mealId)
+    const { setNodeRef: setDropRef, isOver } = useDroppable({ id: `drop:${mealKey}` });
+
+    const {
+        setNodeRef: setPanelRef,
+        setActivatorNodeRef,
+        attributes,
+        listeners,
+        transform,
+        transition,
+        isDragging,
+    } = useSortable({ id: `panel:${mealKey}` });
+
+    const baseTransform = CSS.Transform.toString(transform);
+    const animatedTransform = baseTransform ? `${baseTransform}${isDragging ? " scale(1.02)" : ""}` : undefined;
+
+
+    return (
+        <div
+            ref={setPanelRef}
+            className={styles.mealPanel}
+            style={{
+                outline: isOver ? "2px solid var(--accent)" : "1px solid var(--card-border)",
+                transform: animatedTransform,
+                transition: transition ? `${transition}, box-shadow 160ms ease, opacity 160ms ease` : "box-shadow 160ms ease, opacity 160ms ease",
+                opacity: isDragging ? 0.92 : 1,
+                boxShadow: isDragging ? "0 18px 45px rgba(0,0,0,0.20)" : undefined,
+                zIndex: isDragging ? 50 : "auto",
+            }}
+        >
+            <div className={styles.mealHeader}>
+                <div className={styles.mealTitle}>{title}</div>
+
+                <div className={styles.mealHeaderActions}>
+                    <button
+                        type="button"
+                        ref={setActivatorNodeRef}
+                        {...attributes}
+                        {...listeners}
+                        className={`${styles.iconBtn} ${styles.mealDragHandle}`}
+                        title="Drag to reorder"
+                        aria-label={`Drag to reorder ${title}`}
+                    >
+                        ⋮⋮
+                    </button>
+                    <button
+                        className={styles.iconBtn}
+                        onClick={onToggleCollapsed}
+                        title={collapsed ? "Expand" : "Collapse"}
+                    >
+                        {collapsed ? <IoMdArrowDropdown /> : <IoMdArrowDropleft />}
+                    </button>
+
+                    {onRemoveMeal ? (
+                        <button className={`${styles.iconBtn} ${styles.mealRemoveBtn}`} onClick={() => onRemoveMeal(mealId)} title="Remove meal">
+                            <FaTrash />
+                        </button>
+                    ) : null}
+                </div>
+            </div>
+
+
+            {collapsed ? (
+                <div
+                    ref={setDropRef}
+                    className={`${styles.mealDropZone} ${styles.mealDropZoneCollapsed}`}
+                >
+                    <div className={styles.collapsedInfo}>
+                        {entries.length} item{entries.length === 1 ? "" : "s"} • {footer}
+                    </div>
+
+                    <button
+                        className={styles.clearBtn}
+                        onClick={() => entries.forEach((e) => onRemoveEntry(e.entryId))}
+                        title="Clear all items"
+                    >
+                        Clear
+                    </button>
+                </div>
+            ) : (
+                <>
+                    <div ref={setDropRef} className={styles.mealDropZone}>
+                        {entries.length === 0 ? <div className={styles.emptyHint}>Drag items here</div> : null}
+                        {entries.map((e) => (
+                            <MealEntryChip
+                                key={e.entryId}
+                                mealId={mealId}
+                                entry={e}
+                                foods={foods}
+                                onRemove={() => onRemoveEntry(e.entryId)}
+                                onPortionChange={(n) => onPortionChange(e.entryId, n)}
+                                onEditFood={() => onEditFood(e.foodId)}
+                            />
+                        ))}
+                    </div>
+                    <div className={styles.mealFooter}>
+                        <div>{footer}</div>
+                        <button
+                            className={styles.clearBtn}
+                            onClick={() => {
+                                entries.forEach((e) => onRemoveEntry(e.entryId));
+                            }}
+                            title="Clear all items"
+                        >
+                            Clear
+                        </button>
+                    </div>
+                </>
+            )}
+        </div>
+    );
+}
+
+function InsertRow({ onClick }: { onClick: () => void }) {
+    return (
+        <div className={styles.insertRow}>
+            <div className={styles.insertLine} />
+            <button type="button" className={styles.insertBtn} onClick={onClick} title="Insert meal panel here" aria-label="Insert meal panel here">
+                +
+            </button>
+            <div className={styles.insertLine} />
+        </div>
+    );
+}
 
 function MealEntryChip({
     mealId,
@@ -86,196 +278,6 @@ function MealEntryChip({
             <button className={styles.removeBtn} onClick={onRemove} title="Remove">
                 ✕
             </button>
-        </div>
-    );
-}
-
-function MealPanel({
-    mealId,
-    title,
-    entries,
-    foods,
-    onRemoveEntry,
-    onPortionChange,
-    onEditFood,
-    onRemoveMeal,
-    collapsed,
-    onToggleCollapsed,
-    footer,
-}: mealPanelProps
-) {
-    const mealKey = String(mealId)
-    const { setNodeRef: setDropRef, isOver } = useDroppable({ id: `drop:${mealKey}` });
-
-    const {
-        setNodeRef: setPanelRef,
-        setActivatorNodeRef,
-        attributes,
-        listeners,
-        transform,
-        transition,
-        isDragging,
-    } = useSortable({ id: `panel:${mealKey}` });
-
-    const baseTransform = CSS.Transform.toString(transform);
-    const animatedTransform = baseTransform ? `${baseTransform}${isDragging ? " scale(1.02)" : ""}` : undefined;
-
-
-    return (
-        <div
-            ref={setPanelRef}
-            className={styles.mealPanel}
-            style={{
-                outline: isOver ? "2px solid var(--accent)" : "1px solid var(--card-border)",
-                transform: animatedTransform,
-                transition: transition ? `${transition}, box-shadow 160ms ease, opacity 160ms ease` : "box-shadow 160ms ease, opacity 160ms ease",
-                opacity: isDragging ? 0.92 : 1,
-                boxShadow: isDragging ? "0 18px 45px rgba(0,0,0,0.20)" : undefined,
-                zIndex: isDragging ? 50 : "auto",
-            }}
-        >
-            <div className={styles.mealHeader}>
-                <div className={styles.mealTitle}>{title}</div>
-
-                <div className={styles.mealHeaderActions}>
-                    <button
-                        type="button"
-                        ref={setActivatorNodeRef}
-                        {...attributes}
-                        {...listeners}
-                        className={styles.mealDragHandle}
-                        title="Drag to reorder"
-                        aria-label={`Drag to reorder ${title}`}
-                    >
-                        ⋮⋮
-                    </button>
-                    <button
-                        className={styles.mealCollapseBtn}
-                        onClick={onToggleCollapsed}
-                        title={collapsed ? "Expand" : "Collapse"}
-                    >
-                        {collapsed ? <IoMdArrowDropright /> : <IoMdArrowDropdown />}
-                    </button>
-
-                    {onRemoveMeal ? (
-                        <button className={styles.mealRemoveBtn} onClick={() => onRemoveMeal(mealId)} title="Remove meal">
-                            <FaTrash />
-                        </button>
-                    ) : null}
-                </div>
-            </div>
-
-
-            {collapsed ? (
-                <div
-                    ref={setDropRef}
-                    className={`${styles.mealDropZone} ${styles.mealDropZoneCollapsed}`}
-                >
-                    <div className={styles.collapsedInfo}>
-                        {entries.length} item{entries.length === 1 ? "" : "s"} • {footer}
-                    </div>
-
-                    <button
-                        className={styles.clearBtn}
-                        onClick={() => entries.forEach((e) => onRemoveEntry(e.entryId))}
-                        title="Clear all items"
-                    >
-                        Clear
-                    </button>
-                </div>
-            ) : (
-                <>
-                    <div ref={setDropRef} className={styles.mealDropZone}>
-                        {entries.length === 0 ? <div className={styles.emptyHint}>Drag items here</div> : null}
-                        {entries.map((e) => (
-                            <MealEntryChip
-                                key={e.entryId}
-                                mealId={mealId}
-                                entry={e}
-                                foods={foods}
-                                onRemove={() => onRemoveEntry(e.entryId)}
-                                onPortionChange={(n) => onPortionChange(e.entryId, n)}
-                                onEditFood={() => onEditFood(e.foodId)}
-                            />
-                        ))}
-                    </div>
-                    <div className={styles.mealFooter}>
-                        <div>{footer}</div>
-                        <button
-                            className={styles.clearBtn}
-                            onClick={() => {
-                                entries.forEach((e) => onRemoveEntry(e.entryId));
-                            }}
-                            title="Clear all items"
-                        >
-                            Clear
-                        </button>
-                    </div>
-                </>
-            )}
-        </div>
-    );
-}
-
-export function MealBoard({
-    foods,
-    meals,
-    mealDefs,
-    mealTotals,
-    onRemoveEntry,
-    onPortionChange,
-    onEditFood,
-    onRemoveMeal,
-    onInsertMealPanel,
-}: mealBoardProps
-) {
-    const [collapsedMeals, setCollapsedMeals] = React.useState<Record<string, boolean>>({}); // NEW
-    const sortableItems = mealDefs.map((m) => `panel:${String(m.id)}`);
-
-    const toggleCollapsed = (mealId: string) => {
-        setCollapsedMeals((prev) => ({ ...prev, [mealId]: !prev[mealId] }));
-    };
-    return (
-        <SortableContext items={sortableItems} strategy={rectSortingStrategy}>
-            <div className={styles.mealGrid}>
-                {mealDefs.map((m, idx) => {
-                    const mealKey = String(m.id);
-
-                    const panelMeals = meals[m.id] ?? [];
-                    const panelTotals = mealTotals[m.id] ?? { kcal: 0, protein: 0 };
-                    return (
-                        <React.Fragment key={m.id}>
-                            <MealPanel
-                                key={m.id}
-                                mealId={m.id}
-                                title={m.name.toUpperCase()}
-                                entries={panelMeals}
-                                foods={foods}
-                                onRemoveEntry={(id) => onRemoveEntry(m.id, id)}
-                                onPortionChange={(id, n) => onPortionChange(m.id, id, n)}
-                                onEditFood={onEditFood}
-                                onRemoveMeal={onRemoveMeal}
-                                collapsed={!!collapsedMeals[mealKey]}
-                                onToggleCollapsed={() => toggleCollapsed(mealKey)}
-                                footer={`Total: ~${Math.round(panelTotals.kcal)} kcal, ~${Math.round(panelTotals.protein)} g Protein`}
-                            />
-                            <InsertRow onClick={() => onInsertMealPanel(idx + 1)} />
-                        </React.Fragment>
-                    );
-                })}
-            </div>
-        </SortableContext>
-    );
-}
-
-function InsertRow({ onClick }: { onClick: () => void }) {
-    return (
-        <div className={styles.insertRow}>
-            <div className={styles.insertLine} />
-            <button type="button" className={styles.insertBtn} onClick={onClick} title="Insert meal panel here" aria-label="Insert meal panel here">
-                +
-            </button>
-            <div className={styles.insertLine} />
         </div>
     );
 }

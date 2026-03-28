@@ -1,12 +1,13 @@
 "use client";
 
-import React from "react";
-import { DndContext, DragEndEvent, DragStartEvent } from "@dnd-kit/core";
+import React, { useState } from "react";
+import { DndContext, DragEndEvent, DragStartEvent, DragOverlay } from "@dnd-kit/core";
 import { MealBoard } from "@/client/src/components/MealBoard/MealBoard";
 import { FoodLibrary } from "@/client/src/components/FoodLibrary/FoodLibrary";
 import { BottomToolBar } from "@/client/src/components/BottomToolBar/BottomToolBar";
 import type { FoodItem, FoodId, MealEntry, Target, MealDefinition, CategoryId, MealId, TargetId } from "@/shared/models";
 import styles from "./PlannerWorkspace.module.scss";
+import foodStyles from "@/client/src/components/FoodLibrary/FoodLibrary.module.scss";
 
 export default function PlannerWorkspace({
     foods,
@@ -31,7 +32,7 @@ export default function PlannerWorkspace({
 }: PlannerWorkspaceProps
 ) {
 
-    const [, setActiveId] = React.useState<string | null>(null);
+    const [activeId, setActiveId] = useState<string | null>(null);
 
     function onDragStart(ev: DragStartEvent) {
         setActiveId(String(ev.active?.id ?? null));
@@ -158,6 +159,14 @@ export default function PlannerWorkspace({
                     <FoodLibrary onAdd={openAdd} onEdit={openEdit} />
                 </div>
             </div>
+
+            <DragOverlay>
+                {activeId?.startsWith("lib:") ? (
+                    <button className={foodStyles.chip} style={{ cursor: "grabbing" }}>
+                        {foods.find((f) => String(f.id) === activeId.slice("lib:".length))?.name ?? ""}
+                    </button>
+                ) : null}
+            </DragOverlay>
         </DndContext>
     );
 }

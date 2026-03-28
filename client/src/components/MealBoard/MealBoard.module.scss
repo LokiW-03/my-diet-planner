@@ -32,24 +32,7 @@
     gap: 10px;
 }
 
-.mealDragHandle {
-    width: 30px;
-    height: 30px;
-    border-radius: 10px;
-    border: 1px solid var(--card-border);
-    background: var(--card-bg);
-    color: var(--muted);
-    cursor: grab;
-    font-weight: 900;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    line-height: 0;
-    touch-action: none;
-}
-
-.mealCollapseBtn {
+.iconBtn {
     width: 30px;
     height: 30px;
     border-radius: 10px;
@@ -65,20 +48,14 @@
     line-height: 0;
 }
 
+.mealDragHandle {
+    color: var(--muted);
+    cursor: grab;
+    touch-action: none;
+}
+
 .mealRemoveBtn {
-    width: 30px;
-    height: 30px;
-    border-radius: 10px;
-    border: 1px solid var(--card-border);
-    background: var(--card-bg);
     color: var(--danger-fg);
-    cursor: pointer;
-    font-weight: 900;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    line-height: 0;
 }
 
 .mealDropZone {
