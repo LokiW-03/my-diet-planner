@@ -6,6 +6,7 @@ import type { MealDefinition, MealId } from "@/shared/models";
 export function useMealPanel({
   mealDefs,
   addMeal,
+  updateMeal,
   disableMeal,
   resetMealPanelsToDefault,
   saveMealPanelsAsDefault,
@@ -45,6 +46,15 @@ export function useMealPanel({
     [disableMeal, removeMeal],
   );
 
+  const renameMealPanel = useCallback(
+    (mealId: MealId, name: string) => {
+      const trimmed = name.trim();
+      if (!trimmed) return;
+      updateMeal(mealId, { name: trimmed });
+    },
+    [updateMeal],
+  );
+
   const resetAllMealPanels = useCallback(() => {
     resetMealPanelsToDefault();
     resetHiddenMeals();
@@ -60,6 +70,7 @@ export function useMealPanel({
     actions: {
       insertMealPanel,
       removeMealPanel,
+      renameMealPanel,
       resetAllMealPanels,
       saveMealPanelsAsDefaultForCurrentOrder,
     },
@@ -69,6 +80,10 @@ export function useMealPanel({
 type MealPanelProps = {
   mealDefs: MealDefinition[];
   addMeal: (meal: Omit<MealDefinition, "id">) => MealId;
+  updateMeal: (
+    mealId: MealId,
+    patch: Partial<Omit<MealDefinition, "id">>,
+  ) => void;
   disableMeal: (mealId: MealId) => void;
   resetMealPanelsToDefault: () => void;
   saveMealPanelsAsDefault: (orderedEnabledMealIds: MealId[]) => Promise<void>;

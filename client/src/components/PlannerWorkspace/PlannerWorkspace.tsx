@@ -31,6 +31,7 @@ export default function PlannerWorkspace({
     onPortionChange,
     onEditFood,
     onRemoveMeal,
+    onRenameMeal,
     onReorderMealPanels,
     onInsertMealPanel,
     openAdd,
@@ -161,6 +162,7 @@ export default function PlannerWorkspace({
                         onPortionChange={onPortionChange}
                         onEditFood={onEditFood}
                         onRemoveMeal={onRemoveMeal}
+                        onRenameMeal={onRenameMeal}
                         onInsertMealPanel={onInsertMealPanel}
                     />
 
@@ -207,6 +209,7 @@ type PlannerWorkspaceProps = {
     onPortionChange: (mealId: MealId, entryId: string, portion: number) => void;
     onEditFood: (foodId: FoodId) => void;
     onRemoveMeal: (mealId: MealId) => void;
+    onRenameMeal: (mealId: MealId, name: string) => void;
     onReorderMealPanels: (nextOrder: MealId[]) => void;
     onInsertMealPanel: (index: number) => void;
     openAdd: (catId: CategoryId) => void;

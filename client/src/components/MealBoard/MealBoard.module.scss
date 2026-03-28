@@ -24,6 +24,29 @@
     font-size: 18px;
     margin-bottom: 10px;
     color: var(--background);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.renameBtn {
+    color: var(--background);
+    cursor: pointer;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+}
+
+.renameInput {
+    font: inherit;
+    font-weight: 900;
+    color: var(--background);
+    border: 1px solid var(--card-border);
+    margin-bottom: -2px; // make input not cause layout shift when switching with title
 }
 
 .mealHeaderActions {

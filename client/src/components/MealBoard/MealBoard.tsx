@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { useDroppable, useDraggable } from "@dnd-kit/core";
 import { SortableContext, rectSortingStrategy, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { FoodId, FoodItem, MealEntry, MealDefinition, MealId } from "@/shared/models";
 import { FaTrash } from "react-icons/fa";
-import { IoMdArrowDropdown, IoMdArrowDropleft } from "react-icons/io";
+import { IoMdArrowDropdown, IoMdArrowDropleft, IoMdCreate } from "react-icons/io";
 import styles from "./MealBoard.module.scss";
 
 
@@ -19,6 +19,7 @@ export function MealBoard({
     onPortionChange,
     onEditFood,
     onRemoveMeal,
+    onRenameMeal,
     onInsertMealPanel,
 }: mealBoardProps
 ) {
@@ -48,6 +49,7 @@ export function MealBoard({
                                 onPortionChange={(id, n) => onPortionChange(m.id, id, n)}
                                 onEditFood={onEditFood}
                                 onRemoveMeal={onRemoveMeal}
+                                onRenameMeal={onRenameMeal}
                                 collapsed={!!collapsedMeals[mealKey]}
                                 onToggleCollapsed={() => toggleCollapsed(mealKey)}
                                 footer={`Total: ~${Math.round(panelTotals.kcal)} kcal, ~${Math.round(panelTotals.protein)} g Protein`}
@@ -71,11 +73,16 @@ function MealPanel({
     onPortionChange,
     onEditFood,
     onRemoveMeal,
+    onRenameMeal,
     collapsed,
     onToggleCollapsed,
     footer,
 }: mealPanelProps
 ) {
+    const [isEditingTitle, setIsEditingTitle] = useState(false);
+    const [editingTitle, setEditingTitle] = useState(title);
+    const cancelRenameOnBlurRef = useRef(false);
+
     const mealKey = String(mealId)
     const { setNodeRef: setDropRef, isOver } = useDroppable({ id: `drop:${mealKey}` });
 
@@ -92,6 +99,23 @@ function MealPanel({
     const baseTransform = CSS.Transform.toString(transform);
     const animatedTransform = baseTransform ? `${baseTransform}${isDragging ? " scale(1.02)" : ""}` : undefined;
 
+    const commitRename = () => {
+        const nextTitle = editingTitle.trim();
+        if (!nextTitle || nextTitle === title) {
+            setIsEditingTitle(false);
+            setEditingTitle(title);
+            return;
+        }
+
+        onRenameMeal(mealId, nextTitle);
+        setIsEditingTitle(false);
+    };
+
+    const cancelRename = () => {
+        setIsEditingTitle(false);
+        setEditingTitle(title);
+    };
+
 
     return (
         <div
@@ -107,7 +131,52 @@ function MealPanel({
             }}
         >
             <div className={styles.mealHeader}>
-                <div className={styles.mealTitle}>{title}</div>
+                <div className={styles.mealTitle}>
+                    {isEditingTitle ? (
+                        <input
+                            className={styles.renameInput}
+                            value={editingTitle}
+                            autoFocus
+                            onChange={(e) => setEditingTitle(e.target.value)}
+                            onBlur={() => {
+                                if (cancelRenameOnBlurRef.current) {
+                                    cancelRenameOnBlurRef.current = false;
+                                    return;
+                                }
+                                commitRename();
+                            }}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                    e.preventDefault();
+                                    commitRename();
+                                    return;
+                                }
+
+                                if (e.key === "Escape") {
+                                    e.preventDefault();
+                                    cancelRenameOnBlurRef.current = true;
+                                    cancelRename();
+                                }
+                            }}
+                            aria-label={`Edit meal panel name for ${title}`}
+                        />
+                    ) : (
+                        <span>{title}</span>
+                    )}
+
+                    <button
+                        type="button"
+                        className={styles.renameBtn}
+                        onClick={() => {
+                            setEditingTitle(title);
+                            setIsEditingTitle(true);
+                        }}
+                        title={`Rename ${title}`}
+                        aria-label={`Rename ${title}`}
+                    >
+                        <IoMdCreate />
+                    </button>
+                </div>
 
                 <div className={styles.mealHeaderActions}>
                     <button
@@ -300,6 +369,7 @@ type mealPanelProps = {
     onPortionChange: (entryId: string, n: number) => void;
     onEditFood: (foodId: FoodId) => void;
     onRemoveMeal: (mealId: MealId) => void;
+    onRenameMeal: (mealId: MealId, name: string) => void;
     collapsed: boolean;
     onToggleCollapsed?: () => void;
     footer: string;
@@ -314,5 +384,6 @@ type mealBoardProps = {
     onPortionChange: (mealId: MealId, entryId: string, portion: number) => void;
     onEditFood: (foodId: FoodId) => void;
     onRemoveMeal: (mealId: MealId) => void;
+    onRenameMeal: (mealId: MealId, name: string) => void;
     onInsertMealPanel: (index: number) => void;
 }
