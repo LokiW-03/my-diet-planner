@@ -1,7 +1,16 @@
 "use client";
 
-import React, { useState } from "react";
-import { DndContext, DragEndEvent, DragStartEvent, DragOverlay } from "@dnd-kit/core";
+import { useState } from "react";
+import {
+    DndContext,
+    DragEndEvent,
+    DragStartEvent,
+    DragOverlay,
+    PointerSensor,
+    KeyboardSensor,
+    useSensor,
+    useSensors,
+} from "@dnd-kit/core";
 import { MealBoard } from "@/client/src/components/MealBoard/MealBoard";
 import { FoodLibrary } from "@/client/src/components/FoodLibrary/FoodLibrary";
 import { BottomToolBar } from "@/client/src/components/BottomToolBar/BottomToolBar";
@@ -33,6 +42,13 @@ export default function PlannerWorkspace({
 ) {
 
     const [activeId, setActiveId] = useState<string | null>(null);
+
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: { distance: 8 },
+        }),
+        useSensor(KeyboardSensor),
+    );
 
     function onDragStart(ev: DragStartEvent) {
         setActiveId(String(ev.active?.id ?? null));
@@ -128,7 +144,12 @@ export default function PlannerWorkspace({
     }
 
     return (
-        <DndContext onDragEnd={onDragEnd} onDragStart={onDragStart} onDragCancel={onDragCancel}>
+        <DndContext
+            sensors={sensors}
+            onDragEnd={onDragEnd}
+            onDragStart={onDragStart}
+            onDragCancel={onDragCancel}
+        >
             <div className={styles.grid}>
                 <div>
                     <MealBoard
@@ -163,7 +184,9 @@ export default function PlannerWorkspace({
             {activeId?.startsWith("lib:") ? (
                 <DragOverlay dropAnimation={null}>
                     <button className={foodStyles.chip} style={{ cursor: "grabbing" }}>
-                        {foods.find((f) => String(f.id) === activeId.slice("lib:".length))?.name ?? ""}
+                        <span className={foodStyles.chipText}>
+                            {foods.find((f) => String(f.id) === activeId.slice("lib:".length))?.name ?? ""}
+                        </span>
                     </button>
                 </DragOverlay>
             ) : null}
