@@ -160,13 +160,13 @@ export default function PlannerWorkspace({
                 </div>
             </div>
 
-            <DragOverlay>
-                {activeId?.startsWith("lib:") ? (
+            {activeId?.startsWith("lib:") ? (
+                <DragOverlay dropAnimation={null}>
                     <button className={foodStyles.chip} style={{ cursor: "grabbing" }}>
                         {foods.find((f) => String(f.id) === activeId.slice("lib:".length))?.name ?? ""}
                     </button>
-                ) : null}
-            </DragOverlay>
+                </DragOverlay>
+            ) : null}
         </DndContext>
     );
 }

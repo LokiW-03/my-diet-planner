@@ -102,7 +102,7 @@ function MealPanel({
                 transform: animatedTransform,
                 transition: transition ? `${transition}, box-shadow 160ms ease, opacity 160ms ease` : "box-shadow 160ms ease, opacity 160ms ease",
                 opacity: isDragging ? 0.92 : 1,
-                boxShadow: isDragging ? "0 18px 45px rgba(0,0,0,0.20)" : undefined,
+                boxShadow: isDragging ? "0 18px 45px var(--shadow-drag)" : undefined,
                 zIndex: isDragging ? 50 : "auto",
             }}
         >

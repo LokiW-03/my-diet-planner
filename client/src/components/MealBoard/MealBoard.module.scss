@@ -8,7 +8,7 @@
     padding: 12px;
     background: var(--card-bg);
     border: 1px solid var(--card-border);
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 6px 18px var(--shadow-card);
 }
 
 .mealHeader {
@@ -151,8 +151,8 @@
     width: 30px;
     height: 30px;
     border-radius: 10px;
-    border: 1px solid #999;
-    background: black;
+    border: 1px solid var(--card-border);
+    background: var(--background);
     cursor: pointer;
 }
 
