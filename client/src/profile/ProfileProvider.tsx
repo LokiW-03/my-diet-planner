@@ -45,6 +45,7 @@ export type ProfileContextValue = {
     updateCategory: (categoryId: CategoryId, patch: Partial<Omit<FoodCategory, "id" | "profileId">>) => void;
     addCategory: (category: Omit<FoodCategory, "id">) => CategoryId;
     removeCategory: (categoryId: CategoryId) => void;
+    reorderCategories: (categoryIds: CategoryId[]) => void;
 };
 
 export const ProfileContext = createContext<ProfileContextValue | null>(null);
@@ -176,6 +177,18 @@ export function ProfileProvider({
         });
     }, []);
 
+    const reorderCategories = useCallback((categoryIds: CategoryId[]) => {
+        setProfile((p) => {
+            const updated = { ...p.categories };
+            categoryIds.forEach((id, index) => {
+                if (updated[id]) {
+                    updated[id] = { ...updated[id], order: index };
+                }
+            });
+            return { ...p, categories: updated };
+        });
+    }, []);
+
     const addTarget = useCallback((target: Omit<Target, "id">): TargetId => {
         const id = uid("target") as TargetId;
         setProfile((p) => ({ ...p, targets: { ...p.targets, [id]: { ...target, id } } }));
@@ -261,6 +274,7 @@ export function ProfileProvider({
             updateCategory,
             addCategory,
             removeCategory,
+            reorderCategories,
         }),
         [
             profile,
@@ -282,6 +296,7 @@ export function ProfileProvider({
             updateCategory,
             addCategory,
             removeCategory,
+            reorderCategories,
         ]
     );
 

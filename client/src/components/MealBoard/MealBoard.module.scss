@@ -75,6 +75,10 @@
     color: var(--muted);
     cursor: grab;
     touch-action: none;
+
+    &:active {
+        cursor: grabbing;
+    }
 }
 
 .mealRemoveBtn {

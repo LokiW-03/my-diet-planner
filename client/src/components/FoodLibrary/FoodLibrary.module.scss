@@ -51,6 +51,16 @@
     padding: 0;
 }
 
+.dragHandle {
+    color: var(--muted);
+    cursor: grab;
+    transition: all 150ms ease;
+
+    &:active {
+        cursor: grabbing;
+    }
+}
+
 .deleteBtn {
     color: var(--danger-fg);
 }
