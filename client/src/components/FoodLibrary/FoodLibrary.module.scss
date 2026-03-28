@@ -37,8 +37,37 @@
     line-height: 0;
 }
 
+.renameBtn {
+    background: var(--background);
+    color: var(--foreground);
+    cursor: pointer;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+}
+
 .categoryName {
     font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.renameInput {
+    font: inherit;
+    font-weight: 800;
+    color: var(--foreground);
+    background: var(--background);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: 2px 8px;
+    min-width: 10ch;
+    max-width: 20ch;
 }
 
 

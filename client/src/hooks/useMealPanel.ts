@@ -6,6 +6,7 @@ import type { MealDefinition, MealId } from "@/shared/models";
 export function useMealPanel({
   mealDefs,
   addMeal,
+  updateMeal,
   disableMeal,
   resetMealPanelsToDefault,
   saveMealPanelsAsDefault,
@@ -16,14 +17,8 @@ export function useMealPanel({
 }: MealPanelProps) {
   const insertMealPanel = useCallback(
     (index: number) => {
-      const name = window.prompt("Meal name?");
-      if (!name) return;
-
-      const trimmed = name.trim();
-      if (!trimmed) return;
-
       const newId = addMeal({
-        name: trimmed,
+        name: "New Meal",
         enabled: true,
         order: 10_000,
       });
@@ -33,6 +28,8 @@ export function useMealPanel({
       const clamped = Math.max(0, Math.min(index, ids.length));
       ids.splice(clamped, 0, newId);
       setMealPanelOrder(ids);
+
+      return newId;
     },
     [addMeal, mealDefs, setMealPanelOrder],
   );
@@ -43,6 +40,15 @@ export function useMealPanel({
       removeMeal(mealId);
     },
     [disableMeal, removeMeal],
+  );
+
+  const renameMealPanel = useCallback(
+    (mealId: MealId, name: string) => {
+      const trimmed = name.trim();
+      if (!trimmed) return;
+      updateMeal(mealId, { name: trimmed });
+    },
+    [updateMeal],
   );
 
   const resetAllMealPanels = useCallback(() => {
@@ -60,6 +66,7 @@ export function useMealPanel({
     actions: {
       insertMealPanel,
       removeMealPanel,
+      renameMealPanel,
       resetAllMealPanels,
       saveMealPanelsAsDefaultForCurrentOrder,
     },
@@ -69,6 +76,10 @@ export function useMealPanel({
 type MealPanelProps = {
   mealDefs: MealDefinition[];
   addMeal: (meal: Omit<MealDefinition, "id">) => MealId;
+  updateMeal: (
+    mealId: MealId,
+    patch: Partial<Omit<MealDefinition, "id">>,
+  ) => void;
   disableMeal: (mealId: MealId) => void;
   resetMealPanelsToDefault: () => void;
   saveMealPanelsAsDefault: (orderedEnabledMealIds: MealId[]) => Promise<void>;

@@ -49,6 +49,7 @@ export function usePlannerScreen() {
     removeTarget,
     resetTargetsToDefault,
     addMeal,
+    updateMeal,
     disableMeal,
     resetMealPanelsToDefault,
     saveMealPanelsAsDefault,
@@ -93,6 +94,7 @@ export function usePlannerScreen() {
   const mealPanel = useMealPanel({
     mealDefs: model.mealDefs,
     addMeal,
+    updateMeal,
     disableMeal,
     resetMealPanelsToDefault,
     saveMealPanelsAsDefault,

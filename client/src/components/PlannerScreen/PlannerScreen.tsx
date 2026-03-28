@@ -46,6 +46,7 @@ export default function PlannerScreen() {
                     onPortionChange={actions.setEntryPortion}
                     onEditFood={actions.openEditById}
                     onRemoveMeal={actions.removeMealPanel}
+                    onRenameMeal={actions.renameMealPanel}
                     onReorderMealPanels={actions.setMealPanelOrder}
                     onInsertMealPanel={actions.insertMealPanel}
                     openAdd={actions.openAdd}
