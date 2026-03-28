@@ -59,6 +59,7 @@ export default function PlannerScreen() {
                     addEntryToMeal={actions.addEntryToMealWithDefaultPortion}
                     moveEntry={actions.moveEntry}
                     clearAll={actions.clearAllMeals}
+                    onChangeFoodCategory={actions.changeFoodCategory}
                 />
             </div>
 

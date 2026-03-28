@@ -38,6 +38,7 @@ export default function PlannerWorkspace({
     onRenameCategory,
     onAddCategory,
     onRemoveCategory,
+    onChangeFoodCategory,
     onInsertMealPanel,
     openAdd,
     openEdit,
@@ -69,6 +70,14 @@ export default function PlannerWorkspace({
             const overId = ev.over ? String(ev.over.id) : null;
 
             if (!overId) return;
+
+            // Drag food chip between categories
+            if (activeId.startsWith("lib:") && overId.startsWith("drop:cat:")) {
+                const foodId = activeId.slice("lib:".length) as unknown as FoodId;
+                const toCatId = overId.slice("drop:cat:".length) as unknown as CategoryId;
+                onChangeFoodCategory(foodId, toCatId);
+                return;
+            }
 
             // Handle category reordering
             if (activeId.startsWith("cat:")) {
@@ -272,6 +281,7 @@ type PlannerWorkspaceProps = {
     onRenameCategory: (categoryId: CategoryId, name: string) => void;
     onAddCategory: (category: Omit<FoodCategory, "id">) => CategoryId;
     onRemoveCategory: (categoryId: CategoryId) => void;
+    onChangeFoodCategory: (foodId: FoodId, categoryId: CategoryId) => void;
     onInsertMealPanel: (index: number) => MealId | undefined;
     openAdd: (catId: CategoryId) => void;
     openEdit: (food: FoodItem) => void;

@@ -2,7 +2,7 @@
 
 import { useRef, useEffect, useMemo, useState, useCallback } from "react";
 import type { CategoryId, FoodItem, FoodCategory } from "@/shared/models";
-import { useDraggable } from "@dnd-kit/core";
+import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { SortableContext, rectSortingStrategy, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { IoMdArrowDropdown, IoMdArrowDropleft, IoMdCreate, IoMdTrash } from "react-icons/io";
@@ -154,6 +154,8 @@ function CategoryRow({
     const catKey = String(category.id);
     const cancelRenameOnBlurRef = useRef(false);
 
+    const { setNodeRef: setDropRef, isOver } = useDroppable({ id: `drop:cat:${catKey}` });
+
     const {
         setNodeRef: setRowRef,
         setActivatorNodeRef,
@@ -169,13 +171,20 @@ function CategoryRow({
 
     return (
         <div
-            ref={setRowRef}
+            ref={(node) => {
+                setRowRef(node);
+                setDropRef(node);
+            }}
             className={styles.category}
             style={{
                 transform: animatedTransform,
                 transition: transition ? `${transition}, box-shadow 160ms ease` : "box-shadow 160ms ease",
                 opacity: isDragging ? 0.9 : 1,
-                boxShadow: isDragging ? "0 12px 32px var(--shadow-drag)" : undefined,
+                boxShadow: isDragging
+                    ? "0 12px 32px var(--shadow-drag)"
+                    : isOver
+                        ? "0 0 0 2px var(--accent)"
+                        : undefined,
                 zIndex: isDragging ? 40 : "auto",
             }}
         >
