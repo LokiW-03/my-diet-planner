@@ -8,7 +8,7 @@
     padding: 12px;
     background: var(--card-bg);
     border: 1px solid var(--card-border);
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 6px 18px var(--shadow-card);
 }
 
 .mealHeader {
@@ -32,24 +32,7 @@
     gap: 10px;
 }
 
-.mealDragHandle {
-    width: 30px;
-    height: 30px;
-    border-radius: 10px;
-    border: 1px solid var(--card-border);
-    background: var(--card-bg);
-    color: var(--muted);
-    cursor: grab;
-    font-weight: 900;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    line-height: 0;
-    touch-action: none;
-}
-
-.mealCollapseBtn {
+.iconBtn {
     width: 30px;
     height: 30px;
     border-radius: 10px;
@@ -65,24 +48,20 @@
     line-height: 0;
 }
 
+.mealDragHandle {
+    color: var(--muted);
+    cursor: grab;
+    touch-action: none;
+}
+
 .mealRemoveBtn {
-    width: 30px;
-    height: 30px;
-    border-radius: 10px;
-    border: 1px solid var(--card-border);
-    background: var(--card-bg);
     color: var(--danger-fg);
-    cursor: pointer;
-    font-weight: 900;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    line-height: 0;
 }
 
 .mealDropZone {
     min-height: 110px;
+    max-height: 320px;
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -174,8 +153,8 @@
     width: 30px;
     height: 30px;
     border-radius: 10px;
-    border: 1px solid #999;
-    background: black;
+    border: 1px solid var(--card-border);
+    background: var(--background);
     cursor: pointer;
 }
 
@@ -183,7 +162,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 6px 4px;
+    padding: 0px 4px;
 }
 
 .insertLine {
@@ -195,8 +174,8 @@
 }
 
 .insertBtn {
-    width: 34px;
-    height: 34px;
+    width: 20px;
+    height: 20px;
     border-radius: 12px;
     border: 1px solid var(--card-border);
     background: var(--card-bg);

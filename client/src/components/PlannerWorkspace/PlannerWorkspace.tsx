@@ -1,12 +1,22 @@
 "use client";
 
-import React from "react";
-import { DndContext, DragEndEvent, DragStartEvent } from "@dnd-kit/core";
+import { useState } from "react";
+import {
+    DndContext,
+    DragEndEvent,
+    DragStartEvent,
+    DragOverlay,
+    PointerSensor,
+    KeyboardSensor,
+    useSensor,
+    useSensors,
+} from "@dnd-kit/core";
 import { MealBoard } from "@/client/src/components/MealBoard/MealBoard";
 import { FoodLibrary } from "@/client/src/components/FoodLibrary/FoodLibrary";
 import { BottomToolBar } from "@/client/src/components/BottomToolBar/BottomToolBar";
 import type { FoodItem, FoodId, MealEntry, Target, MealDefinition, CategoryId, MealId, TargetId } from "@/shared/models";
 import styles from "./PlannerWorkspace.module.scss";
+import foodStyles from "@/client/src/components/FoodLibrary/FoodLibrary.module.scss";
 
 export default function PlannerWorkspace({
     foods,
@@ -31,7 +41,14 @@ export default function PlannerWorkspace({
 }: PlannerWorkspaceProps
 ) {
 
-    const [, setActiveId] = React.useState<string | null>(null);
+    const [activeId, setActiveId] = useState<string | null>(null);
+
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: { distance: 8 },
+        }),
+        useSensor(KeyboardSensor),
+    );
 
     function onDragStart(ev: DragStartEvent) {
         setActiveId(String(ev.active?.id ?? null));
@@ -127,7 +144,12 @@ export default function PlannerWorkspace({
     }
 
     return (
-        <DndContext onDragEnd={onDragEnd} onDragStart={onDragStart} onDragCancel={onDragCancel}>
+        <DndContext
+            sensors={sensors}
+            onDragEnd={onDragEnd}
+            onDragStart={onDragStart}
+            onDragCancel={onDragCancel}
+        >
             <div className={styles.grid}>
                 <div>
                     <MealBoard
@@ -158,6 +180,16 @@ export default function PlannerWorkspace({
                     <FoodLibrary onAdd={openAdd} onEdit={openEdit} />
                 </div>
             </div>
+
+            {activeId?.startsWith("lib:") ? (
+                <DragOverlay dropAnimation={null}>
+                    <button className={foodStyles.chip} style={{ cursor: "grabbing" }}>
+                        <span className={foodStyles.chipText}>
+                            {foods.find((f) => String(f.id) === activeId.slice("lib:".length))?.name ?? ""}
+                        </span>
+                    </button>
+                </DragOverlay>
+            ) : null}
         </DndContext>
     );
 }

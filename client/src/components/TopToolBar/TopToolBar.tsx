@@ -39,6 +39,7 @@ export function TopToolBar({
                     }
                     onClick={onToggleProfile}
                     type="button"
+                    title="Show profile"
                 >
                     <FaUserCircle size={18} />
                 </button>
@@ -88,13 +89,13 @@ export function TopToolBar({
                 <button
                     type="button"
                     className={styles.btn}
-                    title="Save meal panels (including removed/disabled) as DB defaults"
+                    title="Save current meal panel layout as defaults"
                     onClick={onSaveDefaults}
                 >
                     <FaSave size={18} />
                 </button>
 
-                <button type="button" className={styles.btn} onClick={onReset}>
+                <button type="button" className={styles.btn} onClick={onReset} title="Reset meal panels to defaults">
                     <FaRotateRight size={18} />
                 </button>
             </div>
