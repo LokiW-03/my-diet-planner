@@ -17,14 +17,8 @@ export function useMealPanel({
 }: MealPanelProps) {
   const insertMealPanel = useCallback(
     (index: number) => {
-      const name = window.prompt("Meal name?");
-      if (!name) return;
-
-      const trimmed = name.trim();
-      if (!trimmed) return;
-
       const newId = addMeal({
-        name: trimmed,
+        name: "New Meal",
         enabled: true,
         order: 10_000,
       });
@@ -34,6 +28,8 @@ export function useMealPanel({
       const clamped = Math.max(0, Math.min(index, ids.length));
       ids.splice(clamped, 0, newId);
       setMealPanelOrder(ids);
+
+      return newId;
     },
     [addMeal, mealDefs, setMealPanelOrder],
   );
