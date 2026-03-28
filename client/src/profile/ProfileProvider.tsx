@@ -2,7 +2,7 @@
 
 import React, { createContext, useCallback, useEffect, useMemo, useState } from "react";
 import type { CategoryId, FoodCategory, FoodId, FoodItem, MealDefinition, MealId, Target, TargetId, UserProfile } from "@/shared/models";
-import { defaultUserProfile, getInitialProfile } from "@/shared/defaults";
+import { defaultUserProfile, getInitialProfile, UNKNOWN_CATEGORY_ID } from "@/shared/defaults";
 import { uid } from "@/shared/utils";
 
 const STORAGE_KEY = "diet_planner:userProfile:v1";
@@ -43,6 +43,9 @@ export type ProfileContextValue = {
 
     // CRUD action for food library defaults
     updateCategory: (categoryId: CategoryId, patch: Partial<Omit<FoodCategory, "id" | "profileId">>) => void;
+    addCategory: (category: Omit<FoodCategory, "id">) => CategoryId;
+    removeCategory: (categoryId: CategoryId) => void;
+    reorderCategories: (categoryIds: CategoryId[]) => void;
 };
 
 export const ProfileContext = createContext<ProfileContextValue | null>(null);
@@ -112,6 +115,78 @@ export function ProfileProvider({
                 [categoryId]: { ...p.categories[categoryId], ...patch },
             },
         }));
+    }, []);
+
+    const addCategory = useCallback((category: Omit<FoodCategory, "id">): CategoryId => {
+        const id = uid("cat") as CategoryId;
+        setProfile((p) => ({
+            ...p,
+            categories: {
+                ...p.categories,
+                [id]: { ...category, id },
+            },
+        }));
+        return id;
+    }, []);
+
+    const removeCategory = useCallback((categoryId: CategoryId) => {
+        setProfile((p) => {
+            // Ensure Unknown Category exists
+            if (!p.categories[UNKNOWN_CATEGORY_ID]) {
+                p.categories = {
+                    ...p.categories,
+                    [UNKNOWN_CATEGORY_ID]: {
+                        id: UNKNOWN_CATEGORY_ID,
+                        profileId: p.profileId,
+                        name: "Unknown",
+                        order: Infinity,
+                        enabled: true,
+                    },
+                };
+            }
+
+            // Move all foods from removed category to Unknown Category
+            const movedFoods = Object.fromEntries(
+                Object.entries(p.foods)
+                    .filter(([, food]) => food.categoryId === categoryId)
+                    .map(([id, food]) => [id, { ...food, categoryId: UNKNOWN_CATEGORY_ID }])
+            );
+
+            // Disable the category
+            const updatedCategories = {
+                ...p.categories,
+                [categoryId]: { ...p.categories[categoryId], enabled: false },
+                ...(!p.categories[UNKNOWN_CATEGORY_ID]
+                    ? {
+                        [UNKNOWN_CATEGORY_ID]: {
+                            id: UNKNOWN_CATEGORY_ID,
+                            profileId: p.profileId,
+                            name: "Unknown",
+                            order: Infinity,
+                            enabled: true,
+                        },
+                    }
+                    : {}),
+            };
+
+            return {
+                ...p,
+                categories: updatedCategories,
+                foods: { ...p.foods, ...movedFoods },
+            };
+        });
+    }, []);
+
+    const reorderCategories = useCallback((categoryIds: CategoryId[]) => {
+        setProfile((p) => {
+            const updated = { ...p.categories };
+            categoryIds.forEach((id, index) => {
+                if (updated[id]) {
+                    updated[id] = { ...updated[id], order: index };
+                }
+            });
+            return { ...p, categories: updated };
+        });
     }, []);
 
     const addTarget = useCallback((target: Omit<Target, "id">): TargetId => {
@@ -197,6 +272,9 @@ export function ProfileProvider({
             updateFood,
             removeFood,
             updateCategory,
+            addCategory,
+            removeCategory,
+            reorderCategories,
         }),
         [
             profile,
@@ -216,6 +294,9 @@ export function ProfileProvider({
             updateFood,
             removeFood,
             updateCategory,
+            addCategory,
+            removeCategory,
+            reorderCategories,
         ]
     );
 

@@ -38,6 +38,7 @@ export default function PlannerScreen() {
                     meals={model.meals}
                     mealDefs={model.mealDefs}
                     mealTotals={model.mealTotals}
+                    categories={model.categoriesById}
                     totals={model.totals}
                     dayType={model.dayType}
                     targets={model.targets}
@@ -48,12 +49,17 @@ export default function PlannerScreen() {
                     onRemoveMeal={actions.removeMealPanel}
                     onRenameMeal={actions.renameMealPanel}
                     onReorderMealPanels={actions.setMealPanelOrder}
+                    onReorderCategories={actions.reorderCategories}
+                    onRenameCategory={actions.renameCategory}
+                    onAddCategory={actions.addCategory}
+                    onRemoveCategory={actions.removeCategory}
                     onInsertMealPanel={actions.insertMealPanel}
                     openAdd={actions.openAdd}
                     openEdit={actions.openEdit}
                     addEntryToMeal={actions.addEntryToMealWithDefaultPortion}
                     moveEntry={actions.moveEntry}
                     clearAll={actions.clearAllMeals}
+                    onChangeFoodCategory={actions.changeFoodCategory}
                 />
             </div>
 

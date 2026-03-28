@@ -14,7 +14,7 @@ import {
 import { MealBoard } from "@/client/src/components/MealBoard/MealBoard";
 import { FoodLibrary } from "@/client/src/components/FoodLibrary/FoodLibrary";
 import { BottomToolBar } from "@/client/src/components/BottomToolBar/BottomToolBar";
-import type { FoodItem, FoodId, MealEntry, Target, MealDefinition, CategoryId, MealId, TargetId } from "@/shared/models";
+import type { FoodItem, FoodId, MealEntry, Target, MealDefinition, CategoryId, MealId, TargetId, FoodCategory } from "@/shared/models";
 import styles from "./PlannerWorkspace.module.scss";
 import foodStyles from "@/client/src/components/FoodLibrary/FoodLibrary.module.scss";
 
@@ -23,6 +23,7 @@ export default function PlannerWorkspace({
     meals,
     mealDefs,
     mealTotals,
+    categories,
     totals,
     dayType,
     targets,
@@ -33,6 +34,11 @@ export default function PlannerWorkspace({
     onRemoveMeal,
     onRenameMeal,
     onReorderMealPanels,
+    onReorderCategories,
+    onRenameCategory,
+    onAddCategory,
+    onRemoveCategory,
+    onChangeFoodCategory,
     onInsertMealPanel,
     openAdd,
     openEdit,
@@ -64,6 +70,57 @@ export default function PlannerWorkspace({
             const overId = ev.over ? String(ev.over.id) : null;
 
             if (!overId) return;
+
+            // Drag food chip between categories
+            if (activeId.startsWith("lib:") && overId.startsWith("drop:cat:")) {
+                const foodId = activeId.slice("lib:".length) as unknown as FoodId;
+                const toCatId = overId.slice("drop:cat:".length) as unknown as CategoryId;
+                onChangeFoodCategory(foodId, toCatId);
+                return;
+            }
+
+            // Handle category reordering
+            if (activeId.startsWith("cat:")) {
+                const fromCatId = activeId.slice("cat:".length) as unknown as CategoryId;
+                const toCatId = overId.startsWith("cat:")
+                    ? (overId.slice("cat:".length) as unknown as CategoryId)
+                    : overId.startsWith("drop:cat:")
+                        ? (overId.slice("drop:cat:".length) as unknown as CategoryId)
+                        : "";
+
+                if (!fromCatId || !toCatId || fromCatId === toCatId) return;
+
+                // Mirror FoodLibrary's visible categories logic
+                const foodsByCategory = new Map<CategoryId, boolean>();
+                for (const f of foods) {
+                    foodsByCategory.set(f.categoryId, true);
+                }
+
+                const visibleCategoryIds = Object.values(categories)
+                    .filter((c) => {
+                        if (!c.enabled) return false;
+                        // Unknown category only shows if it has foods
+                        if (c.id === "cat:unknown-orphaned") {
+                            return foodsByCategory.has(c.id);
+                        }
+                        return true;
+                    })
+                    .sort((a, b) => a.order - b.order)
+                    .map((c) => c.id);
+
+                const ids = visibleCategoryIds.map((id) => String(id));
+                const from = ids.indexOf(String(fromCatId));
+                const to = ids.indexOf(String(toCatId));
+                if (from === -1 || to === -1 || from === to) return;
+
+                const next = ids.slice();
+                const [moved] = next.splice(from, 1);
+                next.splice(to, 0, moved);
+
+                const nextIds = next.map((k) => k as unknown as CategoryId);
+                onReorderCategories(nextIds);
+                return;
+            }
 
             if (activeId.startsWith("panel:")) {
                 const fromMealId = activeId.slice("panel:".length);
@@ -179,7 +236,15 @@ export default function PlannerWorkspace({
                 </div>
 
                 <div>
-                    <FoodLibrary onAdd={openAdd} onEdit={openEdit} />
+                    <FoodLibrary
+                        foods={foods}
+                        categories={categories}
+                        onAdd={openAdd}
+                        onEdit={openEdit}
+                        onRenameCategory={onRenameCategory}
+                        onAddCategory={onAddCategory}
+                        onRemoveCategory={onRemoveCategory}
+                    />
                 </div>
             </div>
 
@@ -201,6 +266,7 @@ type PlannerWorkspaceProps = {
     meals: Record<MealId, MealEntry[]>;
     mealDefs: MealDefinition[];
     mealTotals: Record<MealId, { kcal: number; protein: number }>;
+    categories: Record<CategoryId, FoodCategory>;
     totals: { kcal: number; protein: number };
     dayType: TargetId;
     targets: Target[];
@@ -211,6 +277,11 @@ type PlannerWorkspaceProps = {
     onRemoveMeal: (mealId: MealId) => void;
     onRenameMeal: (mealId: MealId, name: string) => void;
     onReorderMealPanels: (nextOrder: MealId[]) => void;
+    onReorderCategories: (nextOrder: CategoryId[]) => void;
+    onRenameCategory: (categoryId: CategoryId, name: string) => void;
+    onAddCategory: (category: Omit<FoodCategory, "id">) => CategoryId;
+    onRemoveCategory: (categoryId: CategoryId) => void;
+    onChangeFoodCategory: (foodId: FoodId, categoryId: CategoryId) => void;
     onInsertMealPanel: (index: number) => MealId | undefined;
     openAdd: (catId: CategoryId) => void;
     openEdit: (food: FoodItem) => void;

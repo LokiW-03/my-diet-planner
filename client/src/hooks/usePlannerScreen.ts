@@ -6,9 +6,10 @@ import { useProfile } from "@/client/src/hooks/useProfile";
 import { usePlannerStore } from "@/client/src/hooks/useStore";
 import { useFoodModal } from "@/client/src/hooks/useFoodModal";
 import { useMealPanel } from "@/client/src/hooks/useMealPanel";
+import { useCategory } from "@/client/src/hooks/useCategory";
 import { useModel } from "@/client/src/hooks/useModel";
 import { useTargetModal } from "@/client/src/hooks/useTargetModal";
-import type { FoodId, MealId } from "@/shared/models";
+import type { CategoryId, FoodId, MealId } from "@/shared/models";
 
 export function usePlannerScreen() {
   // external state sources
@@ -54,6 +55,10 @@ export function usePlannerScreen() {
     resetMealPanelsToDefault,
     saveMealPanelsAsDefault,
     saveProfileAsDefault,
+    updateCategory,
+    addCategory,
+    removeCategory,
+    reorderCategories,
   } = useProfile();
 
   const model = useModel({ profile, plannerState });
@@ -91,6 +96,13 @@ export function usePlannerScreen() {
     [foodModal.actions, profile.foods],
   );
 
+  const changeFoodCategory = useCallback(
+    (foodId: FoodId, categoryId: CategoryId) => {
+      updateFood(foodId, { categoryId });
+    },
+    [updateFood],
+  );
+
   const mealPanel = useMealPanel({
     mealDefs: model.mealDefs,
     addMeal,
@@ -102,6 +114,13 @@ export function usePlannerScreen() {
     resetMealPanelOrder: plannerActions.resetMealPanelOrder,
     resetHiddenMeals: plannerActions.resetHiddenMeals,
     removeMeal: plannerActions.removeMeal,
+  });
+
+  const category = useCategory({
+    updateCategory,
+    addCategory,
+    removeCategory,
+    reorderCategories,
   });
 
   const targetModal = useTargetModal({
@@ -122,12 +141,14 @@ export function usePlannerScreen() {
       ...plannerActions,
       ...mealPanel.actions,
       ...foodModal.actions,
+      ...category.actions,
       ...targetModal.actions,
       // glue actions
       openEditById,
       removeFoodAndEntries,
       addEntryToMealWithDefaultPortion,
       resetMealPanelsToDefault,
+      changeFoodCategory,
     },
   };
 }

@@ -15,6 +15,7 @@ export function useModel({
   plannerState: PlannerState;
 }) {
   const foods = useMemo(() => Object.values(profile.foods), [profile.foods]);
+  const categoriesById = profile.categories;
   const categories = useMemo(
     () => Object.values(profile.categories),
     [profile.categories],
@@ -63,6 +64,7 @@ export function useModel({
 
   return {
     foods,
+    categoriesById,
     categories,
     targets,
     mealDefs,
