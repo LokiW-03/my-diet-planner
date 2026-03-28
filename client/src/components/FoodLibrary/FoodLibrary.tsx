@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useMemo, useState } from "react";
+import { useRef, useEffect, useMemo, useState } from "react";
 import type { CategoryId, FoodItem } from "@/shared/models";
 import { useDraggable } from "@dnd-kit/core";
 import { useProfile } from "@/client/src/hooks/useProfile";
@@ -16,7 +16,7 @@ export function FoodLibrary({
     onEdit: (food: FoodItem) => void;
 }) {
 
-    const { profile, updateCategory } = useProfile();
+    const { profile, updateCategory, addCategory } = useProfile();
 
     const visibleCats = useMemo(() => {
         return Object.values(profile.categories)
@@ -39,6 +39,7 @@ export function FoodLibrary({
     const [collapsedCats, setCollapsedCats] = useState<Record<string, boolean>>({});
     const [editingCatId, setEditingCatId] = useState<CategoryId | null>(null);
     const [editingName, setEditingName] = useState("");
+    const [autoRenameCatId, setAutoRenameCatId] = useState<CategoryId | null>(null);
     const cancelRenameOnBlurRef = useRef(false);
 
     const toggleCollapsedCats = (catIdKey: string) => {
@@ -67,6 +68,14 @@ export function FoodLibrary({
         setEditingCatId(null);
         setEditingName("");
     }
+
+    useEffect(() => {
+        if (!autoRenameCatId) return;
+        const cat = profile.categories[autoRenameCatId];
+        if (!cat) return;
+        startRename(autoRenameCatId, cat.name);
+        setAutoRenameCatId(null);
+    }, [autoRenameCatId, profile.categories]);
 
     return (
         <div className={styles.panel}>
@@ -153,8 +162,22 @@ export function FoodLibrary({
                         <div className={styles.divider} />
                     </div>
                 );
-            })}
-        </div >
+            })}            <button
+                className={styles.addCategoryBtn}
+                onClick={() => {
+                    const newCatId = addCategory({
+                        name: "New Category",
+                        profileId: profile.profileId,
+                        order: Math.max(0, ...Object.values(profile.categories).map(c => c.order)) + 1,
+                        enabled: true,
+                    });
+                    setAutoRenameCatId(newCatId);
+                }}
+                title="Add new category"
+                type="button"
+            >
+                + Add Category
+            </button>        </div >
     );
 }
 

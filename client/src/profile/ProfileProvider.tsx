@@ -43,6 +43,7 @@ export type ProfileContextValue = {
 
     // CRUD action for food library defaults
     updateCategory: (categoryId: CategoryId, patch: Partial<Omit<FoodCategory, "id" | "profileId">>) => void;
+    addCategory: (category: Omit<FoodCategory, "id">) => CategoryId;
 };
 
 export const ProfileContext = createContext<ProfileContextValue | null>(null);
@@ -112,6 +113,18 @@ export function ProfileProvider({
                 [categoryId]: { ...p.categories[categoryId], ...patch },
             },
         }));
+    }, []);
+
+    const addCategory = useCallback((category: Omit<FoodCategory, "id">): CategoryId => {
+        const id = uid("cat") as CategoryId;
+        setProfile((p) => ({
+            ...p,
+            categories: {
+                ...p.categories,
+                [id]: { ...category, id },
+            },
+        }));
+        return id;
     }, []);
 
     const addTarget = useCallback((target: Omit<Target, "id">): TargetId => {
@@ -197,6 +210,7 @@ export function ProfileProvider({
             updateFood,
             removeFood,
             updateCategory,
+            addCategory,
         }),
         [
             profile,
@@ -216,6 +230,7 @@ export function ProfileProvider({
             updateFood,
             removeFood,
             updateCategory,
+            addCategory,
         ]
     );
 
