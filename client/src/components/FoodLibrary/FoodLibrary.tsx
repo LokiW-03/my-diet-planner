@@ -1,10 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useRef, useMemo, useState } from "react";
 import type { CategoryId, FoodItem } from "@/shared/models";
 import { useDraggable } from "@dnd-kit/core";
 import { useProfile } from "@/client/src/hooks/useProfile";
-import { IoMdArrowDropdown, IoMdArrowDropleft } from "react-icons/io";
+import { IoMdArrowDropdown, IoMdArrowDropleft, IoMdCreate } from "react-icons/io";
 import styles from "./FoodLibrary.module.scss";
 
 
@@ -16,7 +16,7 @@ export function FoodLibrary({
     onEdit: (food: FoodItem) => void;
 }) {
 
-    const { profile } = useProfile();
+    const { profile, updateCategory } = useProfile();
 
     const visibleCats = useMemo(() => {
         return Object.values(profile.categories)
@@ -37,8 +37,35 @@ export function FoodLibrary({
     }, [foods, visibleCats]);
 
     const [collapsedCats, setCollapsedCats] = useState<Record<string, boolean>>({});
+    const [editingCatId, setEditingCatId] = useState<CategoryId | null>(null);
+    const [editingName, setEditingName] = useState("");
+    const cancelRenameOnBlurRef = useRef(false);
+
     const toggleCollapsedCats = (catIdKey: string) => {
         setCollapsedCats((prev) => ({ ...prev, [catIdKey]: !prev[catIdKey] }));
+    }
+
+    const startRename = (catId: CategoryId, currentName: string) => {
+        setEditingCatId(catId);
+        setEditingName(currentName);
+    }
+
+    const commitRename = (catId: CategoryId, currentName: string) => {
+        const nextName = editingName.trim();
+        if (!nextName || nextName === currentName) {
+            setEditingCatId(null);
+            setEditingName("");
+            return;
+        }
+
+        updateCategory(catId, { name: nextName });
+        setEditingCatId(null);
+        setEditingName("");
+    }
+
+    const cancelRename = () => {
+        setEditingCatId(null);
+        setEditingName("");
     }
 
     return (
@@ -51,7 +78,46 @@ export function FoodLibrary({
                     <div key={String(cat.id)} className={styles.category}>
                         <div className={styles.headerRow}>
                             <div className={styles.categoryName}>
-                                {cat.name} ({items.length})
+                                {editingCatId === cat.id ? (
+                                    <input
+                                        className={styles.renameInput}
+                                        value={editingName}
+                                        autoFocus
+                                        onChange={(e) => setEditingName(e.target.value)}
+                                        onBlur={() => {
+                                            if (cancelRenameOnBlurRef.current) {
+                                                cancelRenameOnBlurRef.current = false;
+                                                return;
+                                            }
+                                            commitRename(cat.id, cat.name);
+                                        }}
+                                        onKeyDown={(e) => {
+                                            if (e.key === "Enter") {
+                                                e.preventDefault();
+                                                commitRename(cat.id, cat.name);
+                                                return;
+                                            }
+
+                                            if (e.key === "Escape") {
+                                                e.preventDefault();
+                                                cancelRenameOnBlurRef.current = true;
+                                                cancelRename();
+                                            }
+                                        }}
+                                        aria-label={`Edit name for ${cat.name}`}
+                                    />
+                                ) : (
+                                    <span>{cat.name} ({items.length})</span>
+                                )}
+                                <button
+                                    type="button"
+                                    className={styles.renameBtn}
+                                    onClick={() => startRename(cat.id, cat.name)}
+                                    title={`Rename ${cat.name}`}
+                                    aria-label={`Rename ${cat.name}`}
+                                >
+                                    <IoMdCreate />
+                                </button>
                             </div>
 
                             <div className={styles.headerActions}>

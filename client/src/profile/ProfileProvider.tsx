@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useCallback, useEffect, useMemo, useState } from "react";
-import type { FoodId, FoodItem, MealDefinition, MealId, Target, TargetId, UserProfile } from "@/shared/models";
+import type { CategoryId, FoodCategory, FoodId, FoodItem, MealDefinition, MealId, Target, TargetId, UserProfile } from "@/shared/models";
 import { defaultUserProfile, getInitialProfile } from "@/shared/defaults";
 import { uid } from "@/shared/utils";
 
@@ -40,6 +40,9 @@ export type ProfileContextValue = {
     addFood: (food: Omit<FoodItem, "id">) => void;
     updateFood: (foodId: FoodId, patch: Partial<Omit<FoodItem, "id">>) => void;
     removeFood: (foodId: FoodId) => void;
+
+    // CRUD action for food library defaults
+    updateCategory: (categoryId: CategoryId, patch: Partial<Omit<FoodCategory, "id" | "profileId">>) => void;
 };
 
 export const ProfileContext = createContext<ProfileContextValue | null>(null);
@@ -99,6 +102,16 @@ export function ProfileProvider({
             void removed;
             return { ...p, foods: rest as UserProfile["foods"] };
         });
+    }, []);
+
+    const updateCategory = useCallback((categoryId: CategoryId, patch: Partial<Omit<FoodCategory, "id" | "profileId">>) => {
+        setProfile((p) => ({
+            ...p,
+            categories: {
+                ...p.categories,
+                [categoryId]: { ...p.categories[categoryId], ...patch },
+            },
+        }));
     }, []);
 
     const addTarget = useCallback((target: Omit<Target, "id">): TargetId => {
@@ -183,6 +196,7 @@ export function ProfileProvider({
             addFood,
             updateFood,
             removeFood,
+            updateCategory,
         }),
         [
             profile,
@@ -201,6 +215,7 @@ export function ProfileProvider({
             addFood,
             updateFood,
             removeFood,
+            updateCategory,
         ]
     );
 
