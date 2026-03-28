@@ -21,6 +21,9 @@ export const defaultCategoryId = (name: string) =>
 export const CATEGORIES = ["Proteins", "Veggies", "Carbs", "Others"] as const;
 export type Category = (typeof CATEGORIES)[number];
 
+export const UNKNOWN_CATEGORY_ID =
+  `cat:unknown-orphaned` as unknown as CategoryId;
+
 export const MEALS = ["breakfast", "lunch", "post-workout", "dinner"] as const;
 export type MealKey = (typeof MEALS)[number];
 
@@ -47,13 +50,22 @@ export const DEFAULT_MEALS: MealDefinition[] = MEALS.map((name, i) => ({
 export const defaultFoodId = (name: string) =>
   `food:${slugify(name)}` as unknown as FoodId;
 
-export const DEFAULT_CATEGORIES: FoodCategory[] = CATEGORIES.map((name, i) => ({
-  id: defaultCategoryId(name),
-  profileId: defaultProfileId("local"),
-  name,
-  order: i,
-  enabled: true,
-}));
+export const DEFAULT_CATEGORIES: FoodCategory[] = [
+  ...CATEGORIES.map((name, i) => ({
+    id: defaultCategoryId(name),
+    profileId: defaultProfileId("local"),
+    name,
+    order: i,
+    enabled: true,
+  })),
+  {
+    id: UNKNOWN_CATEGORY_ID,
+    profileId: defaultProfileId("local"),
+    name: "Unknown",
+    order: Infinity,
+    enabled: true,
+  },
+];
 
 const catIdByName = new Map(
   DEFAULT_CATEGORIES.map((c) => [c.name, c.id] as const),

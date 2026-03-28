@@ -51,6 +51,10 @@
     padding: 0;
 }
 
+.deleteBtn {
+    color: var(--danger-fg);
+}
+
 .categoryName {
     font-weight: 800;
     display: inline-flex;

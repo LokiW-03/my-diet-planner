@@ -2,7 +2,7 @@
 
 import React, { createContext, useCallback, useEffect, useMemo, useState } from "react";
 import type { CategoryId, FoodCategory, FoodId, FoodItem, MealDefinition, MealId, Target, TargetId, UserProfile } from "@/shared/models";
-import { defaultUserProfile, getInitialProfile } from "@/shared/defaults";
+import { defaultUserProfile, getInitialProfile, UNKNOWN_CATEGORY_ID } from "@/shared/defaults";
 import { uid } from "@/shared/utils";
 
 const STORAGE_KEY = "diet_planner:userProfile:v1";
@@ -44,6 +44,7 @@ export type ProfileContextValue = {
     // CRUD action for food library defaults
     updateCategory: (categoryId: CategoryId, patch: Partial<Omit<FoodCategory, "id" | "profileId">>) => void;
     addCategory: (category: Omit<FoodCategory, "id">) => CategoryId;
+    removeCategory: (categoryId: CategoryId) => void;
 };
 
 export const ProfileContext = createContext<ProfileContextValue | null>(null);
@@ -125,6 +126,54 @@ export function ProfileProvider({
             },
         }));
         return id;
+    }, []);
+
+    const removeCategory = useCallback((categoryId: CategoryId) => {
+        setProfile((p) => {
+            // Ensure Unknown Category exists
+            if (!p.categories[UNKNOWN_CATEGORY_ID]) {
+                p.categories = {
+                    ...p.categories,
+                    [UNKNOWN_CATEGORY_ID]: {
+                        id: UNKNOWN_CATEGORY_ID,
+                        profileId: p.profileId,
+                        name: "Unknown",
+                        order: Infinity,
+                        enabled: true,
+                    },
+                };
+            }
+
+            // Move all foods from removed category to Unknown Category
+            const movedFoods = Object.fromEntries(
+                Object.entries(p.foods)
+                    .filter(([, food]) => food.categoryId === categoryId)
+                    .map(([id, food]) => [id, { ...food, categoryId: UNKNOWN_CATEGORY_ID }])
+            );
+
+            // Disable the category
+            const updatedCategories = {
+                ...p.categories,
+                [categoryId]: { ...p.categories[categoryId], enabled: false },
+                ...(!p.categories[UNKNOWN_CATEGORY_ID]
+                    ? {
+                        [UNKNOWN_CATEGORY_ID]: {
+                            id: UNKNOWN_CATEGORY_ID,
+                            profileId: p.profileId,
+                            name: "Unknown",
+                            order: Infinity,
+                            enabled: true,
+                        },
+                    }
+                    : {}),
+            };
+
+            return {
+                ...p,
+                categories: updatedCategories,
+                foods: { ...p.foods, ...movedFoods },
+            };
+        });
     }, []);
 
     const addTarget = useCallback((target: Omit<Target, "id">): TargetId => {
@@ -211,6 +260,7 @@ export function ProfileProvider({
             removeFood,
             updateCategory,
             addCategory,
+            removeCategory,
         }),
         [
             profile,
@@ -231,6 +281,7 @@ export function ProfileProvider({
             removeFood,
             updateCategory,
             addCategory,
+            removeCategory,
         ]
     );
 

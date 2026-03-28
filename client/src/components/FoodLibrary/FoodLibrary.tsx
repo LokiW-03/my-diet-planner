@@ -4,7 +4,8 @@ import { useRef, useEffect, useMemo, useState } from "react";
 import type { CategoryId, FoodItem } from "@/shared/models";
 import { useDraggable } from "@dnd-kit/core";
 import { useProfile } from "@/client/src/hooks/useProfile";
-import { IoMdArrowDropdown, IoMdArrowDropleft, IoMdCreate } from "react-icons/io";
+import { IoMdArrowDropdown, IoMdArrowDropleft, IoMdCreate, IoMdTrash } from "react-icons/io";
+import { UNKNOWN_CATEGORY_ID } from "@/shared/defaults";
 import styles from "./FoodLibrary.module.scss";
 
 
@@ -16,15 +17,30 @@ export function FoodLibrary({
     onEdit: (food: FoodItem) => void;
 }) {
 
-    const { profile, updateCategory, addCategory } = useProfile();
-
-    const visibleCats = useMemo(() => {
-        return Object.values(profile.categories)
-            .filter((c) => c.enabled)
-            .sort((a, b) => a.order - b.order);
-    }, [profile.categories]);
+    const { profile, updateCategory, addCategory, removeCategory } = useProfile();
 
     const foods = useMemo(() => Object.values(profile.foods), [profile.foods]);
+
+    const visibleCats = useMemo(() => {
+        const foodsByCategory = new Map<CategoryId, FoodItem[]>();
+        for (const f of foods) {
+            if (!foodsByCategory.has(f.categoryId)) {
+                foodsByCategory.set(f.categoryId, []);
+            }
+            foodsByCategory.get(f.categoryId)!.push(f);
+        }
+
+        return Object.values(profile.categories)
+            .filter((c) => {
+                if (!c.enabled) return false;
+                // Unknown category only shows if it has foods
+                if (c.id === UNKNOWN_CATEGORY_ID) {
+                    return (foodsByCategory.get(c.id)?.length ?? 0) > 0;
+                }
+                return true;
+            })
+            .sort((a, b) => a.order - b.order);
+    }, [profile.categories, foods]);
 
     const grouped = useMemo(() => {
         const map = new Map<CategoryId, FoodItem[]>();
@@ -148,6 +164,19 @@ export function FoodLibrary({
                                 >
                                     +
                                 </button>
+                                {cat.id !== UNKNOWN_CATEGORY_ID && (
+                                    <button
+                                        type="button"
+                                        className={`${styles.deleteBtn} ${styles.iconBtn}`}
+                                        onClick={() => {
+                                            removeCategory(cat.id);
+                                        }}
+                                        title={`Remove ${cat.name}`}
+                                        aria-label={`Remove ${cat.name}`}
+                                    >
+                                        <IoMdTrash />
+                                    </button>
+                                )}
                             </div>
                         </div>
                         {
