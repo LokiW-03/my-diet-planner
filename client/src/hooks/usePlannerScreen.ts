@@ -73,6 +73,7 @@ export function usePlannerScreen() {
 
   const foodModal = useFoodModal({
     foodsById: profile.foods,
+    categories: model.categories,
     addFood,
     updateFood,
     removeFoodAndEntries,

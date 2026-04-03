@@ -1,10 +1,18 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import type { CategoryId, FoodId, FoodItem } from "@/shared/models";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import type {
+  CategoryId,
+  FoodCategory,
+  FoodId,
+  FoodItem,
+  Unit,
+} from "@/shared/models";
+import { clampInt } from "@/shared/utils";
 
 export function useFoodModal({
   foodsById,
+  categories,
   addFood,
   updateFood,
   removeFoodAndEntries,
@@ -16,9 +24,51 @@ export function useFoodModal({
     undefined,
   );
 
+  const [name, setName] = useState("");
+  const [categoryId, setCategoryId] = useState<CategoryId>("" as CategoryId);
+  const [unit, setUnit] = useState<Unit>("g" as Unit);
+  const [kcalPerUnit, setKcal] = useState<number>(0);
+  const [proteinPerUnit, setProtein] = useState<number>(0);
+  const [defaultPortion, setPortion] = useState<number>(100);
+
   const editingFood = editingFoodId
     ? (foodsById[String(editingFoodId)] ?? null)
     : null;
+
+  const visibleCategories = useMemo(
+    () =>
+      (categories ?? [])
+        .filter((c) => c.enabled)
+        .slice()
+        .sort((a, b) => a.order - b.order),
+    [categories],
+  );
+
+  const initKey = `${modalMode}|${editingFoodId ?? ""}|${categoryPreset ?? ""}`;
+
+  useEffect(() => {
+    if (!modalOpen) return;
+
+    const base =
+      modalMode === "edit" && editingFood
+        ? editingFood
+        : {
+            name: "",
+            categoryId:
+              categoryPreset ?? visibleCategories[0]?.id ?? ("" as CategoryId),
+            unit: "g" as Unit,
+            kcalPerUnit: 0,
+            proteinPerUnit: 0,
+            defaultPortion: 100,
+          };
+
+    setName(base.name);
+    setCategoryId(base.categoryId);
+    setUnit(base.unit);
+    setKcal(base.kcalPerUnit);
+    setProtein(base.proteinPerUnit);
+    setPortion(base.defaultPortion);
+  }, [modalOpen, initKey]);
 
   const openAdd = useCallback((catId: CategoryId) => {
     setModalMode("add");
@@ -38,25 +88,45 @@ export function useFoodModal({
     setModalOpen(false);
   }, []);
 
-  const saveFood = useCallback(
-    (v: Omit<FoodItem, "id">) => {
-      if (modalMode === "add") {
-        addFood(v);
-        return;
-      }
+  const saveFood = useCallback(() => {
+    const payload: Omit<FoodItem, "id"> = {
+      name: name.trim(),
+      categoryId,
+      unit,
+      kcalPerUnit: Number(kcalPerUnit) || 0,
+      proteinPerUnit: Number(proteinPerUnit) || 0,
+      defaultPortion: clampInt(Number(defaultPortion), 0, 100000),
+    };
 
-      if (modalMode === "edit" && editingFoodId) {
-        updateFood(editingFoodId, v);
-      }
-    },
-    [addFood, editingFoodId, modalMode, updateFood],
-  );
+    if (!payload.name || !String(payload.categoryId)) return;
+
+    if (modalMode === "add") {
+      addFood(payload);
+    } else if (modalMode === "edit" && editingFoodId) {
+      updateFood(editingFoodId, payload);
+    }
+
+    setModalOpen(false);
+  }, [
+    addFood,
+    categoryId,
+    defaultPortion,
+    editingFoodId,
+    kcalPerUnit,
+    modalMode,
+    name,
+    proteinPerUnit,
+    unit,
+    updateFood,
+  ]);
 
   const deleteEditingFood = useCallback(() => {
     if (!editingFoodId) return;
     removeFoodAndEntries(editingFoodId);
     setModalOpen(false);
   }, [editingFoodId, removeFoodAndEntries]);
+
+  const canSave = name.trim().length > 0 && String(categoryId).length > 0;
 
   return {
     ui: {
@@ -65,6 +135,16 @@ export function useFoodModal({
       categoryPreset,
       editingFood,
       editingFoodId,
+      visibleCategories,
+      foodForm: {
+        name,
+        categoryId,
+        unit,
+        kcalPerUnit,
+        proteinPerUnit,
+        defaultPortion,
+        canSave,
+      },
     },
     actions: {
       openAdd,
@@ -72,12 +152,19 @@ export function useFoodModal({
       closeFoodModal,
       saveFood,
       deleteEditingFood,
+      setFoodName: setName,
+      setFoodCategoryId: setCategoryId,
+      setFoodUnit: setUnit,
+      setFoodKcal: setKcal,
+      setFoodProtein: setProtein,
+      setFoodDefaultPortion: setPortion,
     },
   };
 }
 
 type FoodModalProps = {
   foodsById: Record<string, FoodItem>;
+  categories: FoodCategory[];
   addFood: (v: Omit<FoodItem, "id">) => void;
   updateFood: (foodId: FoodId, patch: Partial<Omit<FoodItem, "id">>) => void;
   removeFoodAndEntries: (foodId: FoodId) => void;

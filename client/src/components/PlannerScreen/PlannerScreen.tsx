@@ -68,9 +68,20 @@ export default function PlannerScreen() {
             <FoodModal
                 open={ui.foodModalOpen}
                 mode={ui.foodModalMode}
-                categories={model.categories}
-                categoryPreset={ui.categoryPreset}
-                food={ui.editingFood}
+                categories={ui.visibleCategories}
+                name={ui.foodForm.name}
+                categoryId={ui.foodForm.categoryId}
+                unit={ui.foodForm.unit}
+                kcalPerUnit={ui.foodForm.kcalPerUnit}
+                proteinPerUnit={ui.foodForm.proteinPerUnit}
+                defaultPortion={ui.foodForm.defaultPortion}
+                canSave={ui.foodForm.canSave}
+                onChangeName={actions.setFoodName}
+                onChangeCategoryId={actions.setFoodCategoryId}
+                onChangeUnit={actions.setFoodUnit}
+                onChangeKcal={actions.setFoodKcal}
+                onChangeProtein={actions.setFoodProtein}
+                onChangeDefaultPortion={actions.setFoodDefaultPortion}
                 onClose={actions.closeFoodModal}
                 onSave={actions.saveFood}
                 onDelete={
