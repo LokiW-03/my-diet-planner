@@ -221,15 +221,17 @@ function CategoryRow({
                     ) : (
                         <span>{category.name} ({items.length})</span>
                     )}
-                    <button
-                        type="button"
-                        className={styles.renameBtn}
-                        onClick={onStartRename}
-                        title={`Rename ${category.name}`}
-                        aria-label={`Rename ${category.name}`}
-                    >
-                        <IoMdCreate />
-                    </button>
+                    {category.id !== UNKNOWN_CATEGORY_ID && (
+                        <button
+                            type="button"
+                            className={styles.renameBtn}
+                            onClick={onStartRename}
+                            title={`Rename ${category.name}`}
+                            aria-label={`Rename ${category.name}`}
+                        >
+                            <IoMdCreate />
+                        </button>
+                    )}
                 </div>
 
                 <div className={styles.headerActions}>
