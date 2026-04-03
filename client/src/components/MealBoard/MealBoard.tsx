@@ -57,6 +57,11 @@ export function MealBoard({
                                 onRemoveMeal={onRemoveMeal}
                                 onRenameMeal={onRenameMeal}
                                 pendingRename={pendingRenameMealId === m.id}
+                                onPendingRenameApplied={() => {
+                                    setPendingRenameMealId((prev) =>
+                                        prev === m.id ? null : prev,
+                                    );
+                                }}
                                 collapsed={!!collapsedMeals[mealKey]}
                                 onToggleCollapsed={() => toggleCollapsed(mealKey)}
                                 footer={`Total: ~${Math.round(panelTotals.kcal)} kcal, ~${Math.round(panelTotals.protein)} g Protein`}
@@ -87,6 +92,7 @@ function MealPanel({
     onRemoveMeal,
     onRenameMeal,
     pendingRename,
+    onPendingRenameApplied,
     collapsed,
     onToggleCollapsed,
     footer,
@@ -128,15 +134,12 @@ function MealPanel({
         setIsEditingTitle(false);
         setEditingTitle(title);
     };
-
-    const hasAppliedPendingRenameRef = useRef(false);
-
     useEffect(() => {
-        if (!pendingRename || hasAppliedPendingRenameRef.current) return;
+        if (!pendingRename) return;
         setEditingTitle(title);
         setIsEditingTitle(true);
-        hasAppliedPendingRenameRef.current = true;
-    }, [pendingRename, title]);
+        onPendingRenameApplied();
+    }, [pendingRename, onPendingRenameApplied, title]);
 
 
     return (
@@ -393,6 +396,7 @@ type mealPanelProps = {
     onRemoveMeal: (mealId: MealId) => void;
     onRenameMeal: (mealId: MealId, name: string) => void;
     pendingRename: boolean;
+    onPendingRenameApplied: () => void;
     collapsed: boolean;
     onToggleCollapsed?: () => void;
     footer: string;
