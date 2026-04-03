@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useDroppable, useDraggable } from "@dnd-kit/core";
 import { SortableContext, rectSortingStrategy, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -24,8 +24,13 @@ export function MealBoard({
 }: mealBoardProps
 ) {
     const [collapsedMeals, setCollapsedMeals] = useState<Record<string, boolean>>({});
-    const [autoRenameMealId, setAutoRenameMealId] = useState<MealId | null>(null);
+    const [pendingRenameMealId, setPendingRenameMealId] = useState<MealId | null>(null);
     const sortableItems = mealDefs.map((m) => `panel:${String(m.id)}`);
+
+    const foodsById = useMemo(
+        () => new Map<FoodId, FoodItem>(foods.map((f) => [f.id, f] as const)),
+        [foods],
+    );
 
     const toggleCollapsed = (mealId: string) => {
         setCollapsedMeals((prev) => ({ ...prev, [mealId]: !prev[mealId] }));
@@ -45,16 +50,13 @@ export function MealBoard({
                                 mealId={m.id}
                                 title={m.name}
                                 entries={panelMeals}
-                                foods={foods}
+                                foodsById={foodsById}
                                 onRemoveEntry={(id) => onRemoveEntry(m.id, id)}
                                 onPortionChange={(id, n) => onPortionChange(m.id, id, n)}
                                 onEditFood={onEditFood}
                                 onRemoveMeal={onRemoveMeal}
                                 onRenameMeal={onRenameMeal}
-                                autoStartRename={autoRenameMealId === m.id}
-                                onAutoStartRenameHandled={() => {
-                                    setAutoRenameMealId((prev) => (prev === m.id ? null : prev));
-                                }}
+                                pendingRename={pendingRenameMealId === m.id}
                                 collapsed={!!collapsedMeals[mealKey]}
                                 onToggleCollapsed={() => toggleCollapsed(mealKey)}
                                 footer={`Total: ~${Math.round(panelTotals.kcal)} kcal, ~${Math.round(panelTotals.protein)} g Protein`}
@@ -62,7 +64,7 @@ export function MealBoard({
                             <InsertRow
                                 onClick={() => {
                                     const newMealId = onInsertMealPanel(idx + 1);
-                                    if (newMealId) setAutoRenameMealId(newMealId);
+                                    if (newMealId) setPendingRenameMealId(newMealId);
                                 }}
                             />
                         </React.Fragment>
@@ -78,14 +80,13 @@ function MealPanel({
     mealId,
     title,
     entries,
-    foods,
+    foodsById,
     onRemoveEntry,
     onPortionChange,
     onEditFood,
     onRemoveMeal,
     onRenameMeal,
-    autoStartRename,
-    onAutoStartRenameHandled,
+    pendingRename,
     collapsed,
     onToggleCollapsed,
     footer,
@@ -128,12 +129,14 @@ function MealPanel({
         setEditingTitle(title);
     };
 
+    const hasAppliedPendingRenameRef = useRef(false);
+
     useEffect(() => {
-        if (!autoStartRename) return;
+        if (!pendingRename || hasAppliedPendingRenameRef.current) return;
         setEditingTitle(title);
         setIsEditingTitle(true);
-        onAutoStartRenameHandled();
-    }, [autoStartRename, onAutoStartRenameHandled, title]);
+        hasAppliedPendingRenameRef.current = true;
+    }, [pendingRename, title]);
 
 
     return (
@@ -252,7 +255,7 @@ function MealPanel({
                                 key={e.entryId}
                                 mealId={mealId}
                                 entry={e}
-                                foods={foods}
+                                foodsById={foodsById}
                                 onRemove={() => onRemoveEntry(e.entryId)}
                                 onPortionChange={(n) => onPortionChange(e.entryId, n)}
                                 onEditFood={() => onEditFood(e.foodId)}
@@ -292,13 +295,13 @@ function InsertRow({ onClick }: { onClick: () => void }) {
 function MealEntryChip({
     mealId,
     entry,
-    foods,
+    foodsById,
     onRemove,
     onPortionChange,
     onEditFood,
 }: mealEntryProps
 ) {
-    const food = foods.find((f) => f.id === entry.foodId);
+    const food = foodsById.get(entry.foodId);
     const id = `meal:${mealId}:${entry.entryId}`;
     const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id });
 
@@ -373,7 +376,7 @@ function MealEntryChip({
 type mealEntryProps = {
     mealId: MealId;
     entry: MealEntry;
-    foods: FoodItem[];
+    foodsById: Map<FoodId, FoodItem>;
     onRemove: () => void;
     onPortionChange: (n: number) => void;
     onEditFood: () => void;
@@ -383,14 +386,13 @@ type mealPanelProps = {
     mealId: MealId;
     title: string;
     entries: MealEntry[];
-    foods: FoodItem[];
+    foodsById: Map<FoodId, FoodItem>;
     onRemoveEntry: (entryId: string) => void;
     onPortionChange: (entryId: string, n: number) => void;
     onEditFood: (foodId: FoodId) => void;
     onRemoveMeal: (mealId: MealId) => void;
     onRenameMeal: (mealId: MealId, name: string) => void;
-    autoStartRename: boolean;
-    onAutoStartRenameHandled: () => void;
+    pendingRename: boolean;
     collapsed: boolean;
     onToggleCollapsed?: () => void;
     footer: string;

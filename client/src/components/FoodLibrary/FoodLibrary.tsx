@@ -1,12 +1,13 @@
 "use client";
 
-import { useRef, useEffect, useMemo, useState, useCallback } from "react";
-import type { CategoryId, FoodItem, FoodCategory } from "@/shared/models";
+import { useRef, useMemo, useState, useCallback } from "react";
+import type { CategoryId, FoodCategory, FoodItem, ProfileId } from "@/shared/models";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { SortableContext, rectSortingStrategy, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { IoMdArrowDropdown, IoMdArrowDropleft, IoMdCreate, IoMdTrash } from "react-icons/io";
-import { UNKNOWN_CATEGORY_ID } from "@/shared/defaults";
+import { UNKNOWN_CATEGORY_ID, defaultProfileId } from "@/shared/defaults";
+import { getVisibleCategories } from "@/client/src/utils/getVisibleCategories";
 import styles from "./FoodLibrary.module.scss";
 
 
@@ -19,43 +20,24 @@ export function FoodLibrary({
     onAddCategory,
     onRemoveCategory,
 }: FoodLibraryProps) {
-    const foodsMemo = useMemo(() => foods, [foods]);
-
-    const visibleCats = useMemo(() => {
-        const foodsByCategory = new Map<CategoryId, FoodItem[]>();
-        for (const f of foodsMemo) {
-            if (!foodsByCategory.has(f.categoryId)) {
-                foodsByCategory.set(f.categoryId, []);
-            }
-            foodsByCategory.get(f.categoryId)!.push(f);
-        }
-
-        return Object.values(categories)
-            .filter((c) => {
-                if (!c.enabled) return false;
-                // Unknown category only shows if it has foods
-                if (c.id === UNKNOWN_CATEGORY_ID) {
-                    return (foodsByCategory.get(c.id)?.length ?? 0) > 0;
-                }
-                return true;
-            })
-            .sort((a, b) => a.order - b.order);
-    }, [categories, foodsMemo]);
+    const visibleCats = useMemo(
+        () => getVisibleCategories(categories, foods),
+        [categories, foods],
+    );
 
     const grouped = useMemo(() => {
         const map = new Map<CategoryId, FoodItem[]>();
         for (const c of visibleCats) map.set(c.id, []);
-        for (const f of foodsMemo) {
+        for (const f of foods) {
             const bucket = map.get(f.categoryId);
             if (bucket) bucket.push(f);
         }
         return map;
-    }, [foodsMemo, visibleCats]);
+    }, [foods, visibleCats]);
 
     const [collapsedCats, setCollapsedCats] = useState<Record<string, boolean>>({});
     const [editingCatId, setEditingCatId] = useState<CategoryId | null>(null);
     const [editingName, setEditingName] = useState("");
-    const [autoRenameCatId, setAutoRenameCatId] = useState<CategoryId | null>(null);
 
     const toggleCollapsedCats = (catIdKey: string) => {
         setCollapsedCats((prev) => ({ ...prev, [catIdKey]: !prev[catIdKey] }));
@@ -82,15 +64,7 @@ export function FoodLibrary({
     const cancelRename = () => {
         setEditingCatId(null);
         setEditingName("");
-    }
-
-    useEffect(() => {
-        if (!autoRenameCatId) return;
-        const cat = categories[autoRenameCatId];
-        if (!cat) return;
-        startRename(autoRenameCatId, cat.name);
-        setAutoRenameCatId(null);
-    }, [autoRenameCatId, categories]);
+    };
 
     const sortableIds = visibleCats.map((c) => `cat:${String(c.id)}`);
 
@@ -119,13 +93,20 @@ export function FoodLibrary({
             <button
                 className={styles.addCategoryBtn}
                 onClick={() => {
+                    const initialName = "New Category";
+                    const existingProfileId =
+                        Object.values(categories)[0]?.profileId ??
+                        (defaultProfileId("local") as ProfileId);
+
                     const newCatId = onAddCategory({
-                        name: "New Category",
-                        profileId: Object.values(categories)[0]?.profileId || "profile:local" as any,
-                        order: Math.max(0, ...Object.values(categories).map(c => c.order)) + 1,
+                        name: initialName,
+                        profileId: existingProfileId,
+                        order:
+                            Math.max(0, ...Object.values(categories).map((c) => c.order)) +
+                            1,
                         enabled: true,
                     });
-                    setAutoRenameCatId(newCatId);
+                    startRename(newCatId, initialName);
                 }}
                 title="Add new category"
                 type="button"
@@ -328,7 +309,7 @@ type FoodLibraryProps = {
 }
 
 type CategoryRowProps = {
-    category: any;
+    category: FoodCategory;
     items: FoodItem[];
     isCollapsed: boolean;
     isEditing: boolean;

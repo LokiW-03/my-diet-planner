@@ -43,23 +43,29 @@ export default function PlannerScreen() {
                     dayType={model.dayType}
                     targets={model.targets}
                     weightKg={model.weightKg}
-                    onRemoveEntry={actions.removeEntryFromMeal}
-                    onPortionChange={actions.setEntryPortion}
-                    onEditFood={actions.openEditById}
-                    onRemoveMeal={actions.removeMealPanel}
-                    onRenameMeal={actions.renameMealPanel}
-                    onReorderMealPanels={actions.setMealPanelOrder}
-                    onReorderCategories={actions.reorderCategories}
-                    onRenameCategory={actions.renameCategory}
-                    onAddCategory={actions.addCategory}
-                    onRemoveCategory={actions.removeCategory}
-                    onInsertMealPanel={actions.insertMealPanel}
-                    openAdd={actions.openAdd}
-                    openEdit={actions.openEdit}
-                    addEntryToMeal={actions.addEntryToMealWithDefaultPortion}
-                    moveEntry={actions.moveEntry}
-                    clearAll={actions.clearAllMeals}
-                    onChangeFoodCategory={actions.changeFoodCategory}
+                    mealBoardActions={{
+                        removeEntry: actions.removeEntryFromMeal,
+                        setPortion: actions.setEntryPortion,
+                        editFood: actions.openEditById,
+                        removeMeal: actions.removeMealPanel,
+                        renameMeal: actions.renameMealPanel,
+                        insertMealPanel: actions.insertMealPanel,
+                    }}
+                    foodLibraryActions={{
+                        openAdd: actions.openAdd,
+                        openEdit: actions.openEdit,
+                        renameCategory: actions.renameCategory,
+                        addCategory: actions.addCategory,
+                        removeCategory: actions.removeCategory,
+                        changeFoodCategory: actions.changeFoodCategory,
+                    }}
+                    dndActions={{
+                        reorderMealPanels: actions.setMealPanelOrder,
+                        reorderCategories: actions.reorderCategories,
+                        addEntryToMeal: actions.addEntryToMealWithDefaultPortion,
+                        moveEntry: actions.moveEntry,
+                    }}
+                    clearAllMeals={actions.clearAllMeals}
                 />
             </div>
 

@@ -11,10 +11,22 @@ import {
     useSensor,
     useSensors,
 } from "@dnd-kit/core";
+import type {
+    FoodItem,
+    FoodId,
+    MealEntry,
+    Target,
+    MealDefinition,
+    CategoryId,
+    MealId,
+    TargetId,
+    FoodCategory
+} from "@/shared/models";
 import { MealBoard } from "@/client/src/components/MealBoard/MealBoard";
 import { FoodLibrary } from "@/client/src/components/FoodLibrary/FoodLibrary";
 import { BottomToolBar } from "@/client/src/components/BottomToolBar/BottomToolBar";
-import type { FoodItem, FoodId, MealEntry, Target, MealDefinition, CategoryId, MealId, TargetId, FoodCategory } from "@/shared/models";
+import { getVisibleCategories } from "@/client/src/utils/getVisibleCategories";
+
 import styles from "./PlannerWorkspace.module.scss";
 import foodStyles from "@/client/src/components/FoodLibrary/FoodLibrary.module.scss";
 
@@ -28,23 +40,10 @@ export default function PlannerWorkspace({
     dayType,
     targets,
     weightKg,
-    onRemoveEntry,
-    onPortionChange,
-    onEditFood,
-    onRemoveMeal,
-    onRenameMeal,
-    onReorderMealPanels,
-    onReorderCategories,
-    onRenameCategory,
-    onAddCategory,
-    onRemoveCategory,
-    onChangeFoodCategory,
-    onInsertMealPanel,
-    openAdd,
-    openEdit,
-    addEntryToMeal,
-    moveEntry,
-    clearAll,
+    mealBoardActions,
+    foodLibraryActions,
+    dndActions,
+    clearAllMeals,
 }: PlannerWorkspaceProps
 ) {
 
@@ -66,140 +65,26 @@ export default function PlannerWorkspace({
     }
     function onDragEnd(ev: DragEndEvent) {
         try {
-            const activeId = String(ev.active.id);
-            const overId = ev.over ? String(ev.over.id) : null;
-
-            if (!overId) return;
-
-            // Drag food chip between categories
-            if (activeId.startsWith("lib:") && overId.startsWith("drop:cat:")) {
-                const foodId = activeId.slice("lib:".length) as unknown as FoodId;
-                const toCatId = overId.slice("drop:cat:".length) as unknown as CategoryId;
-                onChangeFoodCategory(foodId, toCatId);
-                return;
-            }
-
-            // Handle category reordering
-            if (activeId.startsWith("cat:")) {
-                const fromCatId = activeId.slice("cat:".length) as unknown as CategoryId;
-                const toCatId = overId.startsWith("cat:")
-                    ? (overId.slice("cat:".length) as unknown as CategoryId)
-                    : overId.startsWith("drop:cat:")
-                        ? (overId.slice("drop:cat:".length) as unknown as CategoryId)
-                        : "";
-
-                if (!fromCatId || !toCatId || fromCatId === toCatId) return;
-
-                // Mirror FoodLibrary's visible categories logic
-                const foodsByCategory = new Map<CategoryId, boolean>();
-                for (const f of foods) {
-                    foodsByCategory.set(f.categoryId, true);
-                }
-
-                const visibleCategoryIds = Object.values(categories)
-                    .filter((c) => {
-                        if (!c.enabled) return false;
-                        // Unknown category only shows if it has foods
-                        if (c.id === "cat:unknown-orphaned") {
-                            return foodsByCategory.has(c.id);
-                        }
-                        return true;
-                    })
-                    .sort((a, b) => a.order - b.order)
-                    .map((c) => c.id);
-
-                const ids = visibleCategoryIds.map((id) => String(id));
-                const from = ids.indexOf(String(fromCatId));
-                const to = ids.indexOf(String(toCatId));
-                if (from === -1 || to === -1 || from === to) return;
-
-                const next = ids.slice();
-                const [moved] = next.splice(from, 1);
-                next.splice(to, 0, moved);
-
-                const nextIds = next.map((k) => k as unknown as CategoryId);
-                onReorderCategories(nextIds);
-                return;
-            }
-
-            if (activeId.startsWith("panel:")) {
-                const fromMealId = activeId.slice("panel:".length);
-                const toMealId = overId.startsWith("panel:")
-                    ? overId.slice("panel:".length)
-                    : overId.startsWith("drop:")
-                        ? overId.slice("drop:".length)
-                        : "";
-
-                if (!fromMealId || !toMealId || fromMealId === toMealId) return;
-
-                const mealIdByKey = new Map(mealDefs.map((m) => [String(m.id), m.id] as const));
-                const ids = mealDefs.map((m) => String(m.id));
-                const from = ids.indexOf(fromMealId);
-                const to = ids.indexOf(toMealId);
-                if (from === -1 || to === -1 || from === to) return;
-
-                const next = ids.slice();
-                const [moved] = next.splice(from, 1);
-                next.splice(to, 0, moved);
-
-                const nextIds = next
-                    .map((k) => mealIdByKey.get(k))
-                    .filter(Boolean) as MealId[];
-                onReorderMealPanels(nextIds);
-                return;
-            }
-
-            if (!overId.startsWith("drop:")) return;
-
-            const mealIdByKey = new Map(mealDefs.map((m) => [String(m.id), m.id] as const));
-
-            const toMealKey = overId.slice("drop:".length);
-            const toMeal = mealIdByKey.get(toMealKey);
-            if (!toMeal) return;
-
-            if (activeId.startsWith("lib:")) {
-                const foodId = activeId.slice("lib:".length) as unknown as FoodId;
-                addEntryToMeal(toMeal, foodId);
-                return;
-            }
-
-            if (activeId.startsWith("meal:")) {
-                const rest = activeId.slice("meal:".length);
-                const i = rest.lastIndexOf(":");
-                if (i == -1) return;
-
-                const fromMealKey = rest.slice(0, i);
-                const entryId = rest.slice(i + 1);
-
-                const fromMeal = mealIdByKey.get(fromMealKey);
-                if (!fromMeal) return;
-
-                moveEntry(fromMeal, toMeal, entryId);
-                return;
-            }
+            handlePlannerDragEnd(ev, {
+                foods,
+                categories,
+                mealDefs,
+                onChangeFoodCategory: foodLibraryActions.changeFoodCategory,
+                onReorderCategories: dndActions.reorderCategories,
+                onReorderMealPanels: dndActions.reorderMealPanels,
+                addEntryToMeal: dndActions.addEntryToMeal,
+                moveEntry: dndActions.moveEntry,
+            });
         } finally {
             setActiveId(null);
         }
     }
 
-    const proteinToColour = (): string => {
-        const proteinRatio = weightKg && weightKg > 0 ? totals.protein / weightKg : null;
-        if (proteinRatio == null || (proteinRatio <= 0.8 || proteinRatio >= 2.2)) return "var(--danger-fg)";
-        if (proteinRatio < 1.0 || proteinRatio > 2.0) return "var(--warning-fg)";
-        if (proteinRatio >= 1.0 && proteinRatio <= 2.0) return "var(--healthy-fg)";
-        return "var(--danger-fg)";
-    }
-
-    const target = targets.find((t) => t.id === dayType) ?? null;
-    const kcal = Math.round(totals.kcal);
-    let stillNeed = 0;
-    if (!target) {
-        stillNeed = 0;
-    } else if (kcal < target.minKcal) {
-        stillNeed = Math.max(0, Math.round(target.minKcal - kcal));
-    } else if (kcal > target.maxKcal) {
-        stillNeed = Math.round(target.maxKcal - kcal);
-    }
+    const { target, stillNeedKcal } = getTargetAndStillNeed(
+        targets,
+        dayType,
+        totals.kcal,
+    );
 
     return (
         <DndContext
@@ -215,12 +100,12 @@ export default function PlannerWorkspace({
                         meals={meals}
                         mealDefs={mealDefs}
                         mealTotals={mealTotals}
-                        onRemoveEntry={onRemoveEntry}
-                        onPortionChange={onPortionChange}
-                        onEditFood={onEditFood}
-                        onRemoveMeal={onRemoveMeal}
-                        onRenameMeal={onRenameMeal}
-                        onInsertMealPanel={onInsertMealPanel}
+                        onRemoveEntry={mealBoardActions.removeEntry}
+                        onPortionChange={mealBoardActions.setPortion}
+                        onEditFood={mealBoardActions.editFood}
+                        onRemoveMeal={mealBoardActions.removeMeal}
+                        onRenameMeal={mealBoardActions.renameMeal}
+                        onInsertMealPanel={mealBoardActions.insertMealPanel}
                     />
 
                     <BottomToolBar
@@ -228,10 +113,10 @@ export default function PlannerWorkspace({
                         meals={meals}
                         mealDefs={mealDefs}
                         totals={totals}
-                        proteinColor={proteinToColour()}
-                        stillNeedKcal={stillNeed}
+                        proteinColor={getProteinColor(totals, weightKg)}
+                        stillNeedKcal={stillNeedKcal}
                         exportDayType={target?.name ?? String(dayType)}
-                        onClearAll={clearAll}
+                        onClearAll={clearAllMeals}
                     />
                 </div>
 
@@ -239,11 +124,11 @@ export default function PlannerWorkspace({
                     <FoodLibrary
                         foods={foods}
                         categories={categories}
-                        onAdd={openAdd}
-                        onEdit={openEdit}
-                        onRenameCategory={onRenameCategory}
-                        onAddCategory={onAddCategory}
-                        onRemoveCategory={onRemoveCategory}
+                        onAdd={foodLibraryActions.openAdd}
+                        onEdit={foodLibraryActions.openEdit}
+                        onRenameCategory={foodLibraryActions.renameCategory}
+                        onAddCategory={foodLibraryActions.addCategory}
+                        onRemoveCategory={foodLibraryActions.removeCategory}
                     />
                 </div>
             </div>
@@ -261,6 +146,157 @@ export default function PlannerWorkspace({
     );
 }
 
+function handlePlannerDragEnd(ev: DragEndEvent, ctx: DragContext) {
+    const {
+        foods,
+        categories,
+        mealDefs,
+        onChangeFoodCategory,
+        onReorderCategories,
+        onReorderMealPanels,
+        addEntryToMeal,
+        moveEntry,
+    } = ctx;
+
+    const activeId = String(ev.active.id);
+    const overId = ev.over ? String(ev.over.id) : null;
+
+    if (!overId) return;
+
+    if (activeId.startsWith("lib:") && overId.startsWith("drop:cat:")) {
+        const foodId = activeId.slice("lib:".length) as unknown as FoodId;
+        const toCatId = overId.slice("drop:cat:".length) as unknown as CategoryId;
+        onChangeFoodCategory(foodId, toCatId);
+        return;
+    }
+
+    if (activeId.startsWith("cat:")) {
+        const fromCatId = activeId.slice("cat:".length) as unknown as CategoryId;
+        const toCatId = overId.startsWith("cat:")
+            ? (overId.slice("cat:".length) as unknown as CategoryId)
+            : overId.startsWith("drop:cat:")
+                ? (overId.slice("drop:cat:".length) as unknown as CategoryId)
+                : "";
+
+        if (!fromCatId || !toCatId || fromCatId === toCatId) return;
+
+        const visibleCategoryIds = getVisibleCategories(categories, foods).map(
+            (c) => c.id,
+        );
+
+        const ids = visibleCategoryIds.map((id) => String(id));
+        const from = ids.indexOf(String(fromCatId));
+        const to = ids.indexOf(String(toCatId));
+        if (from === -1 || to === -1 || from === to) return;
+
+        const next = ids.slice();
+        const [moved] = next.splice(from, 1);
+        next.splice(to, 0, moved);
+
+        const nextIds = next.map((k) => k as unknown as CategoryId);
+        onReorderCategories(nextIds);
+        return;
+    }
+
+    if (activeId.startsWith("panel:")) {
+        const fromMealId = activeId.slice("panel:".length);
+        const toMealId = overId.startsWith("panel:")
+            ? overId.slice("panel:".length)
+            : overId.startsWith("drop:")
+                ? overId.slice("drop:".length)
+                : "";
+
+        if (!fromMealId || !toMealId || fromMealId === toMealId) return;
+
+        const mealIdByKey = new Map(mealDefs.map((m) => [String(m.id), m.id] as const));
+        const ids = mealDefs.map((m) => String(m.id));
+        const from = ids.indexOf(fromMealId);
+        const to = ids.indexOf(toMealId);
+        if (from === -1 || to === -1 || from === to) return;
+
+        const next = ids.slice();
+        const [moved] = next.splice(from, 1);
+        next.splice(to, 0, moved);
+
+        const nextIds = next
+            .map((k) => mealIdByKey.get(k))
+            .filter(Boolean) as MealId[];
+        onReorderMealPanels(nextIds);
+        return;
+    }
+
+    if (!overId.startsWith("drop:")) return;
+
+    const mealIdByKey = new Map(mealDefs.map((m) => [String(m.id), m.id] as const));
+
+    const toMealKey = overId.slice("drop:".length);
+    const toMeal = mealIdByKey.get(toMealKey);
+    if (!toMeal) return;
+
+    if (activeId.startsWith("lib:")) {
+        const foodId = activeId.slice("lib:".length) as unknown as FoodId;
+        addEntryToMeal(toMeal, foodId);
+        return;
+    }
+
+    if (activeId.startsWith("meal:")) {
+        const rest = activeId.slice("meal:".length);
+        const i = rest.lastIndexOf(":");
+        if (i == -1) return;
+
+        const fromMealKey = rest.slice(0, i);
+        const entryId = rest.slice(i + 1);
+
+        const fromMeal = mealIdByKey.get(fromMealKey);
+        if (!fromMeal) return;
+
+        moveEntry(fromMeal, toMeal, entryId);
+    }
+}
+
+function getProteinColor(
+    totals: { kcal: number; protein: number },
+    weightKg?: number,
+): string {
+    const proteinRatio = weightKg && weightKg > 0 ? totals.protein / weightKg : null;
+    if (proteinRatio == null || proteinRatio <= 0.8 || proteinRatio >= 2.2) {
+        return "var(--danger-fg)";
+    }
+    if (proteinRatio < 1.0 || proteinRatio > 2.0) {
+        return "var(--warning-fg)";
+    }
+    if (proteinRatio >= 1.0 && proteinRatio <= 2.0) {
+        return "var(--healthy-fg)";
+    }
+    return "var(--danger-fg)";
+}
+
+function getTargetAndStillNeed(
+    targets: Target[],
+    dayType: TargetId,
+    totalKcal: number,
+): { target: Target | null; stillNeedKcal: number } {
+    const target = targets.find((t) => t.id === dayType) ?? null;
+    const kcal = Math.round(totalKcal);
+
+    if (!target) return { target: null, stillNeedKcal: 0 };
+
+    if (kcal < target.minKcal) {
+        return {
+            target,
+            stillNeedKcal: Math.max(0, Math.round(target.minKcal - kcal)),
+        };
+    }
+    if (kcal > target.maxKcal) {
+        return {
+            target,
+            stillNeedKcal: Math.round(target.maxKcal - kcal),
+        };
+    }
+
+    return { target, stillNeedKcal: 0 };
+}
+
 type PlannerWorkspaceProps = {
     foods: FoodItem[];
     meals: Record<MealId, MealEntry[]>;
@@ -271,21 +307,38 @@ type PlannerWorkspaceProps = {
     dayType: TargetId;
     targets: Target[];
     weightKg?: number;
-    onRemoveEntry: (mealId: MealId, entryId: string) => void;
-    onPortionChange: (mealId: MealId, entryId: string, portion: number) => void;
-    onEditFood: (foodId: FoodId) => void;
-    onRemoveMeal: (mealId: MealId) => void;
-    onRenameMeal: (mealId: MealId, name: string) => void;
-    onReorderMealPanels: (nextOrder: MealId[]) => void;
-    onReorderCategories: (nextOrder: CategoryId[]) => void;
-    onRenameCategory: (categoryId: CategoryId, name: string) => void;
-    onAddCategory: (category: Omit<FoodCategory, "id">) => CategoryId;
-    onRemoveCategory: (categoryId: CategoryId) => void;
+    mealBoardActions: {
+        removeEntry: (mealId: MealId, entryId: string) => void;
+        setPortion: (mealId: MealId, entryId: string, portion: number) => void;
+        editFood: (foodId: FoodId) => void;
+        removeMeal: (mealId: MealId) => void;
+        renameMeal: (mealId: MealId, name: string) => void;
+        insertMealPanel: (index: number) => MealId | undefined;
+    };
+    foodLibraryActions: {
+        openAdd: (catId: CategoryId) => void;
+        openEdit: (food: FoodItem) => void;
+        renameCategory: (categoryId: CategoryId, name: string) => void;
+        addCategory: (category: Omit<FoodCategory, "id">) => CategoryId;
+        removeCategory: (categoryId: CategoryId) => void;
+        changeFoodCategory: (foodId: FoodId, categoryId: CategoryId) => void;
+    };
+    dndActions: {
+        reorderMealPanels: (nextOrder: MealId[]) => void;
+        reorderCategories: (nextOrder: CategoryId[]) => void;
+        addEntryToMeal: (mealId: MealId, foodId: FoodId) => void;
+        moveEntry: (from: MealId, to: MealId, entryId: string) => void;
+    };
+    clearAllMeals: () => void;
+}
+
+type DragContext = {
+    foods: FoodItem[];
+    categories: Record<CategoryId, FoodCategory>;
+    mealDefs: MealDefinition[];
     onChangeFoodCategory: (foodId: FoodId, categoryId: CategoryId) => void;
-    onInsertMealPanel: (index: number) => MealId | undefined;
-    openAdd: (catId: CategoryId) => void;
-    openEdit: (food: FoodItem) => void;
+    onReorderCategories: (nextOrder: CategoryId[]) => void;
+    onReorderMealPanels: (nextOrder: MealId[]) => void;
     addEntryToMeal: (mealId: MealId, foodId: FoodId) => void;
     moveEntry: (from: MealId, to: MealId, entryId: string) => void;
-    clearAll: () => void;
-}
+};
