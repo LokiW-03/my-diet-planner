@@ -43,7 +43,7 @@ export function MealBoard({
                             <MealPanel
                                 key={m.id}
                                 mealId={m.id}
-                                title={m.name.toUpperCase()}
+                                title={m.name}
                                 entries={panelMeals}
                                 foods={foods}
                                 onRemoveEntry={(id) => onRemoveEntry(m.id, id)}
