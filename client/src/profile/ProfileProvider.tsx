@@ -131,42 +131,17 @@ export function ProfileProvider({
 
     const removeCategory = useCallback((categoryId: CategoryId) => {
         setProfile((p) => {
-            // Ensure Unknown Category exists
-            if (!p.categories[UNKNOWN_CATEGORY_ID]) {
-                p.categories = {
-                    ...p.categories,
-                    [UNKNOWN_CATEGORY_ID]: {
-                        id: UNKNOWN_CATEGORY_ID,
-                        profileId: p.profileId,
-                        name: "Unknown",
-                        order: Infinity,
-                        enabled: true,
-                    },
-                };
-            }
+            const categoriesWithUnknown = ensureUnknownCategory(p);
 
-            // Move all foods from removed category to Unknown Category
             const movedFoods = Object.fromEntries(
                 Object.entries(p.foods)
                     .filter(([, food]) => food.categoryId === categoryId)
                     .map(([id, food]) => [id, { ...food, categoryId: UNKNOWN_CATEGORY_ID }])
             );
 
-            // Disable the category
-            const updatedCategories = {
-                ...p.categories,
-                [categoryId]: { ...p.categories[categoryId], enabled: false },
-                ...(!p.categories[UNKNOWN_CATEGORY_ID]
-                    ? {
-                        [UNKNOWN_CATEGORY_ID]: {
-                            id: UNKNOWN_CATEGORY_ID,
-                            profileId: p.profileId,
-                            name: "Unknown",
-                            order: Infinity,
-                            enabled: true,
-                        },
-                    }
-                    : {}),
+            const updatedCategories: UserProfile["categories"] = {
+                ...categoriesWithUnknown,
+                [categoryId]: { ...categoriesWithUnknown[categoryId], enabled: false },
             };
 
             return {
@@ -301,4 +276,24 @@ export function ProfileProvider({
     );
 
     return <ProfileContext.Provider value={value}>{children}</ProfileContext.Provider>;
+}
+
+
+function ensureUnknownCategory(
+    profile: UserProfile,
+): UserProfile["categories"] {
+    if (profile.categories[UNKNOWN_CATEGORY_ID]) {
+        return profile.categories;
+    }
+
+    return {
+        ...profile.categories,
+        [UNKNOWN_CATEGORY_ID]: {
+            id: UNKNOWN_CATEGORY_ID,
+            profileId: profile.profileId,
+            name: "Unknown",
+            order: Infinity,
+            enabled: true,
+        },
+    };
 }
