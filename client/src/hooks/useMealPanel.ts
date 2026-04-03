@@ -13,7 +13,8 @@ export function useMealPanel({
   setMealPanelOrder,
   resetMealPanelOrder,
   resetHiddenMeals,
-  removeMeal,
+  hideMealPanel,
+  clearMealFromBoard,
 }: MealPanelProps) {
   const insertMealPanel = useCallback(
     (index: number) => {
@@ -36,10 +37,10 @@ export function useMealPanel({
 
   const removeMealPanel = useCallback(
     (mealId: MealId) => {
-      disableMeal(mealId);
-      removeMeal(mealId);
+      hideMealPanel(mealId);
+      clearMealFromBoard(mealId);
     },
-    [disableMeal, removeMeal],
+    [clearMealFromBoard, hideMealPanel],
   );
 
   const renameMealPanel = useCallback(
@@ -86,5 +87,6 @@ type MealPanelProps = {
   setMealPanelOrder: (order: MealId[]) => void;
   resetMealPanelOrder: () => void;
   resetHiddenMeals: () => void;
-  removeMeal: (mealId: MealId) => void;
+  hideMealPanel: (mealId: MealId) => void;
+  clearMealFromBoard: (mealId: MealId) => void;
 };

@@ -2,7 +2,12 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { MealEntry, FoodId, MealId, TargetId } from "../../../shared/models";
+import type {
+  MealEntry,
+  FoodId,
+  MealId,
+  TargetId,
+} from "../../../shared/models";
 import { defaultTargetId } from "@/shared/defaults";
 import { uid } from "../../../shared/utils";
 
@@ -49,7 +54,7 @@ export const usePlannerStore = create<PlannerState>()(
           },
         })),
 
-      removeMeal: (mealId) =>
+      clearMealFromBoard: (mealId) =>
         set((s) => {
           const newMeals = { ...s.meals };
           delete newMeals[mealId];
@@ -127,7 +132,7 @@ type PlannerState = {
 
   addEntryToMeal: (mealId: MealId, foodId: FoodId, portion: number) => void;
   removeEntryFromMeal: (mealId: MealId, entryId: string) => void;
-  removeMeal: (mealId: MealId) => void;
+  clearMealFromBoard: (mealId: MealId) => void;
   moveEntry: (from: MealId, to: MealId, entryId: string) => void;
   setEntryPortion: (mealId: MealId, entryId: string, portion: number) => void;
   removeEntriesForFood: (foodId: FoodId) => void;

@@ -26,6 +26,7 @@ export function usePlannerScreen() {
   const plannerActions = usePlannerStore(
     useShallow((s) => ({
       setDayType: s.setDayType,
+      hideMealPanel: s.hideMealPanel,
       resetHiddenMeals: s.resetHiddenMeals,
       setMealPanelOrder: s.setMealPanelOrder,
       resetMealPanelOrder: s.resetMealPanelOrder,
@@ -34,7 +35,7 @@ export function usePlannerScreen() {
       moveEntry: s.moveEntry,
       setEntryPortion: s.setEntryPortion,
       removeEntriesForFood: s.removeEntriesForFood,
-      removeMeal: s.removeMeal,
+      clearMealFromBoard: s.clearMealFromBoard,
       clearAllMeals: s.clearAllMeals,
     })),
   );
@@ -114,7 +115,8 @@ export function usePlannerScreen() {
     setMealPanelOrder: plannerActions.setMealPanelOrder,
     resetMealPanelOrder: plannerActions.resetMealPanelOrder,
     resetHiddenMeals: plannerActions.resetHiddenMeals,
-    removeMeal: plannerActions.removeMeal,
+    hideMealPanel: plannerActions.hideMealPanel,
+    clearMealFromBoard: plannerActions.clearMealFromBoard,
   });
 
   const category = useCategory({
