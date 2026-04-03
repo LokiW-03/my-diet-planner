@@ -33,18 +33,15 @@ export function useTargetModal({
 }: UseTargetModalProps) {
   const removeTargetAndFixDayType = useCallback(
     (targetId: TargetId) => {
-      const remaining = (Object.keys(targetsById) as TargetId[]).filter(
-        (id) => id !== targetId,
+      const preferred = defaultTargetId("FULL");
+      const fallback = chooseFallbackTargetId(
+        targetsById,
+        dayType,
+        targetId,
+        preferred,
       );
 
-      if (targetId === dayType) {
-        const preferred = defaultTargetId("FULL");
-        const fallback = remaining.includes(preferred)
-          ? preferred
-          : remaining[0];
-        if (fallback) setDayType(fallback);
-      }
-
+      if (fallback) setDayType(fallback);
       removeTarget(targetId);
     },
     [dayType, removeTarget, setDayType, targetsById],
@@ -64,4 +61,23 @@ export function useTargetModal({
       saveTargetsAsDefault: saveProfileAsDefault,
     },
   };
+}
+
+function chooseFallbackTargetId(
+  targetsById: Record<TargetId, Target>,
+  currentDayType: TargetId,
+  targetToRemove: TargetId,
+  preferredFallbackId: TargetId,
+): TargetId | null {
+  if (targetToRemove !== currentDayType) return null;
+
+  const remaining = (Object.keys(targetsById) as TargetId[]).filter(
+    (id) => id !== targetToRemove,
+  );
+
+  const fallback = remaining.includes(preferredFallbackId)
+    ? preferredFallbackId
+    : remaining[0];
+
+  return fallback ?? null;
 }

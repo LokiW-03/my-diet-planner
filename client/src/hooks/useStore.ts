@@ -2,14 +2,9 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type {
-  MealEntry,
-  FoodId,
-  MealId,
-  TargetId,
-} from "../../../shared/models";
+import type { MealEntry, FoodId, MealId, TargetId } from "@/shared/models";
 import { defaultTargetId } from "@/shared/defaults";
-import { uid } from "../../../shared/utils";
+import { uid } from "@/shared/utils";
 
 export const usePlannerStore = create<PlannerState>()(
   persist(
