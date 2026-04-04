@@ -7,6 +7,7 @@ import { usePlannerStore } from "@/client/src/hooks/useStore";
 import { useFoodModal } from "@/client/src/hooks/useFoodModal";
 import { useMealPanel } from "@/client/src/hooks/useMealPanel";
 import { useCategory } from "@/client/src/hooks/useCategory";
+import { useFolder } from "@/client/src/hooks/useFolder";
 import { useModel } from "@/client/src/hooks/useModel";
 import { useTargetModal } from "@/client/src/hooks/useTargetModal";
 import type { CategoryId, FoodId, MealId } from "@/shared/models";
@@ -60,6 +61,10 @@ export function usePlannerScreen() {
     addCategory,
     removeCategory,
     reorderCategories,
+    updateFolder,
+    addFolder,
+    removeFolder,
+    reorderFolders,
   } = useProfile();
 
   const model = useModel({ profile, plannerState });
@@ -126,6 +131,13 @@ export function usePlannerScreen() {
     reorderCategories,
   });
 
+  const folder = useFolder({
+    updateFolder,
+    addFolder,
+    removeFolder,
+    reorderFolders,
+  });
+
   const targetModal = useTargetModal({
     targetsById: profile.targets,
     dayType: plannerState.dayType,
@@ -145,6 +157,7 @@ export function usePlannerScreen() {
       ...mealPanel.actions,
       ...foodModal.actions,
       ...category.actions,
+      ...folder.actions,
       ...targetModal.actions,
       // glue actions
       openEditById,

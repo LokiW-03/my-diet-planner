@@ -11,6 +11,12 @@
     flex: 1;
 }
 
+.toolbarButtons {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
 .searchInput {
     flex: 1;
     padding: 6px 10px;

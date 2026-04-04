@@ -11,6 +11,8 @@ import type {
   MealId,
   MealDefinition,
   ProfileId,
+  FolderId,
+  CategoryFolder,
 } from "./models";
 
 export const DEFAULTS_VERSION = 1;
@@ -57,6 +59,7 @@ export const DEFAULT_CATEGORIES: FoodCategory[] = [
     name,
     order: i,
     enabled: true,
+    folderId: null,
   })),
   {
     id: UNKNOWN_CATEGORY_ID,
@@ -64,6 +67,7 @@ export const DEFAULT_CATEGORIES: FoodCategory[] = [
     name: "Unknown",
     order: Infinity,
     enabled: true,
+    folderId: null,
   },
 ];
 
@@ -225,6 +229,11 @@ export const defaultCategories: Record<CategoryId, FoodCategory> =
     FoodCategory
   >;
 
+export const defaultFolders: Record<FolderId, CategoryFolder> = {} as Record<
+  FolderId,
+  CategoryFolder
+>;
+
 export const defaultUserId = (name: string) =>
   `user:${slugify(name)}` as unknown as UserId;
 
@@ -235,6 +244,7 @@ export const defaultUserProfile: UserProfile = {
   weightKg: 68.45,
   targets: defaultTargets,
   meals: defaultMeals,
+  folders: defaultFolders,
   categories: defaultCategories,
   foods: defaultFoods,
 };
@@ -245,6 +255,7 @@ export function getInitialProfile(stored?: Partial<UserProfile>): UserProfile {
     ...stored,
     targets: { ...defaultUserProfile.targets, ...(stored?.targets || {}) },
     meals: { ...defaultUserProfile.meals, ...(stored?.meals || {}) },
+    folders: { ...defaultUserProfile.folders, ...(stored?.folders || {}) },
     foods: { ...defaultUserProfile.foods, ...(stored?.foods || {}) },
   };
 }

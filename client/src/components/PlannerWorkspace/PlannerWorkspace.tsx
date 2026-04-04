@@ -1,8 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import {
     DndContext,
+    closestCenter,
+    pointerWithin,
+    type CollisionDetection,
     DragEndEvent,
     DragStartEvent,
     DragOverlay,
@@ -20,12 +23,14 @@ import type {
     CategoryId,
     MealId,
     TargetId,
-    FoodCategory
+    FoodCategory,
+    CategoryFolder,
+    FolderId,
 } from "@/shared/models";
 import { MealBoard } from "@/client/src/components/MealBoard/MealBoard";
 import { FoodLibrary } from "@/client/src/components/FoodLibrary/FoodLibrary";
 import { BottomToolBar } from "@/client/src/components/BottomToolBar/BottomToolBar";
-import { getVisibleCategories } from "@/client/src/utils/getVisibleCategories";
+import { getFoodLibraryGroups } from "@/client/src/utils/getFoodLibraryGroups";
 
 import styles from "./PlannerWorkspace.module.scss";
 import foodStyles from "@/client/src/components/FoodLibrary/FoodLibrary.module.scss";
@@ -35,6 +40,7 @@ export default function PlannerWorkspace({
     meals,
     mealDefs,
     mealTotals,
+    folders,
     categories,
     totals,
     dayType,
@@ -48,6 +54,11 @@ export default function PlannerWorkspace({
 ) {
 
     const [activeId, setActiveId] = useState<string | null>(null);
+    const [collapsedFolders, setCollapsedFolders] = useState<Record<string, boolean>>({});
+
+    const toggleCollapsedFolder = (folderIdKey: string) => {
+        setCollapsedFolders((prev) => ({ ...prev, [folderIdKey]: !prev[folderIdKey] }));
+    };
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -55,6 +66,25 @@ export default function PlannerWorkspace({
         }),
         useSensor(KeyboardSensor),
     );
+
+    const collisionDetection: CollisionDetection = useCallback((args) => {
+        const activeKey = String(args.active.id);
+        const hits = pointerWithin(args);
+        if (hits.length > 0) {
+            if (activeKey.startsWith("folder:")) {
+                const folderHits = hits.filter((h) => String(h.id).startsWith("folder:"));
+                if (folderHits.length > 0) return folderHits;
+            }
+
+            // When dragging anything other than a folder, avoid resolving the collision
+            // to the folder's sortable container when a more specific target exists.
+            const nonFolderHits = hits.filter((h) => !String(h.id).startsWith("folder:"));
+            if (nonFolderHits.length > 0) return nonFolderHits;
+
+            return hits;
+        }
+        return closestCenter(args);
+    }, []);
 
     function onDragStart(ev: DragStartEvent) {
         setActiveId(String(ev.active?.id ?? null));
@@ -67,10 +97,14 @@ export default function PlannerWorkspace({
         try {
             handlePlannerDragEnd(ev, {
                 foods,
+                folders,
                 categories,
+                collapsedFolders,
                 mealDefs,
                 onChangeFoodCategory: foodLibraryActions.changeFoodCategory,
                 onReorderCategories: dndActions.reorderCategories,
+                onReorderFolders: dndActions.reorderFolders,
+                onSetCategoryFolder: foodLibraryActions.setCategoryFolder,
                 onReorderMealPanels: dndActions.reorderMealPanels,
                 addEntryToMeal: dndActions.addEntryToMeal,
                 moveEntry: dndActions.moveEntry,
@@ -89,6 +123,7 @@ export default function PlannerWorkspace({
     return (
         <DndContext
             sensors={sensors}
+            collisionDetection={collisionDetection}
             onDragEnd={onDragEnd}
             onDragStart={onDragStart}
             onDragCancel={onDragCancel}
@@ -123,6 +158,7 @@ export default function PlannerWorkspace({
                 <div>
                     <FoodLibrary
                         foods={foods}
+                        folders={folders}
                         categories={categories}
                         mealDefs={mealDefs}
                         onAdd={foodLibraryActions.openAdd}
@@ -130,6 +166,24 @@ export default function PlannerWorkspace({
                         onRenameCategory={foodLibraryActions.renameCategory}
                         onAddCategory={foodLibraryActions.addCategory}
                         onRemoveCategory={foodLibraryActions.removeCategory}
+                        onRenameFolder={foodLibraryActions.renameFolder}
+                        onAddFolder={(folder) => {
+                            const id = foodLibraryActions.addFolder(folder);
+                            setCollapsedFolders((prev) => ({ ...prev, [String(id)]: true }));
+                            return id;
+                        }}
+                        onRemoveFolder={(folderId) => {
+                            foodLibraryActions.removeFolder(folderId);
+                            setCollapsedFolders((prev) => {
+                                const next = { ...prev };
+                                delete next[String(folderId)];
+                                return next;
+                            });
+                        }}
+                        collapsedFolders={collapsedFolders}
+                        onToggleFolderCollapse={(folderId) =>
+                            toggleCollapsedFolder(String(folderId))
+                        }
                         onChangeFoodCategory={foodLibraryActions.changeFoodCategory}
                         onAddEntryToMeal={dndActions.addEntryToMeal}
                         onRemoveFood={foodLibraryActions.removeFoodAndEntries}
@@ -153,10 +207,14 @@ export default function PlannerWorkspace({
 function handlePlannerDragEnd(ev: DragEndEvent, ctx: DragContext) {
     const {
         foods,
+        folders,
         categories,
+        collapsedFolders,
         mealDefs,
         onChangeFoodCategory,
         onReorderCategories,
+        onReorderFolders,
+        onSetCategoryFolder,
         onReorderMealPanels,
         addEntryToMeal,
         moveEntry,
@@ -167,6 +225,37 @@ function handlePlannerDragEnd(ev: DragEndEvent, ctx: DragContext) {
 
     if (!overId) return;
 
+    if (activeId.startsWith("folder:")) {
+        const fromFolderId = activeId.slice("folder:".length) as unknown as FolderId;
+
+        const toFolderId = overId.startsWith("folder:")
+            ? (overId.slice("folder:".length) as unknown as FolderId)
+            : overId.startsWith("drop:folder:")
+                ? (overId.slice("drop:folder:".length) as unknown as FolderId)
+                : null;
+
+        if (!toFolderId || fromFolderId === toFolderId) return;
+
+        const visibleFolderIds = Object.values(folders)
+            .filter((f) => f.enabled)
+            .slice()
+            .sort((a, b) => a.order - b.order)
+            .map((f) => f.id);
+
+        const ids = visibleFolderIds.map((id) => String(id));
+        const from = ids.indexOf(String(fromFolderId));
+        const to = ids.indexOf(String(toFolderId));
+        if (from === -1 || to === -1 || from === to) return;
+
+        const next = ids.slice();
+        const [moved] = next.splice(from, 1);
+        next.splice(to, 0, moved);
+
+        const nextIds = next.map((k) => k as unknown as FolderId);
+        onReorderFolders(nextIds);
+        return;
+    }
+
     if (activeId.startsWith("lib:") && overId.startsWith("drop:cat:")) {
         const foodId = activeId.slice("lib:".length) as unknown as FoodId;
         const toCatId = overId.slice("drop:cat:".length) as unknown as CategoryId;
@@ -176,6 +265,25 @@ function handlePlannerDragEnd(ev: DragEndEvent, ctx: DragContext) {
 
     if (activeId.startsWith("cat:")) {
         const fromCatId = activeId.slice("cat:".length) as unknown as CategoryId;
+        const fromFolderId = categories[fromCatId]?.folderId ?? null;
+
+        if (overId.startsWith("drop:folder:")) {
+            const folderId = overId.slice("drop:folder:".length) as unknown as FolderId;
+            onSetCategoryFolder(fromCatId, folderId);
+            return;
+        }
+
+        if (overId.startsWith("folder:")) {
+            const folderId = overId.slice("folder:".length) as unknown as FolderId;
+            onSetCategoryFolder(fromCatId, folderId);
+            return;
+        }
+
+        if (overId === "drop:unfiled") {
+            onSetCategoryFolder(fromCatId, null);
+            return;
+        }
+
         const toCatId = overId.startsWith("cat:")
             ? (overId.slice("cat:".length) as unknown as CategoryId)
             : overId.startsWith("drop:cat:")
@@ -184,9 +292,18 @@ function handlePlannerDragEnd(ev: DragEndEvent, ctx: DragContext) {
 
         if (!fromCatId || !toCatId || fromCatId === toCatId) return;
 
-        const visibleCategoryIds = getVisibleCategories(categories, foods).map(
-            (c) => c.id,
-        );
+        const toFolderId = categories[toCatId]?.folderId ?? null;
+        if (toFolderId !== fromFolderId) {
+            onSetCategoryFolder(fromCatId, toFolderId);
+        }
+
+        const visibleCategoryIds = getFoodLibraryGroups(categories, foods, folders)
+            .orderedCategoryIds
+            .filter((id) => {
+                const folderId = categories[id]?.folderId;
+                if (!folderId) return true;
+                return !collapsedFolders[String(folderId)];
+            });
 
         const ids = visibleCategoryIds.map((id) => String(id));
         const from = ids.indexOf(String(fromCatId));
@@ -306,6 +423,7 @@ type PlannerWorkspaceProps = {
     meals: Record<MealId, MealEntry[]>;
     mealDefs: MealDefinition[];
     mealTotals: Record<MealId, { kcal: number; protein: number }>;
+    folders: Record<FolderId, CategoryFolder>;
     categories: Record<CategoryId, FoodCategory>;
     totals: { kcal: number; protein: number };
     dayType: TargetId;
@@ -325,12 +443,17 @@ type PlannerWorkspaceProps = {
         renameCategory: (categoryId: CategoryId, name: string) => void;
         addCategory: (category: Omit<FoodCategory, "id">) => CategoryId;
         removeCategory: (categoryId: CategoryId) => void;
+        addFolder: (folder: Omit<CategoryFolder, "id">) => FolderId;
+        removeFolder: (folderId: FolderId) => void;
+        renameFolder: (folderId: FolderId, name: string) => void;
+        setCategoryFolder: (categoryId: CategoryId, folderId: FolderId | null) => void;
         changeFoodCategory: (foodId: FoodId, categoryId: CategoryId) => void;
         removeFoodAndEntries: (foodId: FoodId) => void;
     };
     dndActions: {
         reorderMealPanels: (nextOrder: MealId[]) => void;
         reorderCategories: (nextOrder: CategoryId[]) => void;
+        reorderFolders: (nextOrder: FolderId[]) => void;
         addEntryToMeal: (mealId: MealId, foodId: FoodId) => void;
         moveEntry: (from: MealId, to: MealId, entryId: string) => void;
     };
@@ -339,10 +462,14 @@ type PlannerWorkspaceProps = {
 
 type DragContext = {
     foods: FoodItem[];
+    folders: Record<FolderId, CategoryFolder>;
     categories: Record<CategoryId, FoodCategory>;
+    collapsedFolders: Record<string, boolean>;
     mealDefs: MealDefinition[];
     onChangeFoodCategory: (foodId: FoodId, categoryId: CategoryId) => void;
     onReorderCategories: (nextOrder: CategoryId[]) => void;
+    onReorderFolders: (nextOrder: FolderId[]) => void;
+    onSetCategoryFolder: (categoryId: CategoryId, folderId: FolderId | null) => void;
     onReorderMealPanels: (nextOrder: MealId[]) => void;
     addEntryToMeal: (mealId: MealId, foodId: FoodId) => void;
     moveEntry: (from: MealId, to: MealId, entryId: string) => void;

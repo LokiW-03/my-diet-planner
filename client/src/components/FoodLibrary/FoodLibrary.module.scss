@@ -4,163 +4,40 @@
     padding: 14px;
 }
 
-.category {
-    margin-bottom: 14px;
+.folderGroup {
+    border: 1px solid var(--divider);
+    border-radius: 12px;
+    padding: 8px;
+    margin-top: 10px;
+    margin-bottom: 12px;
 }
 
-.headerRow {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-}
-
-.headerActions {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.iconBtn {
-    width: 30px;
-    height: 30px;
-    border-radius: 10px;
-    border: 1px solid var(--card-border);
-    background: var(--card-bg);
-    color: var(--background);
-    cursor: pointer;
-    font-weight: 900;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    line-height: 0;
-
-    &:hover {
-        background: var(--btn-hover-bg);
-    }
-}
-
-.renameBtn {
-    background: var(--background);
-    color: var(--foreground);
-    cursor: pointer;
-    border: 1px solid transparent;
-    border-radius: 8px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 24px;
-    height: 24px;
-    padding: 0;
-
-    &:hover {
-        color: var(--muted);
-    }
-}
-
-.dragHandle {
-    color: var(--muted);
-    cursor: grab;
-    transition: all 150ms ease;
-
-    &:active {
-        cursor: grabbing;
-    }
-}
-
-.deleteBtn {
-    color: var(--danger-fg);
-}
-
-.categoryName {
-    font-weight: 800;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.categorySelectAllCheckbox,
-.chipCheckbox {
-    cursor: pointer;
-    accent-color: var(--accent);
-}
-
-.renameInput {
-    font: inherit;
-    font-weight: 800;
-    color: var(--foreground);
-    background: var(--background);
-    border: 1px solid var(--card-border);
-    border-radius: 8px;
-    padding: 2px 8px;
-    min-width: 10ch;
-    max-width: 20ch;
-}
-
-
-.chipWrap {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-
-    max-height: 150px;
-    overflow-y: auto;
-    align-content: flex-start;
-    padding-right: 4px;
-    scrollbar-gutter: stable;
-}
-
-.chip {
-    padding: 8px 12px;
-    border-radius: 15px;
-    border: 1px solid var(--btn-fg);
-    background: var(--background);
-    cursor: grab;
-    color: var(--btn-fg);
-    font-weight: 750;
-    font-size: 14px;
-
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    box-sizing: border-box;
-    justify-self: center;
-    width: 110px;
-}
-
-.chipText {
-    flex: 1 1 auto;
-    min-width: 0;
-    max-width: 100%;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    text-align: center;
-}
-
-.divider {
+.folderDivider {
     height: 1px;
     background: var(--divider);
-    margin-top: 12px;
+    margin-top: 8px;
+    margin-bottom: 8px;
 }
 
-.addCategoryBtn {
-    width: 100%;
-    padding: 10px;
-    margin-top: 12px;
-    border-radius: 10px;
-    border: 1px dashed var(--card-border);
-    background: var(--background);
-    color: var(--foreground);
-    cursor: pointer;
-    font-weight: 700;
-    font-size: 14px;
-    transition: all 150ms ease;
+.folderContents {
+    padding-top: 6px;
+    padding-left: 22px;
 }
 
-.addCategoryBtn:hover {
-    border-color: var(--accent);
-    background: var(--card-bg);
-    color: var(--background);
+.folderCategory {
+    position: relative;
+
+    &::before {
+        content: "";
+        position: absolute;
+        left: -14px;
+        top: 12px;
+        bottom: 12px;
+        width: 3px;
+        background: var(--accent);
+    }
+}
+
+.unfiledZone {
+    border-radius: 12px;
 }

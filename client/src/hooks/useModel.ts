@@ -15,6 +15,11 @@ export function useModel({
   plannerState: PlannerState;
 }) {
   const foods = useMemo(() => Object.values(profile.foods), [profile.foods]);
+  const foldersById = profile.folders;
+  const folders = useMemo(
+    () => Object.values(profile.folders).filter((f) => f.enabled),
+    [profile.folders],
+  );
   const categoriesById = profile.categories;
   const categories = useMemo(
     () => Object.values(profile.categories),
@@ -64,6 +69,8 @@ export function useModel({
 
   return {
     foods,
+    foldersById,
+    folders,
     categoriesById,
     categories,
     targets,
