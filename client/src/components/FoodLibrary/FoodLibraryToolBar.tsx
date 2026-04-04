@@ -1,6 +1,7 @@
 "use client";
 import { FaSearch, FaTrash } from "react-icons/fa";
 import { BiSolidSelectMultiple } from "react-icons/bi";
+import { IoMdAddCircle } from "react-icons/io";
 import { MdCancel } from "react-icons/md";
 import type { CategoryId, MealId } from "@/shared/models";
 import { FoodLibBulkSelect } from "./FoodLibBulkSelect";
@@ -12,6 +13,7 @@ export function FoodLibraryToolBar({
     isSelecting,
     hasSelection,
     onToggleSelectMode,
+    onAddCategory,
     categories,
     mealPanels,
     onBulkMoveToCategory,
@@ -33,15 +35,26 @@ export function FoodLibraryToolBar({
                         aria-disabled={isSelecting}
                     />
                 </div>
-                <button
-                    type="button"
-                    className={`${styles.selectBtn} ${isSelecting ? styles.selectBtnActive : ""}`}
-                    onClick={onToggleSelectMode}
-                    aria-pressed={isSelecting}
-                    title={isSelecting ? "Exit selection mode" : "Enter bulk select foods mode"}
-                >
-                    {isSelecting ? <MdCancel /> : <BiSolidSelectMultiple />}
-                </button>
+                <div className={styles.toolbarButtons}>
+                    <button
+                        type="button"
+                        className={styles.selectBtn}
+                        onClick={onAddCategory}
+                        title="Add new category"
+                    >
+                        <IoMdAddCircle />
+                    </button>
+                    <button
+                        type="button"
+                        className={`${styles.selectBtn} ${isSelecting ? styles.selectBtnActive : ""}`}
+                        onClick={onToggleSelectMode}
+                        aria-pressed={isSelecting}
+                        title={isSelecting ? "Exit selection mode" : "Enter bulk select foods mode"}
+                    >
+                        {isSelecting ? <MdCancel /> : <BiSolidSelectMultiple />}
+                    </button>
+
+                </div>
             </div>
             {isSelecting && (
                 <div className={styles.bulkBar}>
@@ -101,6 +114,7 @@ type FoodLibraryToolBarProps = {
     isSelecting: boolean;
     hasSelection: boolean;
     onToggleSelectMode: () => void;
+    onAddCategory: () => void;
     categories: { id: CategoryId; name: string }[];
     mealPanels: { id: MealId; name: string }[];
     onBulkMoveToCategory: (categoryId: CategoryId) => void;

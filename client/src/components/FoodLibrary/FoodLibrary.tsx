@@ -90,6 +90,23 @@ export function FoodLibrary({
         setEditingName("");
     };
 
+    const handleAddCategoryClick = useCallback(() => {
+        const initialName = "New Category";
+        const existingProfileId =
+            Object.values(categories)[0]?.profileId ??
+            (defaultProfileId("local") as ProfileId);
+
+        const newCatId = onAddCategory({
+            name: initialName,
+            profileId: existingProfileId,
+            order:
+                Math.max(0, ...Object.values(categories).map((c) => c.order)) +
+                1,
+            enabled: true,
+        });
+        startRename(newCatId, initialName);
+    }, [categories, onAddCategory]);
+
     const sortableIds = visibleCats.map((c) => `cat:${String(c.id)}`);
 
     const {
@@ -120,6 +137,7 @@ export function FoodLibrary({
                 isSelecting={isSelectMode}
                 hasSelection={hasSelection}
                 onToggleSelectMode={toggleSelectMode}
+                onAddCategory={handleAddCategoryClick}
                 categories={enabledCategories}
                 mealPanels={enabledMealPanels}
                 onBulkMoveToCategory={handleBulkMoveToCategory}
@@ -163,29 +181,6 @@ export function FoodLibrary({
                     />
                 ))}
             </SortableContext>
-            <button
-                className={styles.addCategoryBtn}
-                onClick={() => {
-                    const initialName = "New Category";
-                    const existingProfileId =
-                        Object.values(categories)[0]?.profileId ??
-                        (defaultProfileId("local") as ProfileId);
-
-                    const newCatId = onAddCategory({
-                        name: initialName,
-                        profileId: existingProfileId,
-                        order:
-                            Math.max(0, ...Object.values(categories).map((c) => c.order)) +
-                            1,
-                        enabled: true,
-                    });
-                    startRename(newCatId, initialName);
-                }}
-                title="Add new category"
-                type="button"
-            >
-                + Add Category
-            </button>
         </div>
     );
 }
