@@ -36,6 +36,13 @@
     box-shadow: 0 0 0 1px var(--accent-soft);
 }
 
+.searchInput:disabled {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--background);
+    cursor: not-allowed;
+}
+
 .selectBtn {
     display: flex;
     align-items: center;
@@ -118,4 +125,11 @@
         background: var(--danger-fg);
         color: var(--background);
     }
+}
+
+.bulkRemoveBtn:disabled {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: transparent;
+    cursor: default;
 }

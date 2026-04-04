@@ -78,6 +78,8 @@ export function useFoodSelection({
     [mealDefs],
   );
 
+  const hasSelection = selectedFoodIds.size > 0;
+
   const clearSelection = useCallback(() => {
     setSelectedFoodIds(new Set());
   }, []);
@@ -128,6 +130,7 @@ export function useFoodSelection({
   return {
     isSelectMode,
     selectedFoodIds,
+    hasSelection,
     toggleSelectMode,
     toggleFoodSelected,
     toggleSelectAllForCategory,

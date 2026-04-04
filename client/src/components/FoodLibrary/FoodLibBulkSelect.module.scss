@@ -29,6 +29,15 @@
     }
 }
 
+.BulkSelectButtonDisabled,
+.BulkSelectButton:disabled {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: var(--background);
+    cursor: default;
+}
+
+
 .BulkSelectLabel {
     overflow: hidden;
     text-overflow: ellipsis;

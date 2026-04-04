@@ -95,6 +95,7 @@ export function FoodLibrary({
     const {
         isSelectMode,
         selectedFoodIds,
+        hasSelection,
         toggleSelectMode,
         toggleFoodSelected,
         toggleSelectAllForCategory,
@@ -117,6 +118,7 @@ export function FoodLibrary({
                 search={search}
                 onSearchChange={setSearch}
                 isSelecting={isSelectMode}
+                hasSelection={hasSelection}
                 onToggleSelectMode={toggleSelectMode}
                 categories={enabledCategories}
                 mealPanels={enabledMealPanels}
@@ -399,17 +401,29 @@ function FoodChip({
     });
 
     return (
-        <button
+        <div
             ref={setNodeRef}
             {...(!isSelecting ? listeners : {})}
             {...(!isSelecting ? attributes : {})}
             onClick={isSelecting ? onToggleSelect : onClick}
-            title={`${food.name}.\nDrag into a meal box. Click to edit.`}
+            onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    (isSelecting ? onToggleSelect : onClick)();
+                }
+            }}
+            title={
+                isSelecting
+                    ? `${food.name}.\nClick to select.`
+                    : `${food.name}.\nDrag into a meal box. Click to edit.`
+            }
             className={styles.chip}
             style={{
                 opacity: isDragging ? 0.5 : 1,
                 transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
             }}
+            role="button"
+            tabIndex={0}
         >
             {isSelecting && (
                 <input
@@ -425,7 +439,7 @@ function FoodChip({
                 />
             )}
             <span className={styles.chipText}>{food.name}</span>
-        </button>
+        </div>
     );
 }
 

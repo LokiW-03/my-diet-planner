@@ -9,22 +9,37 @@ export function FoodLibBulkSelect({
     options,
     onSelect,
     title,
+    disabled = false,
 }: FoodLibBulkSelectProps) {
     const [open, setOpen] = useState(false);
+
+    const toggleOpen = () => {
+        if (disabled) return;
+        setOpen((o) => !o);
+    };
+
+    const handleSelect = (value: string) => {
+        if (disabled) return;
+        onSelect(value);
+        setOpen(false);
+    };
 
     return (
         <div className={styles.BulkSelect}>
             <button
                 type="button"
-                className={styles.BulkSelectButton}
-                onClick={() => setOpen((o) => !o)}
+                className={`${styles.BulkSelectButton} ${disabled ? styles.BulkSelectButtonDisabled : ""
+                    }`}
+                onClick={toggleOpen}
                 title={title}
+                disabled={disabled}
+                aria-disabled={disabled}
             >
                 <span className={styles.BulkSelectLabel}>{placeholder}</span>
                 <FiChevronDown className={styles.BulkSelectArrow} size={18} />
             </button>
 
-            {open && (
+            {open && !disabled && (
                 <ul
                     className={styles.BulkSelectMenu}
                     onMouseLeave={() => setOpen(false)}
@@ -34,10 +49,7 @@ export function FoodLibBulkSelect({
                             <button
                                 type="button"
                                 className={styles.BulkSelectOption}
-                                onClick={() => {
-                                    onSelect(opt.value);
-                                    setOpen(false);
-                                }}
+                                onClick={() => handleSelect(opt.value)}
                             >
                                 {opt.label}
                             </button>
@@ -59,4 +71,5 @@ type FoodLibBulkSelectProps = {
     placeholder: string;
     options: FoodLibBulkSelectOption[];
     onSelect: (value: string) => void;
+    disabled?: boolean;
 };

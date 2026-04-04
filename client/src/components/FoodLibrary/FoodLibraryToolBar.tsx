@@ -10,6 +10,7 @@ export function FoodLibraryToolBar({
     search,
     onSearchChange,
     isSelecting,
+    hasSelection,
     onToggleSelectMode,
     categories,
     mealPanels,
@@ -28,6 +29,8 @@ export function FoodLibraryToolBar({
                         placeholder="Search for food"
                         value={search}
                         onChange={(e) => onSearchChange(e.target.value)}
+                        disabled={isSelecting}
+                        aria-disabled={isSelecting}
                     />
                 </div>
                 <button
@@ -52,7 +55,11 @@ export function FoodLibraryToolBar({
                                     value: String(c.id),
                                     label: c.name,
                                 }))}
-                                onSelect={(val) => onBulkMoveToCategory(val as CategoryId)}
+                                disabled={!hasSelection}
+                                onSelect={(val) => {
+                                    if (!hasSelection) return;
+                                    onBulkMoveToCategory(val as CategoryId);
+                                }}
                                 title={"Move selected foods to this category"}
                             />
                         </label>
@@ -64,7 +71,11 @@ export function FoodLibraryToolBar({
                                     value: String(m.id),
                                     label: m.name,
                                 }))}
-                                onSelect={(val) => onBulkAddToMealPanel(val as MealId)}
+                                disabled={!hasSelection}
+                                onSelect={(val) => {
+                                    if (!hasSelection) return;
+                                    onBulkAddToMealPanel(val as MealId);
+                                }}
                                 title={"Add selected foods to this meal panel"}
                             />
                         </label>
@@ -73,6 +84,7 @@ export function FoodLibraryToolBar({
                         type="button"
                         className={styles.bulkRemoveBtn}
                         onClick={onBulkRemoveSelected}
+                        disabled={!hasSelection}
                         title={"Remove food from food library and any meals"}
                     >
                         <FaTrash />
@@ -87,6 +99,7 @@ type FoodLibraryToolBarProps = {
     search: string;
     onSearchChange: (value: string) => void;
     isSelecting: boolean;
+    hasSelection: boolean;
     onToggleSelectMode: () => void;
     categories: { id: CategoryId; name: string }[];
     mealPanels: { id: MealId; name: string }[];
