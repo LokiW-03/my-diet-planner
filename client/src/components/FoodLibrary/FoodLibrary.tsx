@@ -161,13 +161,43 @@ export function FoodLibrary({
             ? Math.max(...Object.values(folders).map((f) => f.order)) + 1
             : 0;
 
-        onAddFolder({
+        const newFolderId = onAddFolder({
             profileId: existingProfileId,
             name: initialName,
             order: nextOrder,
             enabled: true,
         });
+
+        startFolderRename(newFolderId, initialName);
     }, [categories, folders, onAddFolder]);
+
+    const renderCategoryRow = (cat: FoodCategory) => (
+        <CategoryRow
+            key={String(cat.id)}
+            category={cat}
+            items={grouped.get(cat.id) ?? []}
+            isCollapsed={!!collapsedCats[String(cat.id)]}
+            isEditing={editingCatId === cat.id}
+            editingName={editingName}
+            onToggleCollapse={() => toggleCollapsedCats(String(cat.id))}
+            onStartRename={() => startRename(cat.id, cat.name)}
+            onCommitRename={() => commitRename(cat.id, cat.name)}
+            onCancelRename={cancelRename}
+            onEditingNameChange={setEditingName}
+            onAdd={onAdd}
+            onEdit={onEdit}
+            onRemove={onRemoveCategory}
+            isSelecting={isSelectMode}
+            selectedFoodIds={selectedFoodIds}
+            onToggleFoodSelected={toggleFoodSelected}
+            onToggleSelectAll={() => toggleSelectAllForCategory(grouped.get(cat.id) ?? [])}
+            isCategoryAllSelected={
+                (grouped.get(cat.id) ?? []).length > 0 &&
+                (grouped.get(cat.id) ?? []).every((f) => selectedFoodIds.has(f.id))
+            }
+            isCategoryPartiallySelected={(grouped.get(cat.id) ?? []).some((f) => selectedFoodIds.has(f.id))}
+        />
+    );
 
     const sortableIds = orderedCategories
         .filter((c) => {
@@ -251,41 +281,7 @@ export function FoodLibrary({
                             >
                                 {!isFolderCollapsed && (
                                     <div className={styles.folderContents}>
-                                        {folderCats.map((cat) => (
-                                            <CategoryRow
-                                                key={String(cat.id)}
-                                                category={cat}
-                                                items={grouped.get(cat.id) ?? []}
-                                                isCollapsed={!!collapsedCats[String(cat.id)]}
-                                                isEditing={editingCatId === cat.id}
-                                                editingName={editingName}
-                                                onToggleCollapse={() => toggleCollapsedCats(String(cat.id))}
-                                                onStartRename={() => startRename(cat.id, cat.name)}
-                                                onCommitRename={() => commitRename(cat.id, cat.name)}
-                                                onCancelRename={cancelRename}
-                                                onEditingNameChange={setEditingName}
-                                                onAdd={onAdd}
-                                                onEdit={onEdit}
-                                                onRemove={onRemoveCategory}
-                                                isSelecting={isSelectMode}
-                                                selectedFoodIds={selectedFoodIds}
-                                                onToggleFoodSelected={toggleFoodSelected}
-                                                onToggleSelectAll={() =>
-                                                    toggleSelectAllForCategory(grouped.get(cat.id) ?? [])
-                                                }
-                                                isCategoryAllSelected={
-                                                    (grouped.get(cat.id) ?? []).length > 0 &&
-                                                    (grouped.get(cat.id) ?? []).every((f) =>
-                                                        selectedFoodIds.has(f.id),
-                                                    )
-                                                }
-                                                isCategoryPartiallySelected={
-                                                    (grouped.get(cat.id) ?? []).some((f) =>
-                                                        selectedFoodIds.has(f.id),
-                                                    )
-                                                }
-                                            />
-                                        ))}
+                                        {folderCats.map((cat) => renderCategoryRow(cat))}
                                     </div>
                                 )}
                             </SortableFolderGroup>
@@ -300,37 +296,7 @@ export function FoodLibrary({
                         boxShadow: isOverUnfiled ? "0 0 0 2px var(--accent)" : undefined,
                     }}
                 >
-                    {unfiledCategories.map((cat) => (
-                        <CategoryRow
-                            key={String(cat.id)}
-                            category={cat}
-                            items={grouped.get(cat.id) ?? []}
-                            isCollapsed={!!collapsedCats[String(cat.id)]}
-                            isEditing={editingCatId === cat.id}
-                            editingName={editingName}
-                            onToggleCollapse={() => toggleCollapsedCats(String(cat.id))}
-                            onStartRename={() => startRename(cat.id, cat.name)}
-                            onCommitRename={() => commitRename(cat.id, cat.name)}
-                            onCancelRename={cancelRename}
-                            onEditingNameChange={setEditingName}
-                            onAdd={onAdd}
-                            onEdit={onEdit}
-                            onRemove={onRemoveCategory}
-                            isSelecting={isSelectMode}
-                            selectedFoodIds={selectedFoodIds}
-                            onToggleFoodSelected={toggleFoodSelected}
-                            onToggleSelectAll={() =>
-                                toggleSelectAllForCategory(grouped.get(cat.id) ?? [])
-                            }
-                            isCategoryAllSelected={
-                                (grouped.get(cat.id) ?? []).length > 0 &&
-                                (grouped.get(cat.id) ?? []).every((f) => selectedFoodIds.has(f.id))
-                            }
-                            isCategoryPartiallySelected={(grouped.get(cat.id) ?? []).some((f) =>
-                                selectedFoodIds.has(f.id)
-                            )}
-                        />
-                    ))}
+                    {unfiledCategories.map((cat) => renderCategoryRow(cat))}
                 </div>
             </SortableContext>
         </div>

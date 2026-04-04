@@ -1,3 +1,5 @@
+"use client";
+
 import { IoMdArrowDropdown, IoMdArrowDropleft, IoMdCreate } from "react-icons/io";
 import { FaTrash } from "react-icons/fa";
 import { useEffect, useRef } from "react";

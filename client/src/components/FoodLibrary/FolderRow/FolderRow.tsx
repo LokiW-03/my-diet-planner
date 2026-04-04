@@ -1,9 +1,11 @@
+"use client";
+
 import { IoMdArrowDropdown, IoMdArrowDropleft } from "react-icons/io";
 import { IoMdCreate } from "react-icons/io";
 import { FaFolderOpen } from "react-icons/fa";
 import { FaTrash } from "react-icons/fa";
 
-import { useDroppable } from "@dnd-kit/core";
+import { useDroppable, type DraggableAttributes, type DraggableSyntheticListeners } from "@dnd-kit/core";
 import { useEffect, useRef } from "react";
 import type { CategoryFolder } from "@/shared/models";
 import styles from "./FolderRow.module.scss";
@@ -139,7 +141,7 @@ export type FolderRowProps = {
     onEditingNameChange?: (name: string) => void;
     onRemove?: () => void;
 
-    dragHandleRef?: (node: HTMLButtonElement | null) => void;
-    dragHandleAttributes?: any;
-    dragHandleListeners?: any;
+    dragHandleRef?: (node: HTMLElement | null) => void;
+    dragHandleAttributes?: DraggableAttributes;
+    dragHandleListeners?: DraggableSyntheticListeners;
 };
