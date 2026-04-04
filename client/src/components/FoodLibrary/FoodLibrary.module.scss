@@ -12,8 +12,30 @@
     margin-bottom: 12px;
 }
 
+.folderDivider {
+    height: 1px;
+    background: var(--divider);
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+
 .folderContents {
     padding-top: 6px;
+    padding-left: 22px;
+}
+
+.folderCategory {
+    position: relative;
+
+    &::before {
+        content: "";
+        position: absolute;
+        left: -14px;
+        top: 12px;
+        bottom: 12px;
+        width: 3px;
+        background: var(--accent);
+    }
 }
 
 .unfiledZone {

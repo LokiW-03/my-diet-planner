@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useCallback, type ReactNode } from "react";
+import { useMemo, useState, useCallback, useEffect, useRef, type ReactNode } from "react";
 import type {
     CategoryId,
     FoodCategory,
@@ -83,6 +83,26 @@ export function FoodLibrary({
     const toggleCollapsedCats = (catIdKey: string) => {
         setCollapsedCats((prev) => ({ ...prev, [catIdKey]: !prev[catIdKey] }));
     };
+
+    const expandAllCategories = useCallback(() => {
+        setCollapsedCats((prev) => {
+            const hasAnyCollapsed = Object.values(prev).some(Boolean);
+            return hasAnyCollapsed ? {} : prev;
+        });
+    }, []);
+
+    const expandAllFolders = useCallback(() => {
+        for (const folder of visibleFolders) {
+            const folderKey = String(folder.id);
+            const folderCats = categoriesByFolderId.get(folder.id) ?? [];
+            const isFolderEmpty = folderCats.length === 0;
+            if (isFolderEmpty) continue;
+
+            if (collapsedFolders[folderKey]) {
+                onToggleFolderCollapse(folder.id);
+            }
+        }
+    }, [visibleFolders, categoriesByFolderId, collapsedFolders, onToggleFolderCollapse]);
 
     const startRename = (catId: CategoryId, currentName: string) => {
         setEditingCatId(catId);
@@ -228,6 +248,28 @@ export function FoodLibrary({
         onRemoveFood,
     });
 
+    const prevIsSelectModeRef = useRef(isSelectMode);
+    useEffect(() => {
+        const wasSelecting = prevIsSelectModeRef.current;
+        if (isSelectMode && !wasSelecting) {
+            expandAllFolders();
+        }
+        prevIsSelectModeRef.current = isSelectMode;
+    }, [isSelectMode, expandAllFolders]);
+
+    const prevSearchActiveRef = useRef(false);
+    useEffect(() => {
+        const isSearchActive = !!search.trim();
+        const wasSearchActive = prevSearchActiveRef.current;
+
+        if (isSearchActive && !wasSearchActive) {
+            expandAllFolders();
+            expandAllCategories();
+        }
+
+        prevSearchActiveRef.current = isSearchActive;
+    }, [search, expandAllFolders, expandAllCategories]);
+
     const { setNodeRef: setUnfiledDropRef, isOver: isOverUnfiled } = useDroppable({
         id: "drop:unfiled",
     });
@@ -280,9 +322,19 @@ export function FoodLibrary({
                                 }}
                             >
                                 {!isFolderCollapsed && (
-                                    <div className={styles.folderContents}>
-                                        {folderCats.map((cat) => renderCategoryRow(cat))}
-                                    </div>
+                                    <>
+                                        <div className={styles.folderDivider} />
+                                        <div className={styles.folderContents}>
+                                            {folderCats.map((cat) => (
+                                                <div
+                                                    key={`foldercat:${String(cat.id)}`}
+                                                    className={styles.folderCategory}
+                                                >
+                                                    {renderCategoryRow(cat)}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </>
                                 )}
                             </SortableFolderGroup>
                         );

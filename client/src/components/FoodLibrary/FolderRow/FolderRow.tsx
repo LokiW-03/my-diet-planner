@@ -44,86 +44,96 @@ export function FolderRow({
             }}
         >
             <FaFolderOpen />
-            {isEditing ? (
-                <input
-                    className={styles.renameInput}
-                    value={editingName ?? ""}
-                    autoFocus
-                    onChange={(e) => onEditingNameChange?.(e.target.value)}
-                    onBlur={() => {
-                        if (cancelRenameOnBlurRef.current) {
-                            cancelRenameOnBlurRef.current = false;
-                            return;
-                        }
-                        onCommitRename?.();
-                    }}
-                    onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                            e.preventDefault();
+            <div className={styles.titleWrap}>
+                {isEditing ? (
+                    <input
+                        className={styles.renameInput}
+                        value={editingName ?? ""}
+                        autoFocus
+                        onChange={(e) => onEditingNameChange?.(e.target.value)}
+                        onBlur={() => {
+                            if (cancelRenameOnBlurRef.current) {
+                                cancelRenameOnBlurRef.current = false;
+                                return;
+                            }
                             onCommitRename?.();
-                            return;
-                        }
+                        }}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                                e.preventDefault();
+                                onCommitRename?.();
+                                return;
+                            }
 
-                        if (e.key === "Escape") {
-                            e.preventDefault();
-                            cancelRenameOnBlurRef.current = true;
-                            onCancelRename?.();
-                        }
-                    }}
-                    aria-label={`Edit folder name for ${folder.name}`}
-                />
-            ) : (
-                <span className={styles.folderName}>{folder.name}</span>
-            )}
+                            if (e.key === "Escape") {
+                                e.preventDefault();
+                                cancelRenameOnBlurRef.current = true;
+                                onCancelRename?.();
+                            }
+                        }}
+                        aria-label={`Edit folder name for ${folder.name}`}
+                    />
+                ) : (
+                    <>
+                        <span className={styles.folderName}>{folder.name}</span>
+                    </>
+                )}
 
-            {dragHandleRef && !isEditing ? (
-                <button
-                    type="button"
-                    ref={dragHandleRef}
-                    {...(dragHandleAttributes ?? {})}
-                    {...(dragHandleListeners ?? {})}
-                    className={`${styles.dragHandle} ${styles.iconBtn}`}
-                    title="Drag to reorder"
-                    aria-label={`Drag to reorder folder ${folder.name}`}
-                >
-                    ⋮⋮
-                </button>
-            ) : null}
+                {onStartRename ? (
+                    <button
+                        type="button"
+                        className={styles.renameBtn}
+                        onClick={onStartRename}
+                        title={`Rename folder ${folder.name}`}
+                        aria-label={`Rename folder ${folder.name}`}
+                    >
+                        <IoMdCreate />
+                    </button>
+                ) : null}
+            </div>
 
-            {!isEditing && onStartRename ? (
+            <div className={styles.headerActions}>
+                {dragHandleRef ? (
+                    <button
+                        type="button"
+                        ref={dragHandleRef}
+                        {...(!isEditing ? (dragHandleAttributes ?? {}) : {})}
+                        {...(!isEditing ? (dragHandleListeners ?? {}) : {})}
+                        className={`${styles.dragHandle} ${styles.iconBtn}`}
+                        title="Drag to reorder"
+                        aria-label={`Drag to reorder folder ${folder.name}`}
+                        disabled={!!isEditing}
+                        aria-disabled={!!isEditing}
+                    >
+                        ⋮⋮
+                    </button>
+                ) : null}
+
                 <button
                     type="button"
                     className={styles.iconBtn}
-                    onClick={onStartRename}
-                    title={`Rename folder ${folder.name}`}
-                    aria-label={`Rename folder ${folder.name}`}
+                    onClick={onToggleCollapse}
+                    disabled={!!isToggleDisabled}
+                    aria-disabled={!!isToggleDisabled}
+                    title={isCollapsed ? "Expand folder" : "Collapse folder"}
+                    aria-label={`${isCollapsed ? "Expand" : "Collapse"} folder ${folder.name}`}
                 >
-                    <IoMdCreate />
+                    {isCollapsed ? <IoMdArrowDropdown /> : <IoMdArrowDropleft />}
                 </button>
-            ) : null}
 
-            {onRemove ? (
-                <button
-                    type="button"
-                    className={`${styles.iconBtn} ${styles.deleteBtn}`}
-                    onClick={onRemove}
-                    title={`Remove folder ${folder.name}`}
-                    aria-label={`Remove folder ${folder.name}`}
-                >
-                    <FaTrash />
-                </button>
-            ) : null}
-            <button
-                type="button"
-                className={styles.iconBtn}
-                onClick={onToggleCollapse}
-                disabled={!!isToggleDisabled}
-                aria-disabled={!!isToggleDisabled}
-                title={isCollapsed ? "Expand folder" : "Collapse folder"}
-                aria-label={`${isCollapsed ? "Expand" : "Collapse"} folder ${folder.name}`}
-            >
-                {isCollapsed ? <IoMdArrowDropdown /> : <IoMdArrowDropleft />}
-            </button>
+                {onRemove ? (
+                    <button
+                        type="button"
+                        className={`${styles.iconBtn} ${styles.deleteBtn}`}
+                        onClick={onRemove}
+                        title={`Remove folder ${folder.name}`}
+                        aria-label={`Remove folder ${folder.name}`}
+                    >
+                        <FaTrash />
+                    </button>
+                ) : null}
+            </div>
+
         </div>
     );
 }
