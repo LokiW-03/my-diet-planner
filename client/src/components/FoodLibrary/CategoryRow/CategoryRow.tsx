@@ -1,6 +1,7 @@
 "use client";
 
 import { IoMdArrowDropdown, IoMdArrowDropleft, IoMdCreate } from "react-icons/io";
+import { MdCategory } from "react-icons/md";
 import { FaTrash } from "react-icons/fa";
 import { useEffect, useRef } from "react";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
@@ -78,6 +79,7 @@ export function CategoryRow({
         >
             <div className={styles.headerRow}>
                 <div className={styles.categoryName}>
+                    <MdCategory />
                     {isSelecting && (
                         <input
                             ref={selectAllRef}
