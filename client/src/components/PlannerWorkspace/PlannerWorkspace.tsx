@@ -124,11 +124,15 @@ export default function PlannerWorkspace({
                     <FoodLibrary
                         foods={foods}
                         categories={categories}
+                        mealDefs={mealDefs}
                         onAdd={foodLibraryActions.openAdd}
                         onEdit={foodLibraryActions.openEdit}
                         onRenameCategory={foodLibraryActions.renameCategory}
                         onAddCategory={foodLibraryActions.addCategory}
                         onRemoveCategory={foodLibraryActions.removeCategory}
+                        onChangeFoodCategory={foodLibraryActions.changeFoodCategory}
+                        onAddEntryToMeal={dndActions.addEntryToMeal}
+                        onRemoveFood={foodLibraryActions.removeFoodAndEntries}
                     />
                 </div>
             </div>
@@ -322,6 +326,7 @@ type PlannerWorkspaceProps = {
         addCategory: (category: Omit<FoodCategory, "id">) => CategoryId;
         removeCategory: (categoryId: CategoryId) => void;
         changeFoodCategory: (foodId: FoodId, categoryId: CategoryId) => void;
+        removeFoodAndEntries: (foodId: FoodId) => void;
     };
     dndActions: {
         reorderMealPanels: (nextOrder: MealId[]) => void;

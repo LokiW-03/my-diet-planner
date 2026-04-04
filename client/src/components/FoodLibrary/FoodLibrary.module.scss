@@ -80,6 +80,12 @@
     gap: 8px;
 }
 
+.categorySelectAllCheckbox,
+.chipCheckbox {
+    cursor: pointer;
+    accent-color: var(--accent);
+}
+
 .renameInput {
     font: inherit;
     font-weight: 800;
@@ -113,9 +119,11 @@
     cursor: grab;
     color: var(--btn-fg);
     font-weight: 750;
+    font-size: 14px;
 
     display: inline-flex;
     align-items: center;
+    gap: 6px;
     box-sizing: border-box;
     justify-self: center;
     width: 110px;
