@@ -40,6 +40,10 @@
     width: 24px;
     height: 24px;
     padding: 0;
+
+    &:hover {
+        color: var(--card-border);
+    }
 }
 
 .renameInput {
@@ -70,6 +74,10 @@
     justify-content: center;
     padding: 0;
     line-height: 0;
+
+    &:hover {
+        background: var(--btn-hover-bg);
+    }
 }
 
 .mealDragHandle {
@@ -136,6 +144,11 @@
     color: var(--danger-fg);
     cursor: pointer;
     font-weight: 700;
+
+    &:hover {
+        background: var(--danger-fg);
+        color: var(--card-bg);
+    }
 }
 
 .entryBox {
@@ -216,4 +229,10 @@
     padding: 0;
     line-height: 0;
     opacity: 0.7;
+
+    &:hover {
+        color: var(--muted);
+        background-color: var(--foreground);
+        opacity: 1;
+    }
 }
