@@ -2,9 +2,10 @@
 import { FaSearch, FaTrash } from "react-icons/fa";
 import { BiSolidSelectMultiple } from "react-icons/bi";
 import { IoMdAddCircle } from "react-icons/io";
+import { FaFolderPlus } from "react-icons/fa6";
 import { MdCancel } from "react-icons/md";
 import type { CategoryId, MealId } from "@/shared/models";
-import { FoodLibBulkSelect } from "./FoodLibBulkSelect";
+import { FoodLibBulkSelect } from "./BulkSelect/FoodLibBulkSelect";
 import styles from "./FoodLibraryToolBar.module.scss";
 
 export function FoodLibraryToolBar({
@@ -14,6 +15,7 @@ export function FoodLibraryToolBar({
     hasSelection,
     onToggleSelectMode,
     onAddCategory,
+    onAddFolder,
     categories,
     mealPanels,
     onBulkMoveToCategory,
@@ -43,6 +45,14 @@ export function FoodLibraryToolBar({
                         title="Add new category"
                     >
                         <IoMdAddCircle />
+                    </button>
+                    <button
+                        type="button"
+                        className={styles.selectBtn}
+                        onClick={onAddFolder}
+                        title="Add new folder"
+                    >
+                        <FaFolderPlus />
                     </button>
                     <button
                         type="button"
@@ -115,6 +125,7 @@ type FoodLibraryToolBarProps = {
     hasSelection: boolean;
     onToggleSelectMode: () => void;
     onAddCategory: () => void;
+    onAddFolder: () => void;
     categories: { id: CategoryId; name: string }[];
     mealPanels: { id: MealId; name: string }[];
     onBulkMoveToCategory: (categoryId: CategoryId) => void;

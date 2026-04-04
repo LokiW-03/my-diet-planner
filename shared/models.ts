@@ -4,6 +4,7 @@ export type TargetId = string & { readonly __brand: "TargetId" };
 export type CategoryId = string & { readonly __brand: "CategoryId" };
 export type UserId = string & { readonly __brand: "UserId" };
 export type ProfileId = string & { readonly __brand: "ProfileId" };
+export type FolderId = string & { readonly __brand: "FolderId" };
 
 export const UNITS = ["g", "pc"] as const;
 export type Unit = (typeof UNITS)[number];
@@ -40,6 +41,7 @@ export type UserProfile = {
   weightKg: number;
   targets: Record<TargetId, Target>;
   meals: Record<MealId, MealDefinition>;
+  folders: Record<FolderId, CategoryFolder>;
   categories: Record<CategoryId, FoodCategory>;
   foods: Record<FoodId, FoodItem>;
 };
@@ -53,6 +55,15 @@ export type Target = {
 
 export type FoodCategory = {
   id: CategoryId;
+  profileId: ProfileId;
+  name: string;
+  order: number;
+  enabled: boolean;
+  folderId: FolderId | null;
+};
+
+export type CategoryFolder = {
+  id: FolderId;
   profileId: ProfileId;
   name: string;
   order: number;

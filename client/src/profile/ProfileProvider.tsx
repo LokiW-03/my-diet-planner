@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useCallback, useEffect, useMemo, useState } from "react";
-import type { CategoryId, FoodCategory, FoodId, FoodItem, MealDefinition, MealId, Target, TargetId, UserProfile } from "@/shared/models";
+import type { CategoryFolder, CategoryId, FoodCategory, FoodId, FoodItem, FolderId, MealDefinition, MealId, Target, TargetId, UserProfile } from "@/shared/models";
 import { defaultUserProfile, getInitialProfile, UNKNOWN_CATEGORY_ID } from "@/shared/defaults";
 import { uid } from "@/shared/utils";
 
@@ -46,6 +46,12 @@ export type ProfileContextValue = {
     addCategory: (category: Omit<FoodCategory, "id">) => CategoryId;
     removeCategory: (categoryId: CategoryId) => void;
     reorderCategories: (categoryIds: CategoryId[]) => void;
+
+    // CRUD for category folders (local cache)
+    updateFolder: (folderId: FolderId, patch: Partial<Omit<CategoryFolder, "id" | "profileId">>) => void;
+    addFolder: (folder: Omit<CategoryFolder, "id">) => FolderId;
+    removeFolder: (folderId: FolderId) => void;
+    reorderFolders: (folderIds: FolderId[]) => void;
 };
 
 export const ProfileContext = createContext<ProfileContextValue | null>(null);
@@ -164,6 +170,62 @@ export function ProfileProvider({
         });
     }, []);
 
+    const updateFolder = useCallback((folderId: FolderId, patch: Partial<Omit<CategoryFolder, "id" | "profileId">>) => {
+        setProfile((p) => ({
+            ...p,
+            folders: {
+                ...p.folders,
+                [folderId]: { ...p.folders[folderId], ...patch },
+            },
+        }));
+    }, []);
+
+    const addFolder = useCallback((folder: Omit<CategoryFolder, "id">): FolderId => {
+        const id = uid("folder") as unknown as FolderId;
+        setProfile((p) => ({
+            ...p,
+            folders: {
+                ...p.folders,
+                [id]: { ...folder, id },
+            },
+        }));
+        return id;
+    }, []);
+
+    const removeFolder = useCallback((folderId: FolderId) => {
+        setProfile((p) => {
+            const { [folderId]: removed, ...restFolders } = p.folders;
+            void removed;
+
+            const updatedCategories: UserProfile["categories"] = Object.fromEntries(
+                Object.entries(p.categories).map(([id, c]) => {
+                    if (c.folderId === folderId) {
+                        return [id, { ...c, folderId: null }];
+                    }
+                    return [id, c];
+                }),
+            ) as UserProfile["categories"];
+
+            return {
+                ...p,
+                folders: restFolders as UserProfile["folders"],
+                categories: updatedCategories,
+            };
+        });
+    }, []);
+
+    const reorderFolders = useCallback((folderIds: FolderId[]) => {
+        setProfile((p) => {
+            const updated = { ...p.folders };
+            folderIds.forEach((id, index) => {
+                if (updated[id]) {
+                    updated[id] = { ...updated[id], order: index };
+                }
+            });
+            return { ...p, folders: updated };
+        });
+    }, []);
+
     const addTarget = useCallback((target: Omit<Target, "id">): TargetId => {
         const id = uid("target") as TargetId;
         setProfile((p) => ({ ...p, targets: { ...p.targets, [id]: { ...target, id } } }));
@@ -250,6 +312,10 @@ export function ProfileProvider({
             addCategory,
             removeCategory,
             reorderCategories,
+            updateFolder,
+            addFolder,
+            removeFolder,
+            reorderFolders,
         }),
         [
             profile,
@@ -272,6 +338,10 @@ export function ProfileProvider({
             addCategory,
             removeCategory,
             reorderCategories,
+            updateFolder,
+            addFolder,
+            removeFolder,
+            reorderFolders,
         ]
     );
 
@@ -294,6 +364,7 @@ function ensureUnknownCategory(
             name: "Unknown",
             order: Infinity,
             enabled: true,
+            folderId: null,
         },
     };
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
-import type { CategoryId, FoodCategory } from "@/shared/models";
+import type { CategoryId, FoodCategory, FolderId } from "@/shared/models";
 
 export function useCategory({
   updateCategory,
@@ -18,10 +18,18 @@ export function useCategory({
     [updateCategory],
   );
 
+  const setCategoryFolder = useCallback(
+    (categoryId: CategoryId, folderId: FolderId | null) => {
+      updateCategory(categoryId, { folderId });
+    },
+    [updateCategory],
+  );
+
   return {
     ui: {},
     actions: {
       renameCategory,
+      setCategoryFolder,
       addCategory,
       removeCategory,
       reorderCategories,
