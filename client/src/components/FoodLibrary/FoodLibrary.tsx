@@ -8,6 +8,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { IoMdArrowDropdown, IoMdArrowDropleft, IoMdCreate, IoMdTrash } from "react-icons/io";
 import { UNKNOWN_CATEGORY_ID, defaultProfileId } from "@/shared/defaults";
 import { getVisibleCategories } from "@/client/src/utils/getVisibleCategories";
+import { FoodLibraryToolBar } from "./FoodLibraryToolBar";
 import styles from "./FoodLibrary.module.scss";
 
 
@@ -20,20 +21,29 @@ export function FoodLibrary({
     onAddCategory,
     onRemoveCategory,
 }: FoodLibraryProps) {
+
+    const [search, setSearch] = useState("");
+
+    const filteredFoods = useMemo(() => {
+        const q = search.trim().toLowerCase();
+        if (!q) return foods;
+        return foods.filter((f) => f.name.toLowerCase().includes(q));
+    }, [foods, search]);
+
     const visibleCats = useMemo(
-        () => getVisibleCategories(categories, foods),
-        [categories, foods],
+        () => getVisibleCategories(categories, filteredFoods),
+        [categories, filteredFoods],
     );
 
     const grouped = useMemo(() => {
         const map = new Map<CategoryId, FoodItem[]>();
         for (const c of visibleCats) map.set(c.id, []);
-        for (const f of foods) {
+        for (const f of filteredFoods) {
             const bucket = map.get(f.categoryId);
             if (bucket) bucket.push(f);
         }
         return map;
-    }, [foods, visibleCats]);
+    }, [filteredFoods, visibleCats]);
 
     const [collapsedCats, setCollapsedCats] = useState<Record<string, boolean>>({});
     const [editingCatId, setEditingCatId] = useState<CategoryId | null>(null);
@@ -70,6 +80,7 @@ export function FoodLibrary({
 
     return (
         <div className={styles.panel}>
+            <FoodLibraryToolBar search={search} onSearchChange={setSearch} />
             <SortableContext items={sortableIds} strategy={rectSortingStrategy}>
                 {visibleCats.map((cat) => (
                     <CategoryRow

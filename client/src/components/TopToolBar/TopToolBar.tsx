@@ -6,20 +6,6 @@ import type { Target, TargetId } from "@/shared/models";
 import { TargetSelect } from "./TargetSelect";
 import styles from "./TopToolBar.module.scss";
 
-type TopToolBarProps = {
-    showProfile: boolean;
-    onToggleProfile: () => void;
-
-    onEditTargets: () => void;
-
-    targets: Target[];
-    dayType: TargetId;
-    onDayTypeChange: (next: TargetId) => void;
-
-    onSaveDefaults: () => void;
-    onReset: () => void;
-};
-
 export function TopToolBar({
     showProfile,
     onToggleProfile,
@@ -91,3 +77,17 @@ export function TopToolBar({
         </div>
     );
 }
+
+type TopToolBarProps = {
+    showProfile: boolean;
+    onToggleProfile: () => void;
+
+    onEditTargets: () => void;
+
+    targets: Target[];
+    dayType: TargetId;
+    onDayTypeChange: (next: TargetId) => void;
+
+    onSaveDefaults: () => void;
+    onReset: () => void;
+};
