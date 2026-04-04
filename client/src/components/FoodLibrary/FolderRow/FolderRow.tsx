@@ -112,6 +112,11 @@ export function FolderRow({
                 <button
                     type="button"
                     className={styles.iconBtn}
+                    onPointerDown={() => {
+                        if (!isEditing) return;
+                        cancelRenameOnBlurRef.current = true;
+                        onCancelRename?.();
+                    }}
                     onClick={onToggleCollapse}
                     disabled={!!isToggleDisabled}
                     aria-disabled={!!isToggleDisabled}
@@ -125,6 +130,11 @@ export function FolderRow({
                     <button
                         type="button"
                         className={`${styles.iconBtn} ${styles.deleteBtn}`}
+                        onPointerDown={() => {
+                            if (!isEditing) return;
+                            cancelRenameOnBlurRef.current = true;
+                            onCancelRename?.();
+                        }}
                         onClick={onRemove}
                         title={`Remove folder ${folder.name}`}
                         aria-label={`Remove folder ${folder.name}`}

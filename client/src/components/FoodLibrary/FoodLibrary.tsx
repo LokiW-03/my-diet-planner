@@ -21,7 +21,7 @@ import {
     verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { defaultProfileId } from "@/shared/defaults";
+import { defaultProfileId, UNKNOWN_CATEGORY_ID } from "@/shared/defaults";
 import { getFoodLibraryGroups } from "@/client/src/utils/getFoodLibraryGroups";
 import { FoodLibraryToolBar } from "./FoodLibraryToolBar/FoodLibraryToolBar";
 import { useFoodSelection } from "./useFoodSelection";
@@ -159,12 +159,17 @@ export function FoodLibrary({
             Object.values(categories)[0]?.profileId ??
             (defaultProfileId("local") as ProfileId);
 
+        const finiteOrders = Object.values(categories)
+            .filter((c) => c.id !== UNKNOWN_CATEGORY_ID)
+            .map((c) => c.order)
+            .filter((n) => Number.isFinite(n));
+
+        const nextOrder = (finiteOrders.length ? Math.max(...finiteOrders) : -1) + 1;
+
         const newCatId = onAddCategory({
             name: initialName,
             profileId: existingProfileId,
-            order:
-                Math.max(0, ...Object.values(categories).map((c) => c.order)) +
-                1,
+            order: Math.max(0, nextOrder),
             enabled: true,
             folderId: null,
         });

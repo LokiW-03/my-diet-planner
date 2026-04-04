@@ -171,13 +171,18 @@ export function ProfileProvider({
     }, []);
 
     const updateFolder = useCallback((folderId: FolderId, patch: Partial<Omit<CategoryFolder, "id" | "profileId">>) => {
-        setProfile((p) => ({
-            ...p,
-            folders: {
-                ...p.folders,
-                [folderId]: { ...p.folders[folderId], ...patch },
-            },
-        }));
+        setProfile((p) => {
+            const existing = p.folders[folderId];
+            if (!existing) return p;
+
+            return {
+                ...p,
+                folders: {
+                    ...p.folders,
+                    [folderId]: { ...existing, ...patch },
+                },
+            };
+        });
     }, []);
 
     const addFolder = useCallback((folder: Omit<CategoryFolder, "id">): FolderId => {
