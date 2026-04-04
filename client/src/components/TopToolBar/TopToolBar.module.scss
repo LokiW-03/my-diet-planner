@@ -54,29 +54,3 @@ $control-h: 44px;
         transform: translateX(2px);
     }
 }
-
-.selectWrap {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-}
-
-.selectArrow {
-    position: absolute;
-    right: 14px;
-    pointer-events: none;
-    color: var(--background);
-}
-
-.daySelect {
-    padding: 0 46px 0 18px;
-    border-radius: 12px;
-    border: 1px solid var(--btn-border);
-    background: var(--card-bg);
-    color: var(--background);
-    font-weight: 900;
-    height: $control-h;
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-}

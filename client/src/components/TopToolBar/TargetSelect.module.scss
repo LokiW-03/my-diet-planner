@@ -1,0 +1,73 @@
+$control-h: 44px;
+
+.TargetSelect {
+    position: relative;
+    display: inline-block;
+    width: 150px;
+}
+
+.TargetSelectButton {
+    height: 44px;
+    padding: 0 24px 0 18px;
+    border-radius: 12px;
+    border: 1px solid var(--btn-border);
+    background: var(--card-bg);
+    color: var(--background);
+    font-weight: 900;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    width: 100%;
+
+    &:hover {
+        background: var(--btn-bg);
+        color: var(--btn-fg);
+    }
+}
+
+.TargetSelectArrow {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+.TargetSelectMenu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 4px;
+    width: 100%;
+    background: var(--card-bg);
+    border-radius: 12px;
+    border: 1px solid var(--btn-border);
+    padding: 0;
+    overflow: hidden;
+    z-index: 10;
+}
+
+.TargetSelectOption {
+    display: block;
+    width: 100%;
+    padding: 6px 14px;
+    text-align: center;
+    background: transparent;
+    border: none;
+    color: var(--background);
+    font: inherit;
+    font-weight: 800;
+    cursor: pointer;
+
+    &:hover {
+        background: var(--muted);
+        color: var(--foreground);
+    }
+}
+
+.TargetSelectOptionSelected {
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+}

@@ -2,8 +2,8 @@
 
 import { FaUserCircle, FaEdit, FaSave } from "react-icons/fa";
 import { FaRotateRight } from "react-icons/fa6";
-import { FiChevronDown } from "react-icons/fi";
 import type { Target, TargetId } from "@/shared/models";
+import { TargetSelect } from "./TargetSelect";
 import styles from "./TopToolBar.module.scss";
 
 type TopToolBarProps = {
@@ -50,28 +50,17 @@ export function TopToolBar({
                     <>
                         <div className={styles.groupLabel}>Target:</div>
 
-                        <div className={styles.selectWrap}>
-                            <select
-                                aria-label="Target"
-                                className={styles.daySelect}
-                                value={dayType}
-                                onChange={(e) => {
-                                    const next = targets.find(
-                                        (t) => String(t.id) === e.target.value,
-                                    );
-                                    if (next) onDayTypeChange(next.id);
-                                }}
-                            >
-                                {targets.map((t) => (
-                                    <option key={String(t.id)} value={String(t.id)}>
-                                        {t.name}
-                                    </option>
-                                ))}
-                            </select>
-                            <span className={styles.selectArrow} aria-hidden="true">
-                                <FiChevronDown size={22} />
-                            </span>
-                        </div>
+                        <TargetSelect
+                            value={String(dayType)}
+                            onChange={(val) => {
+                                const next = targets.find((t) => String(t.id) === val);
+                                if (next) onDayTypeChange(next.id);
+                            }}
+                            options={targets.map((t) => ({
+                                value: String(t.id),
+                                label: t.name,
+                            }))}
+                        />
                     </>
                 )}
                 <button
