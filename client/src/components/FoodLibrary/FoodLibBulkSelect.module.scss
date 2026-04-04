@@ -1,0 +1,80 @@
+.BulkSelect {
+    position: relative;
+    display: inline-block;
+    width: 120px;
+}
+
+.BulkSelectButton {
+    height: 26px;
+    padding: 0 22px 0 10px;
+    border-radius: 10px;
+    border: 1px solid var(--card-border);
+    background: var(--background);
+    color: var(--foreground);
+    font-size: 12px;
+    font-weight: 600;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    width: 100%;
+
+    cursor: pointer;
+    white-space: nowrap;
+
+    &:hover {
+        background: var(--card-bg);
+        color: var(--accent);
+    }
+}
+
+.BulkSelectLabel {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.BulkSelectArrow {
+    position: absolute;
+    right: 3px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+.BulkSelectMenu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 4px;
+    width: 100%;
+    background: var(--card-bg);
+    border-radius: 10px;
+    border: 1px solid var(--card-border);
+    padding: 0;
+    overflow: hidden;
+    z-index: 10;
+}
+
+.BulkSelectOption {
+    display: block;
+    width: 100%;
+    padding: 6px 12px;
+    text-align: center;
+    border: none;
+    background: var(--background);
+    color: var(--foreground);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+
+    &:hover {
+        color: var(--background);
+        background: var(--foreground);
+    }
+}
+
+.BulkSelectOptionSelected {
+    color: var(--background);
+    background: var(--foreground);
+}

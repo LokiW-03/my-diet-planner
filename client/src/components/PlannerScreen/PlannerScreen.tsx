@@ -58,6 +58,7 @@ export default function PlannerScreen() {
                         addCategory: actions.addCategory,
                         removeCategory: actions.removeCategory,
                         changeFoodCategory: actions.changeFoodCategory,
+                        removeFoodAndEntries: actions.removeFoodAndEntries,
                     }}
                     dndActions={{
                         reorderMealPanels: actions.setMealPanelOrder,

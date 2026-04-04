@@ -1,25 +1,39 @@
 "use client";
 
-import { useRef, useMemo, useState, useCallback } from "react";
-import type { CategoryId, FoodCategory, FoodItem, ProfileId } from "@/shared/models";
+import { useRef, useMemo, useState, useCallback, useEffect } from "react";
+import type {
+    CategoryId,
+    FoodCategory,
+    FoodItem,
+    FoodId,
+    MealDefinition,
+    MealId,
+    ProfileId,
+} from "@/shared/models";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { SortableContext, rectSortingStrategy, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { IoMdArrowDropdown, IoMdArrowDropleft, IoMdCreate, IoMdTrash } from "react-icons/io";
+import { IoMdArrowDropdown, IoMdArrowDropleft, IoMdCreate } from "react-icons/io";
+import { FaTrash } from "react-icons/fa";
 import { UNKNOWN_CATEGORY_ID, defaultProfileId } from "@/shared/defaults";
 import { getVisibleCategories } from "@/client/src/utils/getVisibleCategories";
 import { FoodLibraryToolBar } from "./FoodLibraryToolBar";
+import { useFoodSelection } from "./useFoodSelection";
 import styles from "./FoodLibrary.module.scss";
 
 
 export function FoodLibrary({
     foods,
     categories,
+    mealDefs,
     onAdd,
     onEdit,
     onRenameCategory,
     onAddCategory,
     onRemoveCategory,
+    onChangeFoodCategory,
+    onAddEntryToMeal,
+    onRemoveFood,
 }: FoodLibraryProps) {
 
     const [search, setSearch] = useState("");
@@ -78,9 +92,38 @@ export function FoodLibrary({
 
     const sortableIds = visibleCats.map((c) => `cat:${String(c.id)}`);
 
+    const {
+        isSelectMode,
+        selectedFoodIds,
+        toggleSelectMode,
+        toggleFoodSelected,
+        toggleSelectAllForCategory,
+        enabledCategories,
+        enabledMealPanels,
+        handleBulkMoveToCategory,
+        handleBulkAddToMeal,
+        handleBulkRemoveSelected,
+    } = useFoodSelection({
+        categories,
+        mealDefs,
+        onChangeFoodCategory,
+        onAddEntryToMeal,
+        onRemoveFood,
+    });
+
     return (
         <div className={styles.panel}>
-            <FoodLibraryToolBar search={search} onSearchChange={setSearch} />
+            <FoodLibraryToolBar
+                search={search}
+                onSearchChange={setSearch}
+                isSelecting={isSelectMode}
+                onToggleSelectMode={toggleSelectMode}
+                categories={enabledCategories}
+                mealPanels={enabledMealPanels}
+                onBulkMoveToCategory={handleBulkMoveToCategory}
+                onBulkAddToMealPanel={handleBulkAddToMeal}
+                onBulkRemoveSelected={handleBulkRemoveSelected}
+            />
             <SortableContext items={sortableIds} strategy={rectSortingStrategy}>
                 {visibleCats.map((cat) => (
                     <CategoryRow
@@ -98,6 +141,23 @@ export function FoodLibrary({
                         onAdd={onAdd}
                         onEdit={onEdit}
                         onRemove={onRemoveCategory}
+                        isSelecting={isSelectMode}
+                        selectedFoodIds={selectedFoodIds}
+                        onToggleFoodSelected={toggleFoodSelected}
+                        onToggleSelectAll={() =>
+                            toggleSelectAllForCategory(grouped.get(cat.id) ?? [])
+                        }
+                        isCategoryAllSelected={
+                            (grouped.get(cat.id) ?? []).length > 0 &&
+                            (grouped.get(cat.id) ?? []).every((f) =>
+                                selectedFoodIds.has(f.id),
+                            )
+                        }
+                        isCategoryPartiallySelected={
+                            (grouped.get(cat.id) ?? []).some((f) =>
+                                selectedFoodIds.has(f.id),
+                            )
+                        }
                     />
                 ))}
             </SortableContext>
@@ -142,9 +202,16 @@ function CategoryRow({
     onAdd,
     onEdit,
     onRemove,
+    isSelecting,
+    selectedFoodIds,
+    onToggleFoodSelected,
+    onToggleSelectAll,
+    isCategoryAllSelected,
+    isCategoryPartiallySelected,
 }: CategoryRowProps) {
     const catKey = String(category.id);
     const cancelRenameOnBlurRef = useRef(false);
+    const selectAllRef = useRef<HTMLInputElement | null>(null);
 
     const { setNodeRef: setDropRef, isOver } = useDroppable({ id: `drop:cat:${catKey}` });
 
@@ -157,6 +224,13 @@ function CategoryRow({
         transition,
         isDragging,
     } = useSortable({ id: `cat:${catKey}` });
+
+    useEffect(() => {
+        if (selectAllRef.current) {
+            selectAllRef.current.indeterminate =
+                !isCollapsed && isSelecting && !isCategoryAllSelected && isCategoryPartiallySelected;
+        }
+    }, [isCollapsed, isSelecting, isCategoryAllSelected, isCategoryPartiallySelected]);
 
     const baseTransform = CSS.Transform.toString(transform);
     const animatedTransform = baseTransform ? `${baseTransform}${isDragging ? " scale(1.01)" : ""}` : undefined;
@@ -182,6 +256,17 @@ function CategoryRow({
         >
             <div className={styles.headerRow}>
                 <div className={styles.categoryName}>
+                    {isSelecting && (
+                        <input
+                            ref={selectAllRef}
+                            type="checkbox"
+                            className={styles.categorySelectAllCheckbox}
+                            checked={isCategoryAllSelected}
+                            onChange={onToggleSelectAll}
+                            disabled={items.length === 0}
+                            title="Select all foods in this category"
+                        />
+                    )}
                     {isEditing ? (
                         <input
                             className={styles.renameInput}
@@ -269,7 +354,7 @@ function CategoryRow({
                             title={`Remove ${category.name}`}
                             aria-label={`Remove ${category.name}`}
                         >
-                            <IoMdTrash />
+                            <FaTrash />
                         </button>
                     )}
                 </div>
@@ -277,7 +362,14 @@ function CategoryRow({
             {!isCollapsed && (
                 <div className={styles.chipWrap}>
                     {items.map((f) => (
-                        <FoodChip key={String(f.id)} food={f} onClick={() => onEdit(f)} />
+                        <FoodChip
+                            key={String(f.id)}
+                            food={f}
+                            onClick={() => onEdit(f)}
+                            isSelecting={isSelecting}
+                            isSelected={selectedFoodIds.has(f.id)}
+                            onToggleSelect={() => onToggleFoodSelected(f.id)}
+                        />
                     ))}
                 </div>
             )}
@@ -287,16 +379,31 @@ function CategoryRow({
 }
 
 
-function FoodChip({ food, onClick }: { food: FoodItem; onClick: () => void }) {
+function FoodChip({
+    food,
+    onClick,
+    isSelecting,
+    isSelected,
+    onToggleSelect,
+}: {
+    food: FoodItem;
+    onClick: () => void;
+    isSelecting: boolean;
+    isSelected: boolean;
+    onToggleSelect: () => void;
+}) {
     const id = `lib:${food.id}`;
-    const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id });
+    const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+        id,
+        disabled: isSelecting,
+    });
 
     return (
         <button
             ref={setNodeRef}
-            {...listeners}
-            {...attributes}
-            onClick={onClick}
+            {...(!isSelecting ? listeners : {})}
+            {...(!isSelecting ? attributes : {})}
+            onClick={isSelecting ? onToggleSelect : onClick}
             title={`${food.name}.\nDrag into a meal box. Click to edit.`}
             className={styles.chip}
             style={{
@@ -304,6 +411,19 @@ function FoodChip({ food, onClick }: { food: FoodItem; onClick: () => void }) {
                 transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
             }}
         >
+            {isSelecting && (
+                <input
+                    type="checkbox"
+                    className={styles.chipCheckbox}
+                    checked={isSelected}
+                    onChange={(e) => {
+                        e.stopPropagation();
+                        onToggleSelect();
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                    aria-label={`Select ${food.name}`}
+                />
+            )}
             <span className={styles.chipText}>{food.name}</span>
         </button>
     );
@@ -312,11 +432,15 @@ function FoodChip({ food, onClick }: { food: FoodItem; onClick: () => void }) {
 type FoodLibraryProps = {
     foods: FoodItem[];
     categories: Record<CategoryId, FoodCategory>;
+    mealDefs: MealDefinition[];
     onAdd: (categoryId: CategoryId) => void;
     onEdit: (food: FoodItem) => void;
     onRenameCategory: (categoryId: CategoryId, name: string) => void;
     onAddCategory: (category: Omit<FoodCategory, "id">) => CategoryId;
     onRemoveCategory: (categoryId: CategoryId) => void;
+    onChangeFoodCategory: (foodId: FoodId, categoryId: CategoryId) => void;
+    onAddEntryToMeal: (mealId: MealId, foodId: FoodId) => void;
+    onRemoveFood: (foodId: FoodId) => void;
 }
 
 type CategoryRowProps = {
@@ -333,6 +457,12 @@ type CategoryRowProps = {
     onAdd: (categoryId: CategoryId) => void;
     onEdit: (food: FoodItem) => void;
     onRemove: (categoryId: CategoryId) => void;
+    isSelecting: boolean;
+    selectedFoodIds: Set<FoodItem["id"]>;
+    onToggleFoodSelected: (foodId: FoodItem["id"]) => void;
+    onToggleSelectAll: () => void;
+    isCategoryAllSelected: boolean;
+    isCategoryPartiallySelected: boolean;
 }
 
 

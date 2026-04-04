@@ -4,7 +4,7 @@ import { useState } from "react";
 import { FiChevronDown } from "react-icons/fi";
 import styles from "./TargetSelect.module.scss";
 
-export function TargetSelect({ value, onChange, options }: TargetSelectProps) {
+export function TargetSelect({ value, onChange, options, placeholder }: TargetSelectProps) {
     const [open, setOpen] = useState(false);
     const selected = options.find((o) => o.value === value);
 
@@ -16,7 +16,7 @@ export function TargetSelect({ value, onChange, options }: TargetSelectProps) {
                 onClick={() => setOpen((o) => !o)}
             >
                 <span className={styles.TargetSelectLabel}>
-                    {selected?.label ?? "Select…"}
+                    {selected?.label ?? placeholder ?? "Select…"}
                 </span>
                 <FiChevronDown className={styles.TargetSelectArrow} size={22} />
             </button>
@@ -54,6 +54,7 @@ type TargetSelectProps = {
     value: string;
     onChange: (value: string) => void;
     options: Option[];
+    placeholder?: string;
 };
 
 type Option = { value: string; label: string };
