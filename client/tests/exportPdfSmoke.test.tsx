@@ -16,11 +16,37 @@ import { pdf } from "@react-pdf/renderer";
 import { renderPlannerHarness } from "@/client/tests/testUtils/renderPlannerHarness";
 import { resetPlannerStoreForTest } from "@/client/tests/testUtils/resetPlannerStoreForTest";
 
+const PROFILE_STORAGE_KEY = "diet_planner:userProfile:v1";
+const PLANNER_STORAGE_KEY = "diet-planner-v2";
+
+type URLLike = typeof URL & {
+    createObjectURL?: (obj: Blob) => string;
+    revokeObjectURL?: (url: string) => void;
+};
+
+const urlStatic = URL as URLLike;
+let originalCreateObjectURL: URLLike["createObjectURL"];
+let originalRevokeObjectURL: URLLike["revokeObjectURL"];
+
 beforeEach(() => {
     resetPlannerStoreForTest();
+
+    // This test renders ProfileProvider (via renderPlannerHarness) which writes to localStorage.
+    // Keep localStorage isolated across tests.
+    window.localStorage.removeItem(PROFILE_STORAGE_KEY);
+    window.localStorage.removeItem(PLANNER_STORAGE_KEY);
+
+    originalCreateObjectURL = urlStatic.createObjectURL;
+    originalRevokeObjectURL = urlStatic.revokeObjectURL;
 });
 
 afterEach(() => {
+    urlStatic.createObjectURL = originalCreateObjectURL;
+    urlStatic.revokeObjectURL = originalRevokeObjectURL;
+
+    window.localStorage.removeItem(PROFILE_STORAGE_KEY);
+    window.localStorage.removeItem(PLANNER_STORAGE_KEY);
+
     cleanup();
     vi.restoreAllMocks();
 });
@@ -33,15 +59,6 @@ describe("Export PDF (smoke)", () => {
         type PdfFn = typeof pdf;
         type PdfInstance = ReturnType<PdfFn>;
         pdfMock.mockReturnValue({ toBlob: toBlobMock } as unknown as PdfInstance);
-
-        type URLLike = typeof URL & {
-            createObjectURL?: (obj: Blob) => string;
-            revokeObjectURL?: (url: string) => void;
-        };
-
-        const urlStatic = URL as URLLike;
-        const originalCreateObjectURL = urlStatic.createObjectURL;
-        const originalRevokeObjectURL = urlStatic.revokeObjectURL;
 
         const createObjectURLMock = vi.fn<(obj: Blob) => string>().mockReturnValue("blob:mock");
         const revokeObjectURLMock = vi.fn<(url: string) => void>();
@@ -61,8 +78,5 @@ describe("Export PDF (smoke)", () => {
         await waitFor(() => expect(createObjectURLMock).toHaveBeenCalledTimes(1));
         await waitFor(() => expect(anchorClickSpy).toHaveBeenCalledTimes(1));
         await waitFor(() => expect(revokeObjectURLMock).toHaveBeenCalledTimes(1));
-
-        urlStatic.createObjectURL = originalCreateObjectURL;
-        urlStatic.revokeObjectURL = originalRevokeObjectURL;
     });
 });

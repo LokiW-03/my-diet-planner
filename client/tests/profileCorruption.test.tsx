@@ -24,6 +24,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+    window.localStorage.removeItem(PROFILE_STORAGE_KEY);
     cleanup();
     vi.restoreAllMocks();
 });
