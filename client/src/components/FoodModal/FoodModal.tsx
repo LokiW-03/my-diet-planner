@@ -66,13 +66,19 @@ export function FoodModal({
             }
         >
             <div className={styles.row}>
-                <label className={styles.label}>Name</label>
-                <input className={styles.input} value={name} onChange={(e) => onChangeName(e.target.value)} />
+                <label className={styles.label} htmlFor="foodModalName">Name</label>
+                <input
+                    id="foodModalName"
+                    className={styles.input}
+                    value={name}
+                    onChange={(e) => onChangeName(e.target.value)}
+                />
             </div>
 
             <div className={styles.row}>
-                <label className={styles.label}>Category</label>
+                <label className={styles.label} htmlFor="foodModalCategory">Category</label>
                 <select
+                    id="foodModalCategory"
                     className={styles.input}
                     value={String(categoryId)}
                     onChange={(e) => onChangeCategoryId(e.target.value as unknown as CategoryId)}
@@ -86,8 +92,13 @@ export function FoodModal({
             </div>
 
             <div className={styles.row}>
-                <label className={styles.label}>Unit</label>
-                <select className={styles.input} value={unit} onChange={(e) => onChangeUnit(e.target.value as Unit)}>
+                <label className={styles.label} htmlFor="foodModalUnit">Unit</label>
+                <select
+                    id="foodModalUnit"
+                    className={styles.input}
+                    value={unit}
+                    onChange={(e) => onChangeUnit(e.target.value as Unit)}
+                >
                     {UNITS.map((u) => (
                         <option key={u} value={u}>
                             {u}
@@ -97,8 +108,9 @@ export function FoodModal({
             </div>
 
             <div className={styles.row}>
-                <label className={styles.label}>Kcal per {unit}</label>
+                <label className={styles.label} htmlFor="foodModalKcal">Kcal per {unit}</label>
                 <input
+                    id="foodModalKcal"
                     className={styles.input}
                     type="number"
                     value={kcalPerUnit}
@@ -107,8 +119,9 @@ export function FoodModal({
             </div>
 
             <div className={styles.row}>
-                <label className={styles.label}>Protein per {unit}</label>
+                <label className={styles.label} htmlFor="foodModalProtein">Protein per {unit}</label>
                 <input
+                    id="foodModalProtein"
                     className={styles.input}
                     type="number"
                     value={proteinPerUnit}
@@ -117,8 +130,9 @@ export function FoodModal({
             </div>
 
             <div className={styles.row}>
-                <label className={styles.label}>Default portion ({unit})</label>
+                <label className={styles.label} htmlFor="foodModalDefaultPortion">Default portion ({unit})</label>
                 <input
+                    id="foodModalDefaultPortion"
                     className={styles.input}
                     type="number"
                     value={defaultPortion}
