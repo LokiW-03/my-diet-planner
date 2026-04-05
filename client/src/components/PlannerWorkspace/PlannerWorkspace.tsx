@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useState, type ReactNode } from "react";
 import {
     DndContext,
     closestCenter,
@@ -33,7 +33,8 @@ import { BottomToolBar } from "@/client/src/components/BottomToolBar/BottomToolB
 import { getFoodLibraryGroups } from "@/client/src/utils/getFoodLibraryGroups";
 
 import styles from "./PlannerWorkspace.module.scss";
-import foodStyles from "@/client/src/components/FoodLibrary/FoodLibrary.module.scss";
+import chipStyles from "@/client/src/components/FoodLibrary/CategoryRow/CategoryRow.module.scss";
+import mealStyles from "@/client/src/components/MealBoard/MealBoard.module.scss";
 
 export default function PlannerWorkspace({
     foods,
@@ -191,17 +192,65 @@ export default function PlannerWorkspace({
                 </div>
             </div>
 
-            {activeId?.startsWith("lib:") ? (
-                <DragOverlay dropAnimation={null}>
-                    <button className={foodStyles.chip} style={{ cursor: "grabbing" }}>
-                        <span className={foodStyles.chipText}>
-                            {foods.find((f) => String(f.id) === activeId.slice("lib:".length))?.name ?? ""}
-                        </span>
-                    </button>
+            {activeId?.startsWith("lib:") || activeId?.startsWith("meal:") ? (
+                <DragOverlay dropAnimation={null} zIndex={9999}>
+                    {renderDragOverlayContent(activeId, { foods, meals, mealDefs })}
                 </DragOverlay>
             ) : null}
         </DndContext>
     );
+}
+
+function renderDragOverlayContent(
+    activeId: string,
+    ctx: {
+        foods: FoodItem[];
+        meals: Record<MealId, MealEntry[]>;
+        mealDefs: MealDefinition[];
+    },
+): ReactNode {
+    const { foods, meals, mealDefs } = ctx;
+
+    if (activeId.startsWith("lib:")) {
+        const foodIdKey = activeId.slice("lib:".length);
+        const name = foods.find((f) => String(f.id) === foodIdKey)?.name ?? "";
+
+        return (
+            <button className={chipStyles.chip} style={{ cursor: "grabbing" }}>
+                <span className={chipStyles.chipText}>{name}</span>
+            </button>
+        );
+    }
+
+    if (activeId.startsWith("meal:")) {
+        const rest = activeId.slice("meal:".length);
+        const i = rest.lastIndexOf(":");
+        if (i === -1) return null;
+
+        const mealKey = rest.slice(0, i);
+        const entryId = rest.slice(i + 1);
+
+        const mealId = mealDefs.find((m) => String(m.id) === mealKey)?.id;
+        const entry = mealId
+            ? (meals[mealId] ?? []).find((e) => e.entryId === entryId)
+            : null;
+        const food = entry ? foods.find((f) => f.id === entry.foodId) : null;
+
+        if (!entry || !food) return null;
+
+        return (
+            <div className={mealStyles.entryBox} style={{ cursor: "grabbing" }}>
+                <div className={mealStyles.entryNameBtn}>{food.name}</div>
+                <div className={mealStyles.portionWrap}>
+                    <span>{entry.portion}</span>
+                    <span className={mealStyles.unit}>{food.unit}</span>
+                </div>
+                <div />
+            </div>
+        );
+    }
+
+    return null;
 }
 
 function handlePlannerDragEnd(ev: DragEndEvent, ctx: DragContext) {
