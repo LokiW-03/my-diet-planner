@@ -20,9 +20,6 @@ export function useFoodModal({
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"add" | "edit">("add");
   const [editingFoodId, setEditingFoodId] = useState<FoodId | null>(null);
-  const [categoryPreset, setCategoryPreset] = useState<CategoryId | undefined>(
-    undefined,
-  );
 
   const [name, setName] = useState("");
   const [categoryId, setCategoryId] = useState<CategoryId>("" as CategoryId);
@@ -44,27 +41,22 @@ export function useFoodModal({
     [categories],
   );
 
-  const openAdd = useCallback(
-    (catId: CategoryId) => {
-      setModalMode("add");
-      setCategoryPreset(catId);
-      setEditingFoodId(null);
+  const openAdd = useCallback((catId: CategoryId) => {
+    setModalMode("add");
+    setEditingFoodId(null);
 
-      setName("");
-      setCategoryId(catId ?? visibleCategories[0]?.id ?? ("" as CategoryId));
-      setUnit("g" as Unit);
-      setKcal(0);
-      setProtein(0);
-      setPortion(100);
+    setName("");
+    setCategoryId(catId);
+    setUnit("g" as Unit);
+    setKcal(0);
+    setProtein(0);
+    setPortion(100);
 
-      setModalOpen(true);
-    },
-    [visibleCategories],
-  );
+    setModalOpen(true);
+  }, []);
 
   const openEdit = useCallback((food: FoodItem) => {
     setModalMode("edit");
-    setCategoryPreset(undefined);
     setEditingFoodId(food.id);
 
     setName(food.name);
@@ -125,7 +117,6 @@ export function useFoodModal({
     ui: {
       foodModalOpen: modalOpen,
       foodModalMode: modalMode,
-      categoryPreset,
       editingFood,
       editingFoodId,
       visibleCategories,
