@@ -51,6 +51,7 @@ export function FoodLibrary({
 }: FoodLibraryProps) {
 
     const [search, setSearch] = useState("");
+    const prevSearchActiveRef = useRef(false);
 
     const filteredFoods = useMemo(() => {
         const q = search.trim().toLowerCase();
@@ -103,6 +104,23 @@ export function FoodLibrary({
             }
         }
     }, [visibleFolders, categoriesByFolderId, collapsedFolders, onToggleFolderCollapse]);
+
+    const handleSearchChange = useCallback(
+        (nextSearch: string) => {
+            const isSearchActive = !!nextSearch.trim();
+            const wasSearchActive = prevSearchActiveRef.current;
+
+            setSearch(nextSearch);
+
+            if (isSearchActive && !wasSearchActive) {
+                expandAllFolders();
+                expandAllCategories();
+            }
+
+            prevSearchActiveRef.current = isSearchActive;
+        },
+        [expandAllFolders, expandAllCategories],
+    );
 
     const startRename = (catId: CategoryId, currentName: string) => {
         setEditingCatId(catId);
@@ -262,18 +280,7 @@ export function FoodLibrary({
         prevIsSelectModeRef.current = isSelectMode;
     }, [isSelectMode, expandAllFolders]);
 
-    const prevSearchActiveRef = useRef(false);
-    useEffect(() => {
-        const isSearchActive = !!search.trim();
-        const wasSearchActive = prevSearchActiveRef.current;
-
-        if (isSearchActive && !wasSearchActive) {
-            expandAllFolders();
-            expandAllCategories();
-        }
-
-        prevSearchActiveRef.current = isSearchActive;
-    }, [search, expandAllFolders, expandAllCategories]);
+    // When search becomes active, we expand via the search change handler.
 
     const { setNodeRef: setUnfiledDropRef, isOver: isOverUnfiled } = useDroppable({
         id: "drop:unfiled",
@@ -283,7 +290,7 @@ export function FoodLibrary({
         <div className={styles.panel}>
             <FoodLibraryToolBar
                 search={search}
-                onSearchChange={setSearch}
+                onSearchChange={handleSearchChange}
                 isSelecting={isSelectMode}
                 hasSelection={hasSelection}
                 onToggleSelectMode={toggleSelectMode}

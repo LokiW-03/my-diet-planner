@@ -98,8 +98,8 @@ function MealPanel({
     footer,
 }: mealPanelProps
 ) {
-    const [isEditingTitle, setIsEditingTitle] = useState(false);
-    const [editingTitle, setEditingTitle] = useState(title);
+    const [isEditingTitle, setIsEditingTitle] = useState(() => pendingRename);
+    const [editingTitle, setEditingTitle] = useState(() => title);
     const cancelRenameOnBlurRef = useRef(false);
 
     const mealKey = String(mealId)
@@ -136,10 +136,8 @@ function MealPanel({
     };
     useEffect(() => {
         if (!pendingRename) return;
-        setEditingTitle(title);
-        setIsEditingTitle(true);
         onPendingRenameApplied();
-    }, [pendingRename, onPendingRenameApplied, title]);
+    }, [pendingRename, onPendingRenameApplied]);
 
 
     return (

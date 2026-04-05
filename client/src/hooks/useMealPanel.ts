@@ -7,7 +7,7 @@ export function useMealPanel({
   mealDefs,
   addMeal,
   updateMeal,
-  disableMeal,
+  disableMeal: _disableMeal,
   resetMealPanelsToDefault,
   saveMealPanelsAsDefault,
   setMealPanelOrder,
@@ -16,6 +16,8 @@ export function useMealPanel({
   hideMealPanel,
   clearMealFromBoard,
 }: MealPanelProps) {
+  void _disableMeal;
+
   const insertMealPanel = useCallback(
     (index: number) => {
       const newId = addMeal({

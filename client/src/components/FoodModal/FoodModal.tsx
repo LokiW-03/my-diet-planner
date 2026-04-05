@@ -1,6 +1,6 @@
 "use client";
 
-import type { CategoryId, FoodCategory, FoodItem } from "@/shared/models";
+import type { CategoryId, FoodCategory } from "@/shared/models";
 import { type Unit, UNITS } from "@/shared/models";
 import { clampInt } from "@/shared/utils";
 import { ModalShell } from "@/client/src/components/ModalShell/ModalShell";
