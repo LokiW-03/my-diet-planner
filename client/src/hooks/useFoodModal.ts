@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import type {
   CategoryId,
   FoodCategory,
@@ -44,43 +44,36 @@ export function useFoodModal({
     [categories],
   );
 
-  const initKey = `${modalMode}|${editingFoodId ?? ""}|${categoryPreset ?? ""}`;
+  const openAdd = useCallback(
+    (catId: CategoryId) => {
+      setModalMode("add");
+      setCategoryPreset(catId);
+      setEditingFoodId(null);
 
-  useEffect(() => {
-    if (!modalOpen) return;
+      setName("");
+      setCategoryId(catId ?? visibleCategories[0]?.id ?? ("" as CategoryId));
+      setUnit("g" as Unit);
+      setKcal(0);
+      setProtein(0);
+      setPortion(100);
 
-    const base =
-      modalMode === "edit" && editingFood
-        ? editingFood
-        : {
-            name: "",
-            categoryId:
-              categoryPreset ?? visibleCategories[0]?.id ?? ("" as CategoryId),
-            unit: "g" as Unit,
-            kcalPerUnit: 0,
-            proteinPerUnit: 0,
-            defaultPortion: 100,
-          };
-
-    setName(base.name);
-    setCategoryId(base.categoryId);
-    setUnit(base.unit);
-    setKcal(base.kcalPerUnit);
-    setProtein(base.proteinPerUnit);
-    setPortion(base.defaultPortion);
-  }, [modalOpen, initKey]);
-
-  const openAdd = useCallback((catId: CategoryId) => {
-    setModalMode("add");
-    setCategoryPreset(catId);
-    setEditingFoodId(null);
-    setModalOpen(true);
-  }, []);
+      setModalOpen(true);
+    },
+    [visibleCategories],
+  );
 
   const openEdit = useCallback((food: FoodItem) => {
     setModalMode("edit");
     setCategoryPreset(undefined);
     setEditingFoodId(food.id);
+
+    setName(food.name);
+    setCategoryId(food.categoryId);
+    setUnit(food.unit);
+    setKcal(food.kcalPerUnit);
+    setProtein(food.proteinPerUnit);
+    setPortion(food.defaultPortion);
+
     setModalOpen(true);
   }, []);
 
