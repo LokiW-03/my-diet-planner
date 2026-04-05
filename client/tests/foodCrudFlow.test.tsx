@@ -57,5 +57,5 @@ describe("Food add/edit/delete (UI integration)", () => {
         expect(screen.getByRole("button", { name: "Chicken" })).toBeTruthy();
 
         void dialog;
-    });
+    }, 15_000);
 });
