@@ -26,6 +26,7 @@ export function useFoodModal({
   const [unit, setUnit] = useState<Unit>("g" as Unit);
   const [kcalPerUnit, setKcal] = useState<number>(0);
   const [proteinPerUnit, setProtein] = useState<number>(0);
+  const [fiberPerUnit, setFiber] = useState<number>(0);
   const [defaultPortion, setPortion] = useState<number>(100);
 
   const editingFood = editingFoodId
@@ -50,6 +51,7 @@ export function useFoodModal({
     setUnit("g" as Unit);
     setKcal(0);
     setProtein(0);
+    setFiber(0);
     setPortion(100);
 
     setModalOpen(true);
@@ -64,6 +66,7 @@ export function useFoodModal({
     setUnit(food.unit);
     setKcal(food.kcalPerUnit);
     setProtein(food.proteinPerUnit);
+    setFiber(food.fiberPerUnit ?? 0);
     setPortion(food.defaultPortion);
 
     setModalOpen(true);
@@ -80,6 +83,7 @@ export function useFoodModal({
       unit,
       kcalPerUnit: Number(kcalPerUnit) || 0,
       proteinPerUnit: Number(proteinPerUnit) || 0,
+      fiberPerUnit: Number(fiberPerUnit) || 0,
       defaultPortion: clampInt(Number(defaultPortion), 0, 100000),
     };
 
@@ -97,6 +101,7 @@ export function useFoodModal({
     categoryId,
     defaultPortion,
     editingFoodId,
+    fiberPerUnit,
     kcalPerUnit,
     modalMode,
     name,
@@ -126,6 +131,7 @@ export function useFoodModal({
         unit,
         kcalPerUnit,
         proteinPerUnit,
+        fiberPerUnit,
         defaultPortion,
         canSave,
       },
@@ -141,6 +147,7 @@ export function useFoodModal({
       setFoodUnit: setUnit,
       setFoodKcal: setKcal,
       setFoodProtein: setProtein,
+      setFoodFiber: setFiber,
       setFoodDefaultPortion: setPortion,
     },
   };

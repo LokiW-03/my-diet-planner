@@ -38,6 +38,7 @@ function food(v: {
   unit: "g" | "pc";
   kcalPerUnit: number;
   proteinPerUnit: number;
+  fiberPerUnit: number;
   defaultPortion: number;
 }): FoodItem {
   return {
@@ -47,6 +48,7 @@ function food(v: {
     unit: v.unit,
     kcalPerUnit: v.kcalPerUnit,
     proteinPerUnit: v.proteinPerUnit,
+    fiberPerUnit: v.fiberPerUnit,
     defaultPortion: v.defaultPortion,
   };
 }
@@ -93,6 +95,7 @@ describe("useFoodModal", () => {
     expect(form.unit).toBe("g");
     expect(form.kcalPerUnit).toBe(0);
     expect(form.proteinPerUnit).toBe(0);
+    expect(form.fiberPerUnit).toBe(0);
     expect(form.defaultPortion).toBe(100);
     expect(form.canSave).toBe(false);
 
@@ -115,6 +118,7 @@ describe("useFoodModal", () => {
       unit: "g",
       kcalPerUnit: 2.39,
       proteinPerUnit: 0.27,
+      fiberPerUnit: 0.05,
       defaultPortion: 110,
     });
 
@@ -145,6 +149,7 @@ describe("useFoodModal", () => {
     expect(form.unit).toBe("g");
     expect(form.kcalPerUnit).toBe(2.39);
     expect(form.proteinPerUnit).toBe(0.27);
+    expect(form.fiberPerUnit).toBe(0.05);
     expect(form.defaultPortion).toBe(110);
     expect(form.canSave).toBe(true);
   });
@@ -196,6 +201,7 @@ describe("useFoodModal", () => {
       unit: "g",
       kcalPerUnit: 0,
       proteinPerUnit: 0,
+      fiberPerUnit: 0,
       defaultPortion: 0,
     });
     expect(result.current.ui.foodModalOpen).toBe(false);
@@ -214,6 +220,7 @@ describe("useFoodModal", () => {
       unit: "pc",
       kcalPerUnit: 10,
       proteinPerUnit: 20,
+      fiberPerUnit: 7,
       defaultPortion: 1,
     });
 
@@ -248,6 +255,7 @@ describe("useFoodModal", () => {
       unit: "pc",
       kcalPerUnit: 10,
       proteinPerUnit: 20,
+      fiberPerUnit: 7,
       defaultPortion: 123,
     });
     expect(result.current.ui.foodModalOpen).toBe(false);
@@ -266,6 +274,7 @@ describe("useFoodModal", () => {
       unit: "g",
       kcalPerUnit: 1,
       proteinPerUnit: 1,
+      fiberPerUnit: 0,
       defaultPortion: 100,
     });
 

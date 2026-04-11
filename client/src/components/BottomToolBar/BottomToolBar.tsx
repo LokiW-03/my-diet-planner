@@ -12,6 +12,7 @@ export function BottomToolBar({
     mealDefs,
     totals,
     proteinColor,
+    fiberColor,
     stillNeedKcal,
     exportDayType,
     onClearAll,
@@ -23,6 +24,9 @@ export function BottomToolBar({
                 <div className={styles.value}>{Math.round(totals.kcal)} kcal</div>
                 <div className={styles.protein} style={{ color: proteinColor }}>
                     {Math.round(totals.protein)}g Protein
+                </div>
+                <div className={styles.fiber} style={{ color: fiberColor }}>
+                    {Math.round(totals.fiber)}g Fiber
                 </div>
             </div>
 
@@ -73,8 +77,9 @@ type BottomToolBarProps = {
     foods: FoodItem[];
     meals: Record<MealId, MealEntry[]>;
     mealDefs: MealDefinition[];
-    totals: { kcal: number; protein: number };
+    totals: { kcal: number; protein: number; fiber: number };
     proteinColor: string;
+    fiberColor: string;
     stillNeedKcal: number;
     exportDayType: string;
     onClearAll: () => void;

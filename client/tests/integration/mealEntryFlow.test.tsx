@@ -40,7 +40,7 @@ describe("Meal entries add/edit/remove (UI integration)", () => {
         expect(entryBtn.textContent ?? "").toContain("Chicken");
 
         await waitFor(() => {
-            expect(screen.getByText("Total: ~263 kcal, ~30 g Protein")).toBeTruthy();
+            expect(screen.getByText("Total: ~263 kcal, ~30 g Protein, ~0 g Fiber")).toBeTruthy();
         });
 
         await waitFor(() => {
@@ -58,7 +58,7 @@ describe("Meal entries add/edit/remove (UI integration)", () => {
         fireEvent.change(portionInput as HTMLInputElement, { target: { value: "220" } });
 
         await waitFor(() => {
-            expect(screen.getByText("Total: ~526 kcal, ~59 g Protein")).toBeTruthy();
+            expect(screen.getByText("Total: ~526 kcal, ~59 g Protein, ~0 g Fiber")).toBeTruthy();
         });
 
         await waitFor(() => {

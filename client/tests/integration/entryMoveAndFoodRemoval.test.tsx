@@ -20,13 +20,13 @@ function expectDayTotals(opts: { kcal: number; protein: number }) {
     expect(within(totalCard).getByText(`${Math.round(opts.protein)}g Protein`)).toBeTruthy();
 }
 
-function footerText(opts: { kcal: number; protein: number }) {
-    return `Total: ~${Math.round(opts.kcal)} kcal, ~${Math.round(opts.protein)} g Protein`;
+function footerText(opts: { kcal: number; protein: number; fiber: number }) {
+    return `Total: ~${Math.round(opts.kcal)} kcal, ~${Math.round(opts.protein)} g Protein, ~${Math.round(opts.fiber)} g Fiber`;
 }
 
 function getMealFooterEls() {
     // DOM order matches DEFAULT_MEALS order: breakfast, lunch, post-workout, dinner.
-    return screen.getAllByText(/^Total: ~\d+ kcal, ~\d+ g Protein$/);
+    return screen.getAllByText(/^Total: ~\d+ kcal, ~\d+ g Protein, ~\d+ g Fiber$/);
 }
 
 async function bulkAddFoodToMeal(opts: { foodName: string; mealName: string }) {
@@ -55,6 +55,7 @@ describe("Entry move + food removal (UI integration)", () => {
         const totals = {
             kcal: chicken.defaultPortion * chicken.kcalPerUnit,
             protein: chicken.defaultPortion * chicken.proteinPerUnit,
+            fiber: chicken.defaultPortion * chicken.fiberPerUnit,
         };
 
         await bulkAddFoodToMeal({ foodName: "Chicken", mealName: "breakfast" });
@@ -66,7 +67,7 @@ describe("Entry move + food removal (UI integration)", () => {
         await waitFor(() => {
             const footers = getMealFooterEls();
             expect(footers[0]?.textContent ?? "").toBe(footerText(totals));
-            expect(footers[1]?.textContent ?? "").toBe(footerText({ kcal: 0, protein: 0 }));
+            expect(footers[1]?.textContent ?? "").toBe(footerText({ kcal: 0, protein: 0, fiber: 0 }));
         });
 
         const breakfastId = defaultMealId("breakfast");
@@ -83,7 +84,7 @@ describe("Entry move + food removal (UI integration)", () => {
         // Breakfast becomes 0; lunch gets the totals.
         await waitFor(() => {
             const footers = getMealFooterEls();
-            expect(footers[0]?.textContent ?? "").toBe(footerText({ kcal: 0, protein: 0 }));
+            expect(footers[0]?.textContent ?? "").toBe(footerText({ kcal: 0, protein: 0, fiber: 0 }));
             expect(footers[1]?.textContent ?? "").toBe(footerText(totals));
         });
 
@@ -99,6 +100,7 @@ describe("Entry move + food removal (UI integration)", () => {
         const totals = {
             kcal: chicken.defaultPortion * chicken.kcalPerUnit,
             protein: chicken.defaultPortion * chicken.proteinPerUnit,
+            fiber: chicken.defaultPortion * chicken.fiberPerUnit,
         };
 
         await bulkAddFoodToMeal({ foodName: "Chicken", mealName: "breakfast" });
@@ -121,7 +123,7 @@ describe("Entry move + food removal (UI integration)", () => {
         // Meal footer returns to zero.
         await waitFor(() => {
             const footers = getMealFooterEls();
-            expect(footers[0]?.textContent ?? "").toBe(footerText({ kcal: 0, protein: 0 }));
+            expect(footers[0]?.textContent ?? "").toBe(footerText({ kcal: 0, protein: 0, fiber: 0 }));
         });
 
         expect(confirmSpy).toHaveBeenCalled();

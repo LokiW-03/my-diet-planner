@@ -89,6 +89,7 @@ export const DEFAULT_FOODS: FoodItem[] = [
     unit: "g",
     kcalPerUnit: 3.19,
     proteinPerUnit: 0.26,
+    fiberPerUnit: 0,
     defaultPortion: 100,
   }),
   food({
@@ -97,6 +98,7 @@ export const DEFAULT_FOODS: FoodItem[] = [
     unit: "g",
     kcalPerUnit: 2.39,
     proteinPerUnit: 0.27,
+    fiberPerUnit: 0,
     defaultPortion: 110,
   }),
   food({
@@ -105,6 +107,7 @@ export const DEFAULT_FOODS: FoodItem[] = [
     unit: "pc",
     kcalPerUnit: 265,
     proteinPerUnit: 23,
+    fiberPerUnit: 0,
     defaultPortion: 1,
   }),
   food({
@@ -113,6 +116,7 @@ export const DEFAULT_FOODS: FoodItem[] = [
     unit: "g",
     kcalPerUnit: 0.34,
     proteinPerUnit: 0.028,
+    fiberPerUnit: 0,
     defaultPortion: 100,
   }),
   food({
@@ -121,6 +125,7 @@ export const DEFAULT_FOODS: FoodItem[] = [
     unit: "g",
     kcalPerUnit: 0.13,
     proteinPerUnit: 0.015,
+    fiberPerUnit: 0,
     defaultPortion: 100,
   }),
   food({
@@ -129,6 +134,7 @@ export const DEFAULT_FOODS: FoodItem[] = [
     unit: "g",
     kcalPerUnit: 0.25,
     proteinPerUnit: 0.015,
+    fiberPerUnit: 0,
     defaultPortion: 100,
   }),
   food({
@@ -137,6 +143,7 @@ export const DEFAULT_FOODS: FoodItem[] = [
     unit: "g",
     kcalPerUnit: 1.3,
     proteinPerUnit: 0.028,
+    fiberPerUnit: 0,
     defaultPortion: 80,
   }),
   food({
@@ -145,6 +152,7 @@ export const DEFAULT_FOODS: FoodItem[] = [
     unit: "g",
     kcalPerUnit: 1.9,
     proteinPerUnit: 0.078,
+    fiberPerUnit: 0,
     defaultPortion: 40,
   }),
   food({
@@ -153,6 +161,7 @@ export const DEFAULT_FOODS: FoodItem[] = [
     unit: "pc",
     kcalPerUnit: 35,
     proteinPerUnit: 0.7,
+    fiberPerUnit: 0,
     defaultPortion: 2,
   }),
   food({
@@ -161,6 +170,7 @@ export const DEFAULT_FOODS: FoodItem[] = [
     unit: "pc",
     kcalPerUnit: 70,
     proteinPerUnit: 5,
+    fiberPerUnit: 0,
     defaultPortion: 1,
   }),
   food({
@@ -169,6 +179,7 @@ export const DEFAULT_FOODS: FoodItem[] = [
     unit: "pc",
     kcalPerUnit: 150,
     proteinPerUnit: 2,
+    fiberPerUnit: 0,
     defaultPortion: 1,
   }),
   food({
@@ -177,6 +188,7 @@ export const DEFAULT_FOODS: FoodItem[] = [
     unit: "pc",
     kcalPerUnit: 128,
     proteinPerUnit: 2.8,
+    fiberPerUnit: 0,
     defaultPortion: 1,
   }),
   food({
@@ -185,6 +197,7 @@ export const DEFAULT_FOODS: FoodItem[] = [
     unit: "pc",
     kcalPerUnit: 142,
     proteinPerUnit: 25,
+    fiberPerUnit: 0,
     defaultPortion: 1,
   }),
 ];

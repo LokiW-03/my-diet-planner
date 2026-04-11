@@ -10,11 +10,16 @@
     border-radius: 14px;
     padding: 14px;
     min-width: 160px;
+    height: 140px;
     background: var(--background);
 }
 
 .cardCenter {
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
 .title {
@@ -27,6 +32,10 @@
 }
 
 .protein {
+    font-weight: 700;
+}
+
+.fiber {
     font-weight: 700;
 }
 
