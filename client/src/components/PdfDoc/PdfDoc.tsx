@@ -11,7 +11,7 @@ export function PdfDoc({ foods, meals, mealDefs, totals, dayType }: PDFProps) {
                 <Text style={styles.title}>Diet Planner - Meal Export</Text>
                 <Text style={styles.sub}>Day type: {dayType}</Text>
                 <Text style={styles.sub}>
-                    Total: {Math.round(totals.kcal)} kcal, {Math.round(totals.protein)} g protein
+                    Total: {Math.round(totals.kcal)} kcal, {Math.round(totals.protein)} g protein, {Math.round(totals.fiber)} g fiber
                 </Text>
 
                 {mealDefs.map((m) => {
@@ -58,6 +58,6 @@ type PDFProps = {
     foods: FoodItem[];
     meals: Record<MealId, MealEntry[]>;
     mealDefs: MealDefinition[];
-    totals: { kcal: number; protein: number };
+    totals: { kcal: number; protein: number; fiber: number };
     dayType: string;
 };

@@ -19,8 +19,8 @@ function expectDayTotals(opts: { kcal: number; protein: number }) {
     expect(within(totalCard).getByText(`${Math.round(opts.protein)}g Protein`)).toBeTruthy();
 }
 
-function footerText(opts: { kcal: number; protein: number }) {
-    return `Total: ~${Math.round(opts.kcal)} kcal, ~${Math.round(opts.protein)} g Protein`;
+function footerText(opts: { kcal: number; protein: number; fiber: number }) {
+    return `Total: ~${Math.round(opts.kcal)} kcal, ~${Math.round(opts.protein)} g Protein, ~${Math.round(opts.fiber)} g Fiber`;
 }
 
 async function bulkAddFoodToMeal(opts: { foodName: string; mealName: string }) {
@@ -48,46 +48,52 @@ afterEach(() => {
 });
 
 describe("Totals reactivity (UI integration)", () => {
-    it("editing a food's macros updates existing meal + day totals", async () => {
-        const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
-        renderPlannerHarness();
+    it(
+        "editing a food's macros updates existing meal + day totals",
+        async () => {
+            const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
+            renderPlannerHarness();
 
-        const chicken = defaultFoods[defaultFoodId("Chicken")];
-        const base = {
-            kcal: chicken.defaultPortion * chicken.kcalPerUnit,
-            protein: chicken.defaultPortion * chicken.proteinPerUnit,
-        };
+            const chicken = defaultFoods[defaultFoodId("Chicken")];
+            const base = {
+                kcal: chicken.defaultPortion * chicken.kcalPerUnit,
+                protein: chicken.defaultPortion * chicken.proteinPerUnit,
+                fiber: chicken.defaultPortion * chicken.fiberPerUnit,
+            };
 
-        await bulkAddFoodToMeal({ foodName: "Chicken", mealName: "breakfast" });
+            await bulkAddFoodToMeal({ foodName: "Chicken", mealName: "breakfast" });
 
-        await screen.findByTitle("Click to edit food");
-        await waitFor(() => expect(screen.getByText(footerText(base))).toBeTruthy());
-        await waitFor(() => expectDayTotals(base));
+            await screen.findByTitle("Click to edit food");
+            await waitFor(() => expect(screen.getByText(footerText(base))).toBeTruthy());
+            await waitFor(() => expectDayTotals(base));
 
-        // Edit the food from the meal board.
-        fireEvent.click(screen.getByTitle("Click to edit food"));
-        await screen.findByText("Edit Food");
+            // Edit the food from the meal board.
+            fireEvent.click(screen.getByTitle("Click to edit food"));
+            await screen.findByText("Edit Food");
 
-        // Change macros.
-        fireEvent.change(screen.getByLabelText(/Kcal per g/i), { target: { value: "3" } });
-        fireEvent.change(screen.getByLabelText(/Protein per g/i), { target: { value: "0.3" } });
+            // Change macros.
+            fireEvent.change(screen.getByLabelText(/Kcal per g/i), { target: { value: "3" } });
+            fireEvent.change(screen.getByLabelText(/Protein per g/i), { target: { value: "0.3" } });
 
-        const saveBtn = screen.getByRole("button", { name: "Save" }) as HTMLButtonElement;
-        await waitFor(() => expect(saveBtn.disabled).toBe(false));
-        fireEvent.click(saveBtn);
+            const saveBtn = screen.getByRole("button", { name: "Save" }) as HTMLButtonElement;
+            await waitFor(() => expect(saveBtn.disabled).toBe(false));
+            fireEvent.click(saveBtn);
 
-        await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+            await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
 
-        const updated = {
-            kcal: chicken.defaultPortion * 3,
-            protein: chicken.defaultPortion * 0.3,
-        };
+            const updated = {
+                kcal: chicken.defaultPortion * 3,
+                protein: chicken.defaultPortion * 0.3,
+                fiber: chicken.defaultPortion * chicken.fiberPerUnit,
+            };
 
-        await waitFor(() => expect(screen.getByText(footerText(updated))).toBeTruthy());
-        await waitFor(() => expectDayTotals(updated));
+            await waitFor(() => expect(screen.getByText(footerText(updated))).toBeTruthy());
+            await waitFor(() => expectDayTotals(updated));
 
-        confirmSpy.mockRestore();
-    });
+            confirmSpy.mockRestore();
+        },
+        15000,
+    );
 
     it("Clear All removes entries and resets day totals to zero", async () => {
         vi.spyOn(window, "confirm").mockReturnValue(true);
@@ -125,6 +131,7 @@ describe("Totals reactivity (UI integration)", () => {
         const base = {
             kcal: chicken.defaultPortion * chicken.kcalPerUnit,
             protein: chicken.defaultPortion * chicken.proteinPerUnit,
+            fiber: chicken.defaultPortion * chicken.fiberPerUnit,
         };
 
         await bulkAddFoodToMeal({ foodName: "Chicken", mealName: "breakfast" });

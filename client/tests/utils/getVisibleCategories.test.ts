@@ -39,6 +39,7 @@ function food(v: { id: string; categoryId: CategoryId }): FoodItem {
     unit: "g",
     kcalPerUnit: 1,
     proteinPerUnit: 1,
+    fiberPerUnit: 0,
     defaultPortion: 100,
   };
 }

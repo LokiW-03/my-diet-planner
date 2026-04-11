@@ -87,6 +87,7 @@ export default function PlannerScreen() {
                 unit={ui.foodForm.unit}
                 kcalPerUnit={ui.foodForm.kcalPerUnit}
                 proteinPerUnit={ui.foodForm.proteinPerUnit}
+                fiberPerUnit={ui.foodForm.fiberPerUnit}
                 defaultPortion={ui.foodForm.defaultPortion}
                 canSave={ui.foodForm.canSave}
                 onChangeName={actions.setFoodName}
@@ -94,6 +95,7 @@ export default function PlannerScreen() {
                 onChangeUnit={actions.setFoodUnit}
                 onChangeKcal={actions.setFoodKcal}
                 onChangeProtein={actions.setFoodProtein}
+                onChangeFiber={actions.setFoodFiber}
                 onChangeDefaultPortion={actions.setFoodDefaultPortion}
                 onClose={actions.closeFoodModal}
                 onSave={actions.saveFood}

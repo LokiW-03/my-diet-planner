@@ -24,6 +24,7 @@ function food(partial: Omit<FoodItem, "id"> & { id: string }): FoodItem {
     unit: partial.unit,
     kcalPerUnit: partial.kcalPerUnit,
     proteinPerUnit: partial.proteinPerUnit,
+    fiberPerUnit: partial.fiberPerUnit,
     defaultPortion: partial.defaultPortion,
   };
 }
@@ -50,6 +51,7 @@ describe("computeTotals", () => {
         unit: "g",
         kcalPerUnit: 2,
         proteinPerUnit: 1,
+        fiberPerUnit: 0.1,
         defaultPortion: 100,
       }),
       food({
@@ -59,6 +61,7 @@ describe("computeTotals", () => {
         unit: "pc",
         kcalPerUnit: 50,
         proteinPerUnit: 10,
+        fiberPerUnit: 5,
         defaultPortion: 1,
       }),
     ];
@@ -74,7 +77,7 @@ describe("computeTotals", () => {
     };
 
     const totals = computeTotals(foods, meals);
-    expect(totals).toEqual({ kcal: 300, protein: 120 });
+    expect(totals).toEqual({ kcal: 300, protein: 120, fiber: 20 });
   });
 
   it("filters by includeMealIds when provided", () => {
@@ -86,6 +89,7 @@ describe("computeTotals", () => {
         unit: "g",
         kcalPerUnit: 1,
         proteinPerUnit: 2,
+        fiberPerUnit: 3,
         defaultPortion: 100,
       }),
     ];
@@ -100,7 +104,7 @@ describe("computeTotals", () => {
     };
 
     const totals = computeTotals(foods, meals, [mealId("meal:2")]);
-    expect(totals).toEqual({ kcal: 5, protein: 10 });
+    expect(totals).toEqual({ kcal: 5, protein: 10, fiber: 15 });
   });
 });
 
@@ -114,6 +118,7 @@ describe("computeMealTotals", () => {
         unit: "g",
         kcalPerUnit: 2,
         proteinPerUnit: 3,
+        fiberPerUnit: 0,
         defaultPortion: 100,
       }),
     ];
@@ -131,7 +136,7 @@ describe("computeMealTotals", () => {
     ];
 
     const out = computeMealTotals(foods, meals, mealDefs);
-    expect(out[mealId("meal:1")]).toEqual({ kcal: 20, protein: 30 });
-    expect(out[mealId("meal:2")]).toEqual({ kcal: 0, protein: 0 });
+    expect(out[mealId("meal:1")]).toEqual({ kcal: 20, protein: 30, fiber: 0 });
+    expect(out[mealId("meal:2")]).toEqual({ kcal: 0, protein: 0, fiber: 0 });
   });
 });

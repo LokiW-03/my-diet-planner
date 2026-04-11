@@ -17,6 +17,7 @@ export type FoodItem = {
   unit: Unit; // g or pc
   kcalPerUnit: number; // per 1g or per 1pc
   proteinPerUnit: number; // per 1g or per 1pc
+  fiberPerUnit: number; // per 1g or per 1pc
 
   defaultPortion: number; // e.g. 100g or 2 pcs
 };

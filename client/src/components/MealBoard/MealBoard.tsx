@@ -42,7 +42,7 @@ export function MealBoard({
                     const mealKey = String(m.id);
 
                     const panelMeals = meals[m.id] ?? [];
-                    const panelTotals = mealTotals[m.id] ?? { kcal: 0, protein: 0 };
+                    const panelTotals = mealTotals[m.id] ?? { kcal: 0, protein: 0, fiber: 0 };
                     return (
                         <React.Fragment key={m.id}>
                             <MealPanel
@@ -64,7 +64,7 @@ export function MealBoard({
                                 }}
                                 collapsed={!!collapsedMeals[mealKey]}
                                 onToggleCollapsed={() => toggleCollapsed(mealKey)}
-                                footer={`Total: ~${Math.round(panelTotals.kcal)} kcal, ~${Math.round(panelTotals.protein)} g Protein`}
+                                footer={`Total: ~${Math.round(panelTotals.kcal)} kcal, ~${Math.round(panelTotals.protein)} g Protein, ~${Math.round(panelTotals.fiber)} g Fiber`}
                             />
                             <InsertRow
                                 onClick={() => {
@@ -404,7 +404,7 @@ type mealBoardProps = {
     foods: FoodItem[];
     meals: Record<MealId, MealEntry[]>;
     mealDefs: MealDefinition[];
-    mealTotals: Record<MealId, { kcal: number; protein: number }>;
+    mealTotals: Record<MealId, { kcal: number; protein: number; fiber: number }>;
     onRemoveEntry: (mealId: MealId, entryId: string) => void;
     onPortionChange: (mealId: MealId, entryId: string, portion: number) => void;
     onEditFood: (foodId: FoodId) => void;

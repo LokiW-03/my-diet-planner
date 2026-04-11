@@ -17,6 +17,7 @@ export function FoodModal({
     unit,
     kcalPerUnit,
     proteinPerUnit,
+    fiberPerUnit,
     defaultPortion,
     canSave,
     onChangeName,
@@ -24,6 +25,7 @@ export function FoodModal({
     onChangeUnit,
     onChangeKcal,
     onChangeProtein,
+    onChangeFiber,
     onChangeDefaultPortion,
     onClose,
     onSave,
@@ -134,6 +136,17 @@ export function FoodModal({
             </div>
 
             <div className={styles.row}>
+                <label className={styles.label} htmlFor="foodModalFiber">Fiber per {unit}</label>
+                <input
+                    id="foodModalFiber"
+                    className={styles.input}
+                    type="number"
+                    value={fiberPerUnit}
+                    onChange={(e) => onChangeFiber(Number(e.target.value))}
+                />
+            </div>
+
+            <div className={styles.row}>
                 <label className={styles.label} htmlFor="foodModalDefaultPortion">Default portion ({unit})</label>
                 <input
                     id="foodModalDefaultPortion"
@@ -157,6 +170,7 @@ type FoodModalProps = {
     unit: Unit;
     kcalPerUnit: number;
     proteinPerUnit: number;
+    fiberPerUnit: number;
     defaultPortion: number;
     canSave: boolean;
     onChangeName: (value: string) => void;
@@ -164,6 +178,7 @@ type FoodModalProps = {
     onChangeUnit: (unit: Unit) => void;
     onChangeKcal: (value: number) => void;
     onChangeProtein: (value: number) => void;
+    onChangeFiber: (value: number) => void;
     onChangeDefaultPortion: (value: number) => void;
     onClose: () => void;
     onSave: () => void;

@@ -157,6 +157,7 @@ export default function PlannerWorkspace({
                         mealDefs={mealDefs}
                         totals={totals}
                         proteinColor={getProteinColor(totals, weightKg)}
+                        fiberColor={getFiberColor(totals)}
                         stillNeedKcal={stillNeedKcal}
                         exportDayType={target?.name ?? String(dayType)}
                         onClearAll={clearAllMeals}
@@ -433,7 +434,7 @@ function handlePlannerDragEnd(ev: DragEndEvent, ctx: DragContext) {
 }
 
 function getProteinColor(
-    totals: { kcal: number; protein: number },
+    totals: { kcal: number; protein: number; fiber: number },
     weightKg?: number,
 ): string {
     const proteinRatio = weightKg && weightKg > 0 ? totals.protein / weightKg : null;
@@ -447,6 +448,13 @@ function getProteinColor(
         return "var(--healthy-fg)";
     }
     return "var(--danger-fg)";
+}
+
+function getFiberColor(totals: { kcal: number; protein: number; fiber: number }): string {
+    const fiberG = totals.fiber;
+    if (fiberG < 20) return "var(--danger-fg)";
+    if (fiberG <= 30 && fiberG >= 25) return "var(--healthy-fg)";
+    return "var(--warning-fg)";
 }
 
 function getTargetAndStillNeed(
@@ -479,10 +487,10 @@ type PlannerWorkspaceProps = {
     foods: FoodItem[];
     meals: Record<MealId, MealEntry[]>;
     mealDefs: MealDefinition[];
-    mealTotals: Record<MealId, { kcal: number; protein: number }>;
+    mealTotals: Record<MealId, { kcal: number; protein: number; fiber: number }>;
     folders: Record<FolderId, CategoryFolder>;
     categories: Record<CategoryId, FoodCategory>;
-    totals: { kcal: number; protein: number };
+    totals: { kcal: number; protein: number; fiber: number };
     dayType: TargetId;
     targets: Target[];
     weightKg?: number;

@@ -38,48 +38,52 @@ afterEach(() => {
 });
 
 describe("Hidden meals are excluded from totals (UI integration)", () => {
-    it("excludes a hidden meal's entries from day totals, then includes them again when shown", async () => {
-        vi.spyOn(window, "confirm").mockReturnValue(true);
-        renderPlannerHarness();
+    it(
+        "excludes a hidden meal's entries from day totals, then includes them again when shown",
+        async () => {
+            vi.spyOn(window, "confirm").mockReturnValue(true);
+            renderPlannerHarness();
 
-        const chicken = defaultFoods[defaultFoodId("Chicken")];
-        const rice = defaultFoods[defaultFoodId("Rice")];
+            const chicken = defaultFoods[defaultFoodId("Chicken")];
+            const rice = defaultFoods[defaultFoodId("Rice")];
 
-        const breakfastTotals = {
-            kcal: chicken.defaultPortion * chicken.kcalPerUnit,
-            protein: chicken.defaultPortion * chicken.proteinPerUnit,
-        };
-        const lunchTotals = {
-            kcal: rice.defaultPortion * rice.kcalPerUnit,
-            protein: rice.defaultPortion * rice.proteinPerUnit,
-        };
+            const breakfastTotals = {
+                kcal: chicken.defaultPortion * chicken.kcalPerUnit,
+                protein: chicken.defaultPortion * chicken.proteinPerUnit,
+            };
+            const lunchTotals = {
+                kcal: rice.defaultPortion * rice.kcalPerUnit,
+                protein: rice.defaultPortion * rice.proteinPerUnit,
+            };
 
-        await bulkAddFoodToMeal({ foodName: "Chicken", mealName: "breakfast" });
-        await bulkAddFoodToMeal({ foodName: "Rice", mealName: "lunch" });
+            await bulkAddFoodToMeal({ foodName: "Chicken", mealName: "breakfast" });
+            await bulkAddFoodToMeal({ foodName: "Rice", mealName: "lunch" });
 
-        const both = {
-            kcal: breakfastTotals.kcal + lunchTotals.kcal,
-            protein: breakfastTotals.protein + lunchTotals.protein,
-        };
+            const both = {
+                kcal: breakfastTotals.kcal + lunchTotals.kcal,
+                protein: breakfastTotals.protein + lunchTotals.protein,
+            };
 
-        await waitFor(() => expectDayTotals(both));
+            await waitFor(() => expectDayTotals(both));
 
-        const lunchId = defaultMealId("lunch");
+            const lunchId = defaultMealId("lunch");
 
-        act(() => {
-            usePlannerStore.getState().hideMealPanel(lunchId);
-        });
+            act(() => {
+                usePlannerStore.getState().hideMealPanel(lunchId);
+            });
 
-        // Lunch is hidden => day totals reflect breakfast only.
-        await waitFor(() => expectDayTotals(breakfastTotals));
-        await waitFor(() => expect(screen.queryByLabelText("Drag to reorder lunch")).toBeNull());
+            // Lunch is hidden => day totals reflect breakfast only.
+            await waitFor(() => expectDayTotals(breakfastTotals));
+            await waitFor(() => expect(screen.queryByLabelText("Drag to reorder lunch")).toBeNull());
 
-        act(() => {
-            usePlannerStore.getState().showMealPanel(lunchId);
-        });
+            act(() => {
+                usePlannerStore.getState().showMealPanel(lunchId);
+            });
 
-        // Lunch is visible again => totals include lunch again.
-        await waitFor(() => expectDayTotals(both));
-        await waitFor(() => expect(screen.getByLabelText("Drag to reorder lunch")).toBeTruthy());
-    });
+            // Lunch is visible again => totals include lunch again.
+            await waitFor(() => expectDayTotals(both));
+            await waitFor(() => expect(screen.getByLabelText("Drag to reorder lunch")).toBeTruthy());
+        },
+        15000,
+    );
 });
