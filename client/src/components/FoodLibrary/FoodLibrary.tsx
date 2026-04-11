@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useCallback, useEffect, useRef, type ReactNode } from "react";
+import { useMemo, useState, useCallback, useEffect, useRef, type ReactNode, type Ref } from "react";
 import type {
     CategoryId,
     FoodCategory,
@@ -35,6 +35,7 @@ export function FoodLibrary({
     folders,
     categories,
     mealDefs,
+    scrollAreaRef,
     onAdd,
     onEdit,
     onRenameCategory,
@@ -304,7 +305,11 @@ export function FoodLibrary({
                     onBulkRemoveSelected={handleBulkRemoveSelected}
                 />
             </div>
-            <div className={styles.scrollArea} data-foodlib-scroll="true">
+            <div
+                className={styles.scrollArea}
+                data-foodlib-scroll="true"
+                ref={scrollAreaRef}
+            >
                 <SortableContext items={sortableIds} strategy={rectSortingStrategy}>
                     <SortableContext items={folderSortableIds} strategy={verticalListSortingStrategy}>
                         {visibleFolders.map((folder) => {
@@ -452,6 +457,7 @@ type FoodLibraryProps = {
     folders: Record<FolderId, CategoryFolder>;
     categories: Record<CategoryId, FoodCategory>;
     mealDefs: MealDefinition[];
+    scrollAreaRef?: Ref<HTMLDivElement>;
     onAdd: (categoryId: CategoryId) => void;
     onEdit: (food: FoodItem) => void;
     onRenameCategory: (categoryId: CategoryId, name: string) => void;

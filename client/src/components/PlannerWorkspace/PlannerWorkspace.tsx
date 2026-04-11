@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { useCallback, useRef, useState, type ReactNode } from "react";
 import {
     DndContext,
     closestCenter,
@@ -31,6 +31,7 @@ import { MealBoard } from "@/client/src/components/MealBoard/MealBoard";
 import { FoodLibrary } from "@/client/src/components/FoodLibrary/FoodLibrary";
 import { BottomToolBar } from "@/client/src/components/BottomToolBar/BottomToolBar";
 import { getFoodLibraryGroups } from "@/client/src/utils/getFoodLibraryGroups";
+import { useDragScrollProxy } from "@/client/src/hooks/useDragScrollProxy";
 
 import styles from "./PlannerWorkspace.module.scss";
 import chipStyles from "@/client/src/components/FoodLibrary/CategoryRow/CategoryRow.module.scss";
@@ -56,6 +57,7 @@ export default function PlannerWorkspace({
 
     const [activeId, setActiveId] = useState<string | null>(null);
     const [collapsedFolders, setCollapsedFolders] = useState<Record<string, boolean>>({});
+    const foodLibScrollAreaRef = useRef<HTMLDivElement | null>(null);
 
     const toggleCollapsedFolder = (folderIdKey: string) => {
         setCollapsedFolders((prev) => ({ ...prev, [folderIdKey]: !prev[folderIdKey] }));
@@ -121,32 +123,10 @@ export default function PlannerWorkspace({
         totals.kcal,
     );
 
-    useEffect(() => {
-        if (!activeId?.startsWith("lib:")) return;
-
-        const onWheel = (ev: WheelEvent) => {
-            if (ev.ctrlKey) return;
-
-            const scrollEl = document.querySelector('[data-foodlib-scroll="true"]') as HTMLElement | null;
-            if (!scrollEl) return;
-
-            const rect = scrollEl.getBoundingClientRect();
-            const x = ev.clientX;
-            const y = ev.clientY;
-            const isInside = x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
-            if (!isInside) return;
-
-            const canScroll = scrollEl.scrollHeight > scrollEl.clientHeight;
-            if (!canScroll) return;
-
-            ev.preventDefault();
-            ev.stopPropagation();
-            scrollEl.scrollTop += ev.deltaY;
-        };
-
-        window.addEventListener("wheel", onWheel, { capture: true, passive: false });
-        return () => window.removeEventListener("wheel", onWheel, true);
-    }, [activeId]);
+    useDragScrollProxy({
+        enabled: !!activeId?.startsWith("lib:"),
+        scrollAreaRef: foodLibScrollAreaRef,
+    });
 
     return (
         <DndContext
@@ -189,6 +169,7 @@ export default function PlannerWorkspace({
                         folders={folders}
                         categories={categories}
                         mealDefs={mealDefs}
+                        scrollAreaRef={foodLibScrollAreaRef}
                         onAdd={foodLibraryActions.openAdd}
                         onEdit={foodLibraryActions.openEdit}
                         onRenameCategory={foodLibraryActions.renameCategory}
