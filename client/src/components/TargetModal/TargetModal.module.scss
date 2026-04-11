@@ -34,8 +34,8 @@
     height: 34px;
     border-radius: 12px;
     border: 1px solid var(--card-border);
-    background: var(--card-bg);
-    color: var(--background);
+    background: var(--background);
+    color: var(--foreground);
     cursor: pointer;
     font-weight: 900;
     display: inline-flex;
@@ -43,7 +43,11 @@
     justify-content: center;
     padding: 0;
     line-height: 0;
-    opacity: 0.7;
+
+    &:hover {
+        background: var(--foreground);
+        color: var(--background);
+    }
 }
 
 .btn {
@@ -52,23 +56,36 @@
     border: 1px solid var(--card-border);
     background: var(--background);
     cursor: pointer;
-}
-
-.btnPrimary {
-    border: 1px solid var(--btn-border);
-    background: var(--btn-bg);
-    color: var(--btn-fg);
+    font-weight: 700;
 
     &:disabled {
         opacity: 0.55;
         cursor: not-allowed;
     }
+
+    &:hover:not(:disabled) {
+        background: var(--foreground);
+        color: var(--background);
+    }
 }
 
 .dangerBtn {
-    border: 1px solid var(--danger-fg);
     background: var(--card-bg);
     color: var(--danger-fg);
+    height: 32px;
+    width: 32px;
+    border-radius: 8px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    line-height: 0;
+
+    &:hover {
+        background: var(--danger-fg);
+        color: var(--danger-bg);
+    }
 }
 
 .footerLeft {

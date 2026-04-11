@@ -49,12 +49,20 @@
 .closeBtn {
     background: none;
     border: none;
+    border-radius: 15%;
+    width: 32px;
+    height: 32px;
     font-size: 18px;
     font-weight: 700;
     cursor: pointer;
     color: var(--foreground);
     line-height: 1;
     padding: 4px;
+
+    &:hover {
+        color: var(--accent);
+        background-color: var(--foreground);
+    }
 }
 
 .closeSpacer {

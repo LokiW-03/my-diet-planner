@@ -122,6 +122,11 @@
     box-sizing: border-box;
     justify-self: center;
     width: 110px;
+
+    &:hover {
+        background: var(--foreground);
+        color: var(--background);
+    }
 }
 
 .chipText {
