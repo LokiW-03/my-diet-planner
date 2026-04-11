@@ -4,3 +4,10 @@
     gap: 16px;
     align-items: start;
 }
+
+.foodCol {
+    position: sticky;
+    top: 18px;
+    height: calc(100vh - 36px);
+    align-self: start;
+}

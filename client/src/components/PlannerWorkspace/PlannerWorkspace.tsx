@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import {
     DndContext,
     closestCenter,
@@ -121,6 +121,33 @@ export default function PlannerWorkspace({
         totals.kcal,
     );
 
+    useEffect(() => {
+        if (!activeId?.startsWith("lib:")) return;
+
+        const onWheel = (ev: WheelEvent) => {
+            if (ev.ctrlKey) return;
+
+            const scrollEl = document.querySelector('[data-foodlib-scroll="true"]') as HTMLElement | null;
+            if (!scrollEl) return;
+
+            const rect = scrollEl.getBoundingClientRect();
+            const x = ev.clientX;
+            const y = ev.clientY;
+            const isInside = x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+            if (!isInside) return;
+
+            const canScroll = scrollEl.scrollHeight > scrollEl.clientHeight;
+            if (!canScroll) return;
+
+            ev.preventDefault();
+            ev.stopPropagation();
+            scrollEl.scrollTop += ev.deltaY;
+        };
+
+        window.addEventListener("wheel", onWheel, { capture: true, passive: false });
+        return () => window.removeEventListener("wheel", onWheel, true);
+    }, [activeId]);
+
     return (
         <DndContext
             sensors={sensors}
@@ -156,7 +183,7 @@ export default function PlannerWorkspace({
                     />
                 </div>
 
-                <div>
+                <div className={styles.foodCol}>
                     <FoodLibrary
                         foods={foods}
                         folders={folders}

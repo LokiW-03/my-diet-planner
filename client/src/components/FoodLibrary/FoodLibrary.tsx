@@ -287,82 +287,86 @@ export function FoodLibrary({
     });
 
     return (
-        <div className={styles.panel}>
-            <FoodLibraryToolBar
-                search={search}
-                onSearchChange={handleSearchChange}
-                isSelecting={isSelectMode}
-                hasSelection={hasSelection}
-                onToggleSelectMode={toggleSelectMode}
-                onAddCategory={handleAddCategoryClick}
-                onAddFolder={handleAddFolderClick}
-                categories={enabledCategories}
-                mealPanels={enabledMealPanels}
-                onBulkMoveToCategory={handleBulkMoveToCategory}
-                onBulkAddToMealPanel={handleBulkAddToMeal}
-                onBulkRemoveSelected={handleBulkRemoveSelected}
-            />
-            <SortableContext items={sortableIds} strategy={rectSortingStrategy}>
-                <SortableContext items={folderSortableIds} strategy={verticalListSortingStrategy}>
-                    {visibleFolders.map((folder) => {
-                        const folderKey = String(folder.id);
-                        const folderCats = categoriesByFolderId.get(folder.id) ?? [];
-                        const isFolderEmpty = folderCats.length === 0;
-                        const isFolderCollapsed = !!collapsedFolders[folderKey] || isFolderEmpty;
+        <div className={styles.panel} data-foodlib-root="true">
+            <div className={styles.toolbarFixed}>
+                <FoodLibraryToolBar
+                    search={search}
+                    onSearchChange={handleSearchChange}
+                    isSelecting={isSelectMode}
+                    hasSelection={hasSelection}
+                    onToggleSelectMode={toggleSelectMode}
+                    onAddCategory={handleAddCategoryClick}
+                    onAddFolder={handleAddFolderClick}
+                    categories={enabledCategories}
+                    mealPanels={enabledMealPanels}
+                    onBulkMoveToCategory={handleBulkMoveToCategory}
+                    onBulkAddToMealPanel={handleBulkAddToMeal}
+                    onBulkRemoveSelected={handleBulkRemoveSelected}
+                />
+            </div>
+            <div className={styles.scrollArea} data-foodlib-scroll="true">
+                <SortableContext items={sortableIds} strategy={rectSortingStrategy}>
+                    <SortableContext items={folderSortableIds} strategy={verticalListSortingStrategy}>
+                        {visibleFolders.map((folder) => {
+                            const folderKey = String(folder.id);
+                            const folderCats = categoriesByFolderId.get(folder.id) ?? [];
+                            const isFolderEmpty = folderCats.length === 0;
+                            const isFolderCollapsed = !!collapsedFolders[folderKey] || isFolderEmpty;
 
-                        return (
-                            <SortableFolderGroup
-                                key={folderKey}
-                                folder={folder}
-                                isCollapsed={isFolderCollapsed}
-                                isEmpty={isFolderEmpty}
-                                isEditing={editingFolderId === folder.id}
-                                editingName={editingFolderName}
-                                onToggleCollapse={() => onToggleFolderCollapse(folder.id)}
-                                onStartRename={() => startFolderRename(folder.id, folder.name)}
-                                onCommitRename={() => commitFolderRename(folder.id, folder.name)}
-                                onCancelRename={cancelFolderRename}
-                                onEditingNameChange={setEditingFolderName}
-                                onRemove={() => {
-                                    if (
-                                        confirm(
-                                            `Remove folder "${folder.name}"? Categories inside will be moved out of the folder.`,
-                                        )
-                                    ) {
-                                        onRemoveFolder(folder.id);
-                                    }
-                                }}
-                            >
-                                {!isFolderCollapsed && (
-                                    <>
-                                        <div className={styles.folderDivider} />
-                                        <div className={styles.folderContents}>
-                                            {folderCats.map((cat) => (
-                                                <div
-                                                    key={`foldercat:${String(cat.id)}`}
-                                                    className={styles.folderCategory}
-                                                >
-                                                    {renderCategoryRow(cat)}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </>
-                                )}
-                            </SortableFolderGroup>
-                        );
-                    })}
+                            return (
+                                <SortableFolderGroup
+                                    key={folderKey}
+                                    folder={folder}
+                                    isCollapsed={isFolderCollapsed}
+                                    isEmpty={isFolderEmpty}
+                                    isEditing={editingFolderId === folder.id}
+                                    editingName={editingFolderName}
+                                    onToggleCollapse={() => onToggleFolderCollapse(folder.id)}
+                                    onStartRename={() => startFolderRename(folder.id, folder.name)}
+                                    onCommitRename={() => commitFolderRename(folder.id, folder.name)}
+                                    onCancelRename={cancelFolderRename}
+                                    onEditingNameChange={setEditingFolderName}
+                                    onRemove={() => {
+                                        if (
+                                            confirm(
+                                                `Remove folder "${folder.name}"? Categories inside will be moved out of the folder.`,
+                                            )
+                                        ) {
+                                            onRemoveFolder(folder.id);
+                                        }
+                                    }}
+                                >
+                                    {!isFolderCollapsed && (
+                                        <>
+                                            <div className={styles.folderDivider} />
+                                            <div className={styles.folderContents}>
+                                                {folderCats.map((cat) => (
+                                                    <div
+                                                        key={`foldercat:${String(cat.id)}`}
+                                                        className={styles.folderCategory}
+                                                    >
+                                                        {renderCategoryRow(cat)}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </>
+                                    )}
+                                </SortableFolderGroup>
+                            );
+                        })}
+                    </SortableContext>
+
+                    <div
+                        ref={setUnfiledDropRef}
+                        className={styles.unfiledZone}
+                        style={{
+                            boxShadow: isOverUnfiled ? "0 0 0 2px var(--accent)" : undefined,
+                        }}
+                    >
+                        {unfiledCategories.map((cat) => renderCategoryRow(cat))}
+                    </div>
                 </SortableContext>
-
-                <div
-                    ref={setUnfiledDropRef}
-                    className={styles.unfiledZone}
-                    style={{
-                        boxShadow: isOverUnfiled ? "0 0 0 2px var(--accent)" : undefined,
-                    }}
-                >
-                    {unfiledCategories.map((cat) => renderCategoryRow(cat))}
-                </div>
-            </SortableContext>
+            </div>
         </div>
     );
 }
