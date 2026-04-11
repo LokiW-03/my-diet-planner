@@ -42,7 +42,13 @@ export function FoodModal({
                 <>
                     <div className={styles.footerLeft}>
                         {mode === "edit" && onDelete && (
-                            <button className={styles.dangerBtn} onClick={onDelete} type="button">
+                            <button
+                                className={styles.dangerBtn}
+                                onClick={onDelete}
+                                type="button"
+                                aria-label="Delete"
+                                title="Delete"
+                            >
                                 <FaTrash />
                             </button>
                         )}
