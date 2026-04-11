@@ -1,5 +1,6 @@
 "use client";
 
+import { FaTrash } from "react-icons/fa";
 import type { CategoryId, FoodCategory } from "@/shared/models";
 import { type Unit, UNITS } from "@/shared/models";
 import { clampInt } from "@/shared/utils";
@@ -41,17 +42,20 @@ export function FoodModal({
                 <>
                     <div className={styles.footerLeft}>
                         {mode === "edit" && onDelete && (
-                            <button className={`${styles.btn} ${styles.dangerBtn}`} onClick={onDelete} type="button">
-                                Delete
+                            <button
+                                className={styles.dangerBtn}
+                                onClick={onDelete}
+                                type="button"
+                                aria-label="Delete"
+                                title="Delete"
+                            >
+                                <FaTrash />
                             </button>
                         )}
                     </div>
                     <div className={styles.footerRight}>
-                        <button className={styles.btn} onClick={onClose} type="button">
-                            Cancel
-                        </button>
                         <button
-                            className={`${styles.btn} ${styles.btnPrimary}`}
+                            className={styles.btn}
                             disabled={!canSave}
                             type="button"
                             onClick={() => {

@@ -37,7 +37,9 @@
     opacity: 0.9;
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     overflow-x: auto;
-    color: var(--foreground);
+    color: var(--read-only-fg);
+    background: var(--read-only-bg);
+    font-weight: 900;
 }
 
 .saveBtn {
@@ -46,8 +48,14 @@
     padding: 10px 14px;
     border-radius: 12px;
     border: 1px solid var(--card-border);
-    background: var(--card-bg);
-    color: var(--background);
+    background: var(--background);
+    color: var(--foreground);
     font-weight: 700;
     cursor: pointer;
+
+    &:hover {
+
+        background: var(--foreground);
+        color: var(--background);
+    }
 }

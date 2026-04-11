@@ -133,7 +133,7 @@ export function TargetModal({
                             </td>
                             <td className={styles.td}>
                                 <button
-                                    className={`${styles.btn} ${styles.dangerBtn}`}
+                                    className={styles.dangerBtn}
                                     type="button"
                                     onClick={() => {
                                         setDraft((s) => {
@@ -176,12 +176,8 @@ function TargetModalFooter({ onAdd, onReset, onSaveAsDefault }: FooterProps) {
                 </button>
             </div>
             <div className={styles.footerRight}>
-                <button className={styles.btn} type="button" onClick={onReset}>
-                    Reset to default
-                </button>
-
                 <button
-                    className={`${styles.btn} ${styles.btnPrimary}`}
+                    className={styles.btn}
                     type="button"
                     onClick={async () => {
                         await onSaveAsDefault();
@@ -189,6 +185,11 @@ function TargetModalFooter({ onAdd, onReset, onSaveAsDefault }: FooterProps) {
                 >
                     Save as default
                 </button>
+                <button className={styles.btn} type="button" onClick={onReset}>
+                    Reset to default
+                </button>
+
+
             </div>
         </>
     );

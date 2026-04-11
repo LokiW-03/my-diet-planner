@@ -35,16 +35,16 @@
     border: 1px solid var(--card-border);
     background: var(--background);
     cursor: pointer;
-}
-
-.btnPrimary {
-    border: 1px solid var(--btn-border);
-    background: var(--btn-bg);
-    color: var(--btn-fg);
+    font-weight: 700;
 
     &:disabled {
-        opacity: 0.55;
+        background-color: var(--read-only-bg);
         cursor: not-allowed;
+    }
+
+    &:hover:not(:disabled) {
+        background: var(--foreground);
+        color: var(--background);
     }
 }
 
@@ -52,4 +52,17 @@
     border: 1px solid var(--danger-fg);
     background: var(--card-bg);
     color: var(--danger-fg);
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    line-height: 0;
+    border-radius: 8px;
+
+    &:hover {
+        background: var(--danger-fg);
+        color: var(--danger-bg);
+    }
 }

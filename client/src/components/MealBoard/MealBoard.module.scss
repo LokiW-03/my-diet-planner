@@ -197,6 +197,12 @@
     border: 1px solid var(--card-border);
     background: var(--background);
     cursor: pointer;
+    font-weight: 900;
+
+    &:hover {
+        background: var(--card-bg);
+        color: var(--background);
+    }
 }
 
 .insertRow {

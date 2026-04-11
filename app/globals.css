@@ -20,6 +20,8 @@
   --modal-overlay: rgba(0, 0, 0, 0.35);
   --shadow-card: rgba(0,0,0,0.06);
   --shadow-drag: rgba(0,0,0,0.20);
+  --read-only-fg: rgba(200, 200, 200);
+  --read-only-bg: rgba(50, 50, 50);
 }
 
 @theme inline {
