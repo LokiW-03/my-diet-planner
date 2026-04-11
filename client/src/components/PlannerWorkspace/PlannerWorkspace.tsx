@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState, type ReactNode } from "react";
+import { useCallback, useRef, useState, type ReactNode } from "react";
 import {
     DndContext,
     closestCenter,
@@ -31,6 +31,7 @@ import { MealBoard } from "@/client/src/components/MealBoard/MealBoard";
 import { FoodLibrary } from "@/client/src/components/FoodLibrary/FoodLibrary";
 import { BottomToolBar } from "@/client/src/components/BottomToolBar/BottomToolBar";
 import { getFoodLibraryGroups } from "@/client/src/utils/getFoodLibraryGroups";
+import { useDragScrollProxy } from "@/client/src/hooks/useDragScrollProxy";
 
 import styles from "./PlannerWorkspace.module.scss";
 import chipStyles from "@/client/src/components/FoodLibrary/CategoryRow/CategoryRow.module.scss";
@@ -56,6 +57,7 @@ export default function PlannerWorkspace({
 
     const [activeId, setActiveId] = useState<string | null>(null);
     const [collapsedFolders, setCollapsedFolders] = useState<Record<string, boolean>>({});
+    const foodLibScrollAreaRef = useRef<HTMLDivElement | null>(null);
 
     const toggleCollapsedFolder = (folderIdKey: string) => {
         setCollapsedFolders((prev) => ({ ...prev, [folderIdKey]: !prev[folderIdKey] }));
@@ -121,6 +123,11 @@ export default function PlannerWorkspace({
         totals.kcal,
     );
 
+    useDragScrollProxy({
+        enabled: !!activeId?.startsWith("lib:"),
+        scrollAreaRef: foodLibScrollAreaRef,
+    });
+
     return (
         <DndContext
             sensors={sensors}
@@ -156,12 +163,13 @@ export default function PlannerWorkspace({
                     />
                 </div>
 
-                <div>
+                <div className={styles.foodCol}>
                     <FoodLibrary
                         foods={foods}
                         folders={folders}
                         categories={categories}
                         mealDefs={mealDefs}
+                        scrollAreaRef={foodLibScrollAreaRef}
                         onAdd={foodLibraryActions.openAdd}
                         onEdit={foodLibraryActions.openEdit}
                         onRenameCategory={foodLibraryActions.renameCategory}

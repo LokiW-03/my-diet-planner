@@ -240,8 +240,11 @@ function FoodChip({
             }
             className={styles.chip}
             style={{
-                opacity: isDragging ? 0.5 : 1,
-                transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
+                opacity: isDragging ? 0 : 1,
+                transform:
+                    !isDragging && transform
+                        ? `translate3d(${transform.x}px, ${transform.y}px, 0)`
+                        : undefined,
             }}
             role="button"
             tabIndex={0}
