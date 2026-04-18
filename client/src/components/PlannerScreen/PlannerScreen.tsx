@@ -125,14 +125,20 @@ export default function PlannerScreen() {
                 />
             )}
 
-            <ScheduleModal
-                open={showSchedule}
-                onClose={() => setShowSchedule(false)}
-                targets={model.targets}
-                initialTargetId={model.dayType}
-                addScheduleRule={actions.addScheduleRule}
-                setScheduleOverride={actions.setScheduleOverride}
-            />
+            {showSchedule && (
+                <ScheduleModal
+                    open={showSchedule}
+                    onClose={() => setShowSchedule(false)}
+                    targets={model.targets}
+                    initialTargetId={model.dayType}
+                    schedule={model.schedule}
+                    addScheduleRule={actions.addScheduleRule}
+                    setScheduleOverride={actions.setScheduleOverride}
+                    updateScheduleRule={actions.updateScheduleRule}
+                    removeScheduleRule={actions.removeScheduleRule}
+                    clearScheduleOverride={actions.clearScheduleOverride}
+                />
+            )}
         </div>
     );
 }

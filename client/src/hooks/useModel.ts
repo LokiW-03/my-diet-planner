@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useSyncExternalStore } from "react";
 import {
   computeMealTotals,
   computeTotals,
@@ -10,7 +10,13 @@ import {
   resolveScheduledTargetForDate,
   toIsoDateStringLocalCalendar,
 } from "@/client/src/utils/targetSchedule";
-import type { MealEntry, MealId, TargetId, UserProfile } from "@/shared/models";
+import type {
+  IsoDateString,
+  MealEntry,
+  MealId,
+  TargetId,
+  UserProfile,
+} from "@/shared/models";
 
 export function useModel({
   profile,
@@ -19,22 +25,40 @@ export function useModel({
   profile: UserProfile;
   plannerState: PlannerState;
 }) {
-  const [today, setToday] = useState<null | ReturnType<typeof asIsoDateString>>(
-    null,
+  const today = useSyncExternalStore<IsoDateString | null>(
+    (onStoreChange) => {
+      let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+      const scheduleNext = () => {
+        const now = new Date();
+        const next = new Date(now);
+        next.setHours(24, 0, 0, 0);
+        const msUntilNextMidnight = Math.max(0, next.getTime() - now.getTime());
+
+        timeoutId = setTimeout(() => {
+          onStoreChange();
+          scheduleNext();
+        }, msUntilNextMidnight + 25);
+      };
+
+      scheduleNext();
+      return () => {
+        if (timeoutId) clearTimeout(timeoutId);
+      };
+    },
+    () => asIsoDateString(toIsoDateStringLocalCalendar(new Date())),
+    () => null,
   );
 
-  useEffect(() => {
-    setToday(asIsoDateString(toIsoDateStringLocalCalendar(new Date())));
-  }, []);
-
-  const scheduled = useMemo(() => {
+  const scheduledResult = useMemo(() => {
     if (!today) return null;
     return resolveScheduledTargetForDate({
       schedule: profile.schedule,
       date: today,
-    }).targetId;
+    });
   }, [profile.schedule, today]);
 
+  const scheduled = scheduledResult?.targetId ?? null;
   const effectiveDayType: TargetId = (scheduled ??
     plannerState.dayType) as TargetId;
 
@@ -93,6 +117,7 @@ export function useModel({
 
   return {
     foods,
+    schedule: profile.schedule,
     foldersById,
     folders,
     categoriesById,

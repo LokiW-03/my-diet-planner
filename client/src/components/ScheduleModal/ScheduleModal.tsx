@@ -1,7 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import type { IsoDateString, Target, TargetId } from "@/shared/models";
+import { useCallback, useMemo, useState } from "react";
+import { FaTrash } from "react-icons/fa";
+import type {
+    IsoDateString,
+    Target,
+    TargetId,
+    TargetSchedule,
+    TargetScheduleRule,
+} from "@/shared/models";
 import { ModalShell } from "@/client/src/components/ModalShell/ModalShell";
 import {
     asIsoDateString,
@@ -15,29 +22,22 @@ export function ScheduleModal({
     onClose,
     targets,
     initialTargetId,
+    schedule,
     addScheduleRule,
     setScheduleOverride,
+    updateScheduleRule,
+    removeScheduleRule,
+    clearScheduleOverride,
 }: ScheduleModalProps) {
     const today = useMemo(
         () => asIsoDateString(toIsoDateStringLocalCalendar(new Date())),
         [],
     );
 
-    const [targetId, setTargetId] = useState<TargetId>(initialTargetId);
-    const [date, setDate] = useState<IsoDateString>(today);
-    const [repeat, setRepeat] = useState<RepeatMode>("weekly");
-    const [weeklyDays, setWeeklyDays] = useState<WeekdayCode[]>(() => {
-        return [weekdayFromIsoDate(today)];
-    });
-
-    useEffect(() => {
-        if (!open) return;
-
-        setTargetId(initialTargetId);
-        setDate(today);
-        setRepeat("weekly");
-        setWeeklyDays([weekdayFromIsoDate(today)]);
-    }, [initialTargetId, open, today]);
+    const [targetId, setTargetId] = useState<TargetId>(() => initialTargetId);
+    const [date, setDate] = useState<IsoDateString>(() => today);
+    const [repeat, setRepeat] = useState<RepeatMode>(() => "weekly");
+    const [weeklyDays, setWeeklyDays] = useState<WeekdayCode[]>(() => [weekdayFromIsoDate(today)]);
 
     const monthDay = useMemo(() => parseIsoDateUtc(date).getUTCDate(), [date]);
 
@@ -65,6 +65,22 @@ export function ScheduleModal({
         return weeklyDays.length > 0;
     }, [repeat, targets.length, weeklyDays.length]);
 
+    const hasOverrideForSelectedDate = useMemo(
+        () => Object.prototype.hasOwnProperty.call(schedule.overridesByDate, date),
+        [date, schedule.overridesByDate],
+    );
+
+    const overrideTargetName = useMemo(() => {
+        if (!hasOverrideForSelectedDate) return null;
+        const id = schedule.overridesByDate[date] ?? null;
+        if (!id) return "(none)";
+        return targets.find((t) => t.id === id)?.name ?? String(id);
+    }, [date, hasOverrideForSelectedDate, schedule.overridesByDate, targets]);
+
+    const sortedRules = useMemo(() => {
+        return (schedule.rules ?? []).slice().sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    }, [schedule.rules]);
+
     return (
         <ModalShell
             open={open}
@@ -82,7 +98,7 @@ export function ScheduleModal({
                             setWeeklyDays([weekdayFromIsoDate(today)]);
                         }}
                     >
-                        Clear
+                        Reset
                     </button>
                     <button
                         className={styles.btnPrimary}
@@ -127,6 +143,22 @@ export function ScheduleModal({
                     />
                 </label>
 
+                {hasOverrideForSelectedDate ? (
+                    <div className={styles.overrideRow}>
+                        <div className={styles.overrideText}>
+                            Override for this date: {overrideTargetName}
+                        </div>
+                        <button
+                            type="button"
+                            className={styles.btnDanger}
+                            onClick={() => clearScheduleOverride(date)}
+                            title="Remove override for this date"
+                        >
+                            Clear override
+                        </button>
+                    </div>
+                ) : null}
+
                 <label className={styles.label}>
                     Repeat
                     <select
@@ -159,7 +191,8 @@ export function ScheduleModal({
                                             });
                                         }}
                                         aria-pressed={active}
-                                        title={d.code}
+                                        aria-label={d.ariaLabel}
+                                        title={d.ariaLabel}
                                     >
                                         {d.label}
                                     </button>
@@ -174,6 +207,45 @@ export function ScheduleModal({
                         Repeats on day {monthDay} of each month.
                     </div>
                 ) : null}
+
+                <div className={styles.rulesTitle}>Saved rules</div>
+                {sortedRules.length === 0 ? (
+                    <div className={styles.hint}>No schedule rules yet.</div>
+                ) : (
+                    <div className={styles.rulesList}>
+                        {sortedRules.map((r) => {
+                            const name = targets.find((t) => t.id === r.targetId)?.name ?? String(r.targetId);
+                            return (
+                                <div key={r.id} className={styles.ruleRow}>
+                                    <label className={styles.ruleLeft}>
+                                        <input
+                                            type="checkbox"
+                                            checked={r.enabled}
+                                            onChange={(e) => updateScheduleRule(r.id, { enabled: e.target.checked })}
+                                            aria-label={`Enabled: ${name}`}
+                                        />
+                                        <div className={styles.ruleText}>
+                                            <div className={styles.ruleName}>{name}</div>
+                                            <div className={styles.ruleMeta}>
+                                                {r.dtstart} · {r.rrule}
+                                            </div>
+                                        </div>
+                                    </label>
+
+                                    <button
+                                        type="button"
+                                        className={styles.iconDangerBtn}
+                                        onClick={() => removeScheduleRule(r.id)}
+                                        title="Remove rule"
+                                        aria-label="Remove rule"
+                                    >
+                                        <FaTrash />
+                                    </button>
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
             </div>
         </ModalShell>
     );
@@ -213,6 +285,7 @@ type ScheduleModalProps = {
     onClose: () => void;
     targets: Target[];
     initialTargetId: TargetId;
+    schedule: TargetSchedule;
     addScheduleRule: (rule: {
         targetId: TargetId;
         dtstart: IsoDateString;
@@ -221,18 +294,21 @@ type ScheduleModalProps = {
         priority: number;
     }) => string;
     setScheduleOverride: (date: IsoDateString, targetId: TargetId | null) => void;
+    updateScheduleRule: (ruleId: string, patch: Partial<Omit<TargetScheduleRule, "id">>) => void;
+    removeScheduleRule: (ruleId: string) => void;
+    clearScheduleOverride: (date: IsoDateString) => void;
 };
 
 type RepeatMode = "none" | "daily" | "weekly" | "monthly";
 
 type WeekdayCode = "MO" | "TU" | "WE" | "TH" | "FR" | "SA" | "SU";
 
-const WEEKDAYS: Array<{ code: WeekdayCode; label: string }> = [
-    { code: "SU", label: "S" },
-    { code: "MO", label: "M" },
-    { code: "TU", label: "T" },
-    { code: "WE", label: "W" },
-    { code: "TH", label: "T" },
-    { code: "FR", label: "F" },
-    { code: "SA", label: "S" },
+const WEEKDAYS: Array<{ code: WeekdayCode; label: string; ariaLabel: string }> = [
+    { code: "SU", label: "S", ariaLabel: "Sunday" },
+    { code: "MO", label: "M", ariaLabel: "Monday" },
+    { code: "TU", label: "T", ariaLabel: "Tuesday" },
+    { code: "WE", label: "W", ariaLabel: "Wednesday" },
+    { code: "TH", label: "T", ariaLabel: "Thursday" },
+    { code: "FR", label: "F", ariaLabel: "Friday" },
+    { code: "SA", label: "S", ariaLabel: "Saturday" },
 ];

@@ -68,6 +68,71 @@
     font-weight: 700;
 }
 
+.overrideRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    background: var(--card-bg);
+}
+
+.overrideText {
+    color: var(--foreground);
+    font-weight: 800;
+}
+
+.rulesTitle {
+    margin-top: 8px;
+    font-weight: 900;
+    color: var(--foreground);
+}
+
+.rulesList {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.ruleRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px;
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    background: var(--card-bg);
+}
+
+.ruleLeft {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    flex: 1;
+}
+
+.ruleText {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.ruleName {
+    color: var(--foreground);
+    font-weight: 900;
+}
+
+.ruleMeta {
+    color: var(--foreground);
+    opacity: 0.9;
+    font-weight: 700;
+    font-size: 12px;
+    word-break: break-word;
+}
+
 .btn {
     height: 44px;
     min-width: 120px;
@@ -76,6 +141,40 @@
     background: var(--card-bg);
     color: var(--background);
     font-weight: 900;
+    cursor: pointer;
+
+    &:hover {
+        background: var(--btn-bg);
+        color: var(--btn-fg);
+    }
+}
+
+.btnDanger {
+    height: 38px;
+    border-radius: 12px;
+    border: 1px solid var(--btn-border);
+    background: var(--card-bg);
+    color: var(--background);
+    font-weight: 900;
+    cursor: pointer;
+    padding: 0 12px;
+
+    &:hover {
+        background: var(--btn-bg);
+        color: var(--btn-fg);
+    }
+}
+
+.iconDangerBtn {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    border: 1px solid var(--btn-border);
+    background: var(--card-bg);
+    color: var(--background);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
 
     &:hover {
