@@ -133,10 +133,8 @@ export default function PlannerScreen() {
                     initialTargetId={model.dayType}
                     schedule={model.schedule}
                     addScheduleRule={actions.addScheduleRule}
-                    setScheduleOverride={actions.setScheduleOverride}
                     updateScheduleRule={actions.updateScheduleRule}
                     removeScheduleRule={actions.removeScheduleRule}
-                    clearScheduleOverride={actions.clearScheduleOverride}
                 />
             )}
         </div>

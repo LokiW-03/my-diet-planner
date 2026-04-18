@@ -60,7 +60,7 @@ describe("Scheduling: effective target + toolbar override", () => {
                         id: "rule-1",
                         targetId: defaultTargetId("REST"),
                         dtstart: asIsoDateString("2026-04-18"),
-                        rrule: "FREQ=DAILY",
+                        rrule: "FREQ=WEEKLY;BYDAY=SA",
                         enabled: true,
                         priority: 0,
                         createdAt: "2026-04-18T00:00:00.000Z",

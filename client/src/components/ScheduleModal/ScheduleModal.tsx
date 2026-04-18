@@ -24,10 +24,8 @@ export function ScheduleModal({
     initialTargetId,
     schedule,
     addScheduleRule,
-    setScheduleOverride,
     updateScheduleRule,
     removeScheduleRule,
-    clearScheduleOverride,
 }: ScheduleModalProps) {
     const today = useMemo(
         () => asIsoDateString(toIsoDateStringLocalCalendar(new Date())),
@@ -35,47 +33,24 @@ export function ScheduleModal({
     );
 
     const [targetId, setTargetId] = useState<TargetId>(() => initialTargetId);
-    const [date, setDate] = useState<IsoDateString>(() => today);
-    const [repeat, setRepeat] = useState<RepeatMode>(() => "weekly");
     const [weeklyDays, setWeeklyDays] = useState<WeekdayCode[]>(() => [weekdayFromIsoDate(today)]);
 
-    const monthDay = useMemo(() => parseIsoDateUtc(date).getUTCDate(), [date]);
-
     const onOk = useCallback(() => {
-        if (repeat === "none") {
-            setScheduleOverride(date, targetId);
-            onClose();
-            return;
-        }
-
-        const rrule = buildRrule({ repeat, weeklyDays, monthDay });
+        const rrule = buildWeeklyRrule({ weeklyDays });
         addScheduleRule({
             targetId,
-            dtstart: date,
+            dtstart: today,
             rrule,
             enabled: true,
             priority: 0,
         });
         onClose();
-    }, [addScheduleRule, date, monthDay, onClose, repeat, setScheduleOverride, targetId, weeklyDays]);
+    }, [addScheduleRule, onClose, targetId, today, weeklyDays]);
 
     const canSave = useMemo(() => {
         if (targets.length === 0) return false;
-        if (repeat !== "weekly") return true;
         return weeklyDays.length > 0;
-    }, [repeat, targets.length, weeklyDays.length]);
-
-    const hasOverrideForSelectedDate = useMemo(
-        () => Object.prototype.hasOwnProperty.call(schedule.overridesByDate, date),
-        [date, schedule.overridesByDate],
-    );
-
-    const overrideTargetName = useMemo(() => {
-        if (!hasOverrideForSelectedDate) return null;
-        const id = schedule.overridesByDate[date] ?? null;
-        if (!id) return "(none)";
-        return targets.find((t) => t.id === id)?.name ?? String(id);
-    }, [date, hasOverrideForSelectedDate, schedule.overridesByDate, targets]);
+    }, [targets.length, weeklyDays.length]);
 
     const sortedRules = useMemo(() => {
         return (schedule.rules ?? []).slice().sort((a, b) => b.createdAt.localeCompare(a.createdAt));
@@ -93,8 +68,6 @@ export function ScheduleModal({
                         className={styles.btn}
                         type="button"
                         onClick={() => {
-                            setDate(today);
-                            setRepeat("weekly");
                             setWeeklyDays([weekdayFromIsoDate(today)]);
                         }}
                     >
@@ -127,88 +100,32 @@ export function ScheduleModal({
                     </select>
                 </label>
 
-                <label className={styles.label}>
-                    Date
-                    <input
-                        className={styles.input}
-                        type="date"
-                        value={date}
-                        onChange={(e) => {
-                            const raw = e.target.value;
-                            if (!raw) return;
-                            const next = asIsoDateString(raw);
-                            setDate(next);
-                            if (repeat === "weekly") {
-                                setWeeklyDays([weekdayFromIsoDate(next)]);
-                            }
-                        }}
-                    />
-                </label>
-
-                {hasOverrideForSelectedDate ? (
-                    <div className={styles.overrideRow}>
-                        <div className={styles.overrideText}>
-                            Override for this date: {overrideTargetName}
-                        </div>
-                        <button
-                            type="button"
-                            className={styles.btnDanger}
-                            onClick={() => clearScheduleOverride(date)}
-                            title="Remove override for this date"
-                        >
-                            Clear override
-                        </button>
+                <div className={styles.weeklyRow}>
+                    <div className={styles.weeklyLabel}>Days</div>
+                    <div className={styles.weekdayGrid} role="group" aria-label="Weekdays">
+                        {WEEKDAYS.map((d) => {
+                            const active = weeklyDays.includes(d.code);
+                            return (
+                                <button
+                                    key={d.code}
+                                    type="button"
+                                    className={active ? `${styles.dayBtn} ${styles.dayBtnActive}` : styles.dayBtn}
+                                    onClick={() => {
+                                        setWeeklyDays((cur) => {
+                                            if (cur.includes(d.code)) return cur.filter((x) => x !== d.code);
+                                            return [...cur, d.code];
+                                        });
+                                    }}
+                                    aria-pressed={active}
+                                    aria-label={d.ariaLabel}
+                                    title={d.ariaLabel}
+                                >
+                                    {d.label}
+                                </button>
+                            );
+                        })}
                     </div>
-                ) : null}
-
-                <label className={styles.label}>
-                    Repeat
-                    <select
-                        className={styles.select}
-                        value={repeat}
-                        onChange={(e) => setRepeat(e.target.value as RepeatMode)}
-                    >
-                        <option value="none">None (just this day)</option>
-                        <option value="daily">Daily</option>
-                        <option value="weekly">Weekly</option>
-                        <option value="monthly">Monthly</option>
-                    </select>
-                </label>
-
-                {repeat === "weekly" ? (
-                    <div className={styles.weeklyRow}>
-                        <div className={styles.weeklyLabel}>Days</div>
-                        <div className={styles.weekdayGrid} role="group" aria-label="Weekdays">
-                            {WEEKDAYS.map((d) => {
-                                const active = weeklyDays.includes(d.code);
-                                return (
-                                    <button
-                                        key={d.code}
-                                        type="button"
-                                        className={active ? `${styles.dayBtn} ${styles.dayBtnActive}` : styles.dayBtn}
-                                        onClick={() => {
-                                            setWeeklyDays((cur) => {
-                                                if (cur.includes(d.code)) return cur.filter((x) => x !== d.code);
-                                                return [...cur, d.code];
-                                            });
-                                        }}
-                                        aria-pressed={active}
-                                        aria-label={d.ariaLabel}
-                                        title={d.ariaLabel}
-                                    >
-                                        {d.label}
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    </div>
-                ) : null}
-
-                {repeat === "monthly" ? (
-                    <div className={styles.hint}>
-                        Repeats on day {monthDay} of each month.
-                    </div>
-                ) : null}
+                </div>
 
                 <div className={styles.rulesTitle}>Saved rules</div>
                 {sortedRules.length === 0 ? (
@@ -265,21 +182,9 @@ function weekdayFromIsoDate(date: IsoDateString): WeekdayCode {
     return "SA";
 }
 
-function buildRrule(opts: {
-    repeat: Exclude<RepeatMode, "none">;
-    weeklyDays: WeekdayCode[];
-    monthDay: number;
-}): string {
-    const { repeat, weeklyDays, monthDay } = opts;
-
-    if (repeat === "daily") return "FREQ=DAILY";
-
-    if (repeat === "weekly") {
-        const days = weeklyDays.length > 0 ? weeklyDays : ["MO"];
-        return `FREQ=WEEKLY;BYDAY=${days.join(",")}`;
-    }
-
-    return `FREQ=MONTHLY;BYMONTHDAY=${monthDay}`;
+function buildWeeklyRrule(opts: { weeklyDays: WeekdayCode[] }): string {
+    const days = opts.weeklyDays.length > 0 ? opts.weeklyDays : ["MO"];
+    return `FREQ=WEEKLY;BYDAY=${days.join(",")}`;
 }
 
 type ScheduleModalProps = {
@@ -295,16 +200,12 @@ type ScheduleModalProps = {
         enabled: boolean;
         priority: number;
     }) => string;
-    setScheduleOverride: (date: IsoDateString, targetId: TargetId | null) => void;
     updateScheduleRule: (
         ruleId: string,
         patch: Partial<Omit<TargetScheduleRule, "id" | "createdAt">>,
     ) => void;
     removeScheduleRule: (ruleId: string) => void;
-    clearScheduleOverride: (date: IsoDateString) => void;
 };
-
-type RepeatMode = "none" | "daily" | "weekly" | "monthly";
 
 type WeekdayCode = "MO" | "TU" | "WE" | "TH" | "FR" | "SA" | "SU";
 
