@@ -134,7 +134,9 @@ export function ScheduleModal({
                         type="date"
                         value={date}
                         onChange={(e) => {
-                            const next = asIsoDateString(e.target.value);
+                            const raw = e.target.value;
+                            if (!raw) return;
+                            const next = asIsoDateString(raw);
                             setDate(next);
                             if (repeat === "weekly") {
                                 setWeeklyDays([weekdayFromIsoDate(next)]);
@@ -294,7 +296,10 @@ type ScheduleModalProps = {
         priority: number;
     }) => string;
     setScheduleOverride: (date: IsoDateString, targetId: TargetId | null) => void;
-    updateScheduleRule: (ruleId: string, patch: Partial<Omit<TargetScheduleRule, "id">>) => void;
+    updateScheduleRule: (
+        ruleId: string,
+        patch: Partial<Omit<TargetScheduleRule, "id" | "createdAt">>,
+    ) => void;
     removeScheduleRule: (ruleId: string) => void;
     clearScheduleOverride: (date: IsoDateString) => void;
 };

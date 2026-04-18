@@ -92,6 +92,7 @@ export function usePlannerScreen() {
 
       const today = asIsoDateString(toIsoDateStringLocalCalendar(new Date()));
       setScheduleOverride(today, next);
+      plannerActions.setDayType(next);
     },
     [plannerActions, profile.schedule?.rules, setScheduleOverride],
   );

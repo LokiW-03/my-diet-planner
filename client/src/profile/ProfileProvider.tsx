@@ -43,7 +43,7 @@ export type ProfileContextValue = {
 
     // Scheduling (local cache)
     addScheduleRule: (rule: Omit<TargetScheduleRule, "id" | "createdAt">) => string;
-    updateScheduleRule: (ruleId: string, patch: Partial<Omit<TargetScheduleRule, "id">>) => void;
+    updateScheduleRule: (ruleId: string, patch: Partial<Omit<TargetScheduleRule, "id" | "createdAt">>) => void;
     removeScheduleRule: (ruleId: string) => void;
     setScheduleOverride: (date: IsoDateString, targetId: TargetId | null) => void;
     clearScheduleOverride: (date: IsoDateString) => void;
@@ -138,13 +138,13 @@ export function ProfileProvider({
     );
 
     const updateScheduleRule = useCallback(
-        (ruleId: string, patch: Partial<Omit<TargetScheduleRule, "id">>) => {
+        (ruleId: string, patch: Partial<Omit<TargetScheduleRule, "id" | "createdAt">>) => {
             setProfile((p) => ({
                 ...p,
                 schedule: {
                     ...p.schedule,
                     rules: (p.schedule?.rules ?? []).map((r) =>
-                        r.id === ruleId ? { ...r, ...patch } : r,
+                        r.id === ruleId ? { ...r, ...patch, createdAt: r.createdAt } : r,
                     ),
                 },
             }));
