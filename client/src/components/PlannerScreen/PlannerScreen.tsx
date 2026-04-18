@@ -7,6 +7,7 @@ import { TopToolBar } from "@/client/src/components/TopToolBar/TopToolBar";
 import { UserProfileModal } from "@/client/src/components/UserProfileModal/UserProfileModal";
 import { FoodModal } from "@/client/src/components/FoodModal/FoodModal";
 import { TargetModal } from "@/client/src/components/TargetModal/TargetModal";
+import { ScheduleModal } from "@/client/src/components/ScheduleModal/ScheduleModal";
 import styles from "./PlannerScreen.module.scss";
 
 const DndShell = dynamic(
@@ -18,6 +19,7 @@ export default function PlannerScreen() {
     const { model, ui, actions } = usePlannerScreen();
     const [showProfile, setShowProfile] = useState(false);
     const [showTargets, setShowTargets] = useState(false);
+    const [showSchedule, setShowSchedule] = useState(false);
 
     return (
         <div className={styles.page}>
@@ -26,6 +28,7 @@ export default function PlannerScreen() {
                     showProfile={showProfile}
                     onToggleProfile={() => setShowProfile((v) => !v)}
                     onEditTargets={() => setShowTargets(true)}
+                    onOpenSchedule={() => setShowSchedule(true)}
                     targets={model.targets}
                     dayType={model.dayType}
                     onDayTypeChange={actions.setDayType}
@@ -121,6 +124,15 @@ export default function PlannerScreen() {
                     }}
                 />
             )}
+
+            <ScheduleModal
+                open={showSchedule}
+                onClose={() => setShowSchedule(false)}
+                targets={model.targets}
+                initialTargetId={model.dayType}
+                addScheduleRule={actions.addScheduleRule}
+                setScheduleOverride={actions.setScheduleOverride}
+            />
         </div>
     );
 }

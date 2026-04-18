@@ -1,10 +1,15 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   computeMealTotals,
   computeTotals,
 } from "@/client/src/utils/computeTotals";
+import {
+  asIsoDateString,
+  resolveScheduledTargetForDate,
+  toIsoDateStringLocalCalendar,
+} from "@/client/src/utils/targetSchedule";
 import type { MealEntry, MealId, TargetId, UserProfile } from "@/shared/models";
 
 export function useModel({
@@ -14,6 +19,25 @@ export function useModel({
   profile: UserProfile;
   plannerState: PlannerState;
 }) {
+  const [today, setToday] = useState<null | ReturnType<typeof asIsoDateString>>(
+    null,
+  );
+
+  useEffect(() => {
+    setToday(asIsoDateString(toIsoDateStringLocalCalendar(new Date())));
+  }, []);
+
+  const scheduled = useMemo(() => {
+    if (!today) return null;
+    return resolveScheduledTargetForDate({
+      schedule: profile.schedule,
+      date: today,
+    }).targetId;
+  }, [profile.schedule, today]);
+
+  const effectiveDayType: TargetId = (scheduled ??
+    plannerState.dayType) as TargetId;
+
   const foods = useMemo(() => Object.values(profile.foods), [profile.foods]);
   const foldersById = profile.folders;
   const folders = useMemo(
@@ -78,7 +102,7 @@ export function useModel({
     meals: plannerState.meals,
     totals,
     mealTotals,
-    dayType: plannerState.dayType,
+    dayType: effectiveDayType,
     weightKg: profile.weightKg,
     hiddenMeals: plannerState.hiddenMeals,
     mealPanelOrder: plannerState.mealPanelOrder,

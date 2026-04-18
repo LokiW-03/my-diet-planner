@@ -1,0 +1,101 @@
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-weight: 700;
+    color: var(--foreground);
+}
+
+.input,
+.select {
+    height: 44px;
+    border-radius: 12px;
+    border: 1px solid var(--card-border);
+    background: var(--card-bg);
+    color: var(--foreground);
+    padding: 0 12px;
+    font-weight: 700;
+}
+
+.weeklyRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.weeklyLabel {
+    font-weight: 900;
+    color: var(--foreground);
+}
+
+.weekdayGrid {
+    display: grid;
+    grid-template-columns: repeat(7, 36px);
+    gap: 8px;
+}
+
+.dayBtn {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: 1px solid var(--btn-border);
+    background: var(--card-bg);
+    color: var(--background);
+    font-weight: 900;
+    cursor: pointer;
+
+    &:hover {
+        background: var(--btn-bg);
+        color: var(--btn-fg);
+    }
+}
+
+.dayBtnActive {
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+}
+
+.hint {
+    color: var(--foreground);
+    opacity: 0.9;
+    font-weight: 700;
+}
+
+.btn {
+    height: 44px;
+    min-width: 120px;
+    border-radius: 12px;
+    border: 1px solid var(--btn-border);
+    background: var(--card-bg);
+    color: var(--background);
+    font-weight: 900;
+    cursor: pointer;
+
+    &:hover {
+        background: var(--btn-bg);
+        color: var(--btn-fg);
+    }
+}
+
+.btnPrimary {
+    height: 44px;
+    min-width: 120px;
+    border-radius: 12px;
+    border: 1px solid var(--btn-border);
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+    font-weight: 900;
+    cursor: pointer;
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+}

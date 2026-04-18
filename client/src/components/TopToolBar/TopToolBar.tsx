@@ -1,6 +1,6 @@
 "use client";
 
-import { FaUserCircle, FaEdit, FaSave } from "react-icons/fa";
+import { FaUserCircle, FaEdit, FaSave, FaRegCalendarAlt } from "react-icons/fa";
 import { FaRotateRight } from "react-icons/fa6";
 import type { Target, TargetId } from "@/shared/models";
 import { TargetSelect } from "./TargetSelect";
@@ -10,6 +10,7 @@ export function TopToolBar({
     showProfile,
     onToggleProfile,
     onEditTargets,
+    onOpenSchedule,
     targets,
     dayType,
     onDayTypeChange,
@@ -57,6 +58,15 @@ export function TopToolBar({
                 >
                     <FaEdit size={18} />
                 </button>
+
+                <button
+                    className={styles.btn}
+                    onClick={onOpenSchedule}
+                    type="button"
+                    title="Schedule targets"
+                >
+                    <FaRegCalendarAlt size={18} />
+                </button>
             </div>
 
             <div className={styles.group}>
@@ -83,6 +93,7 @@ type TopToolBarProps = {
     onToggleProfile: () => void;
 
     onEditTargets: () => void;
+    onOpenSchedule: () => void;
 
     targets: Target[];
     dayType: TargetId;
