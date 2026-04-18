@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useMemo, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { FiChevronDown } from "react-icons/fi";
 import styles from "./DropdownMenu.module.scss";
 
@@ -26,11 +26,54 @@ export function DropdownMenu({
     optionDisabledClassName,
 }: DropdownMenuProps) {
     const [open, setOpen] = useState(false);
+    const rootRef = useRef<HTMLDivElement | null>(null);
+    const buttonRef = useRef<HTMLButtonElement | null>(null);
+    const reactId = useId();
+    const buttonId = `dropdown-button-${reactId}`;
+    const menuId = `dropdown-menu-${reactId}`;
 
-    const derivedDisabled = useMemo(() => {
-        if (disabledProp) return true;
-        return options.length === 0;
-    }, [disabledProp, options.length]);
+    const derivedDisabled = disabledProp || options.length === 0;
+
+    useEffect(() => {
+        if (!open) return;
+
+        // If the dropdown becomes disabled while open, close it.
+        if (derivedDisabled) {
+            setOpen(false);
+            return;
+        }
+
+        const onPointerDown = (ev: Event) => {
+            const root = rootRef.current;
+            if (!root) return;
+            if (!(ev.target instanceof Node)) return;
+            if (!root.contains(ev.target)) setOpen(false);
+        };
+
+        const onKeyDown = (ev: KeyboardEvent) => {
+            if (ev.key !== "Escape") return;
+            ev.preventDefault();
+            setOpen(false);
+            queueMicrotask(() => buttonRef.current?.focus());
+        };
+
+        const onFocusIn = (ev: FocusEvent) => {
+            const root = rootRef.current;
+            if (!root) return;
+            if (!(ev.target instanceof Node)) return;
+            if (!root.contains(ev.target)) setOpen(false);
+        };
+
+        document.addEventListener("pointerdown", onPointerDown, true);
+        document.addEventListener("keydown", onKeyDown, true);
+        document.addEventListener("focusin", onFocusIn, true);
+
+        return () => {
+            document.removeEventListener("pointerdown", onPointerDown, true);
+            document.removeEventListener("keydown", onKeyDown, true);
+            document.removeEventListener("focusin", onFocusIn, true);
+        };
+    }, [open, derivedDisabled]);
 
     const toggleOpen = () => {
         if (derivedDisabled) return;
@@ -44,8 +87,10 @@ export function DropdownMenu({
     };
 
     return (
-        <div className={cx(styles.root, rootClassName)}>
+        <div ref={rootRef} className={cx(styles.root, rootClassName)}>
             <button
+                ref={buttonRef}
+                id={buttonId}
                 type="button"
                 className={cx(
                     styles.button,
@@ -54,7 +99,8 @@ export function DropdownMenu({
                 )}
                 onClick={toggleOpen}
                 disabled={derivedDisabled}
-                aria-disabled={derivedDisabled}
+                aria-expanded={open}
+                aria-controls={open ? menuId : undefined}
                 title={title}
                 aria-label={ariaLabel}
             >
@@ -69,7 +115,9 @@ export function DropdownMenu({
 
             {open && !derivedDisabled && (
                 <ul
+                    id={menuId}
                     className={cx(styles.menu, menuClassName)}
+                    aria-labelledby={buttonId}
                     onMouseLeave={
                         closeOnMouseLeave
                             ? () => setOpen(false)
@@ -90,7 +138,6 @@ export function DropdownMenu({
                                         optDisabled ? optionDisabledClassName : undefined,
                                     )}
                                     disabled={optDisabled}
-                                    aria-disabled={optDisabled}
                                     onClick={() => {
                                         if (optDisabled) return;
                                         handleSelect(opt.value);
@@ -117,7 +164,6 @@ export type DropdownMenuOption = {
     selected?: boolean;
     disabled?: boolean;
 };
-
 
 type DropdownMenuProps = {
     buttonLabel: ReactNode;
