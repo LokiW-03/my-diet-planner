@@ -33,6 +33,11 @@
     width: 100%;
     padding: 0;
     z-index: 10;
+
+    max-height: 240px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    list-style: none;
 }
 
 .option {

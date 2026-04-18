@@ -10,6 +10,7 @@ export function DropdownMenu({
     options,
     onSelect,
     disabled: disabledProp,
+    triggerId,
     title,
     ariaLabel,
     closeOnMouseLeave = true,
@@ -29,19 +30,14 @@ export function DropdownMenu({
     const rootRef = useRef<HTMLDivElement | null>(null);
     const buttonRef = useRef<HTMLButtonElement | null>(null);
     const reactId = useId();
-    const buttonId = `dropdown-button-${reactId}`;
-    const menuId = `dropdown-menu-${reactId}`;
+    const buttonId = triggerId ?? `dropdown-button-${reactId}`;
+    const menuId = `${buttonId}__menu`;
 
     const derivedDisabled = disabledProp || options.length === 0;
+    const isOpen = open && !derivedDisabled;
 
     useEffect(() => {
-        if (!open) return;
-
-        // If the dropdown becomes disabled while open, close it.
-        if (derivedDisabled) {
-            setOpen(false);
-            return;
-        }
+        if (!isOpen) return;
 
         const onPointerDown = (ev: Event) => {
             const root = rootRef.current;
@@ -73,7 +69,7 @@ export function DropdownMenu({
             document.removeEventListener("keydown", onKeyDown, true);
             document.removeEventListener("focusin", onFocusIn, true);
         };
-    }, [open, derivedDisabled]);
+    }, [isOpen]);
 
     const toggleOpen = () => {
         if (derivedDisabled) return;
@@ -99,8 +95,8 @@ export function DropdownMenu({
                 )}
                 onClick={toggleOpen}
                 disabled={derivedDisabled}
-                aria-expanded={open}
-                aria-controls={open ? menuId : undefined}
+                aria-expanded={isOpen}
+                aria-controls={isOpen ? menuId : undefined}
                 title={title}
                 aria-label={ariaLabel}
             >
@@ -113,10 +109,10 @@ export function DropdownMenu({
                 />
             </button>
 
-            {open && !derivedDisabled && (
+            {isOpen && (
                 <ul
                     id={menuId}
-                    className={cx(styles.menu, menuClassName)}
+                    className={cx(menuClassName, styles.menu)}
                     aria-labelledby={buttonId}
                     onMouseLeave={
                         closeOnMouseLeave
@@ -171,6 +167,7 @@ type DropdownMenuProps = {
     onSelect: (value: string) => void;
 
     disabled?: boolean;
+    triggerId?: string;
     title?: string;
     ariaLabel?: string;
     closeOnMouseLeave?: boolean;
