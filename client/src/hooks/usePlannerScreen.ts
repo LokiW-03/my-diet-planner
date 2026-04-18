@@ -35,6 +35,7 @@ export function usePlannerScreen() {
       removeEntryFromMeal: s.removeEntryFromMeal,
       moveEntry: s.moveEntry,
       setEntryPortion: s.setEntryPortion,
+      setEntriesPortionForFood: s.setEntriesPortionForFood,
       removeEntriesForFood: s.removeEntriesForFood,
       clearMealFromBoard: s.clearMealFromBoard,
       clearAllMeals: s.clearAllMeals,
@@ -77,11 +78,25 @@ export function usePlannerScreen() {
     [plannerActions, removeFood],
   );
 
+  const updateFoodWithMealEntrySync = useCallback(
+    (foodId: FoodId, patch: Parameters<typeof updateFood>[1]) => {
+      const prev = profile.foods[foodId];
+      updateFood(foodId, patch);
+
+      if (!prev) return;
+      if (patch.unit && patch.unit !== prev.unit) {
+        const nextPortion = patch.defaultPortion ?? prev.defaultPortion;
+        plannerActions.setEntriesPortionForFood(foodId, nextPortion);
+      }
+    },
+    [plannerActions, profile.foods, updateFood],
+  );
+
   const foodModal = useFoodModal({
     foodsById: profile.foods,
     categories: model.categories,
     addFood,
-    updateFood,
+    updateFood: updateFoodWithMealEntrySync,
     removeFoodAndEntries,
   });
 

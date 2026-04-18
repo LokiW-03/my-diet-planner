@@ -95,6 +95,54 @@ describe("Totals reactivity (UI integration)", () => {
         15000,
     );
 
+    it(
+        "changing a food's unit resyncs existing entry portions and updates totals",
+        async () => {
+            vi.spyOn(window, "confirm").mockReturnValue(true);
+            renderPlannerHarness();
+
+            const chicken = defaultFoods[defaultFoodId("Chicken")];
+
+            await bulkAddFoodToMeal({ foodName: "Chicken", mealName: "breakfast" });
+
+            // Sanity: initial totals match the default profile.
+            const base = {
+                kcal: chicken.defaultPortion * chicken.kcalPerUnit,
+                protein: chicken.defaultPortion * chicken.proteinPerUnit,
+                fiber: chicken.defaultPortion * chicken.fiberPerUnit,
+            };
+            await waitFor(() => expect(screen.getByText(footerText(base))).toBeTruthy());
+            await waitFor(() => expectDayTotals(base));
+
+            // Edit the food from the meal board.
+            fireEvent.click(screen.getByTitle("Click to edit food"));
+            await screen.findByText("Edit Food");
+
+            // Switch to per-piece and define new per-unit macros + default portion.
+            fireEvent.change(screen.getByLabelText("Unit"), { target: { value: "pc" } });
+            fireEvent.change(screen.getByLabelText(/Kcal per pc/i), { target: { value: "263" } });
+            fireEvent.change(screen.getByLabelText(/Protein per pc/i), { target: { value: "30" } });
+            fireEvent.change(screen.getByLabelText(/Default portion \(pc\)/i), { target: { value: "1" } });
+
+            const saveBtn = screen.getByRole("button", { name: "Save" }) as HTMLButtonElement;
+            await waitFor(() => expect(saveBtn.disabled).toBe(false));
+            fireEvent.click(saveBtn);
+
+            await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+
+            // Unit changes should resync existing meal entries to the food's new default portion (1 pc).
+            const updated = {
+                kcal: 1 * 263,
+                protein: 1 * 30,
+                fiber: 1 * chicken.fiberPerUnit,
+            };
+
+            await waitFor(() => expect(screen.getByText(footerText(updated))).toBeTruthy());
+            await waitFor(() => expectDayTotals(updated));
+        },
+        15000,
+    );
+
     it("Clear All removes entries and resets day totals to zero", async () => {
         vi.spyOn(window, "confirm").mockReturnValue(true);
         renderPlannerHarness();

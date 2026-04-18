@@ -82,6 +82,25 @@ export const usePlannerStore = create<PlannerState>()(
           },
         })),
 
+      setEntriesPortionForFood: (foodId, portion) =>
+        set((s) => {
+          let didChange = false;
+
+          const nextMeals = Object.fromEntries(
+            Object.entries(s.meals).map(([mealId, entries]) => {
+              const nextEntries = entries.map((e) => {
+                if (e.foodId !== foodId) return e;
+                didChange = true;
+                return { ...e, portion };
+              });
+              return [mealId, nextEntries];
+            }),
+          ) as MealsState;
+
+          if (!didChange) return s;
+          return { meals: nextMeals };
+        }),
+
       removeEntriesForFood: (foodId) =>
         set((s) => ({
           meals: Object.fromEntries(
@@ -130,6 +149,7 @@ type PlannerState = {
   clearMealFromBoard: (mealId: MealId) => void;
   moveEntry: (from: MealId, to: MealId, entryId: string) => void;
   setEntryPortion: (mealId: MealId, entryId: string, portion: number) => void;
+  setEntriesPortionForFood: (foodId: FoodId, portion: number) => void;
   removeEntriesForFood: (foodId: FoodId) => void;
   clearAllMeals: () => void;
 };
