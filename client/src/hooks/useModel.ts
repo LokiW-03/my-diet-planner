@@ -1,22 +1,13 @@
 "use client";
 
-import { useMemo, useSyncExternalStore } from "react";
+import { useMemo } from "react";
 import {
   computeMealTotals,
   computeTotals,
 } from "@/client/src/utils/computeTotals";
-import {
-  asIsoDateString,
-  resolveScheduledTargetForDate,
-  toIsoDateStringLocalCalendar,
-} from "@/client/src/utils/targetSchedule";
-import type {
-  IsoDateString,
-  MealEntry,
-  MealId,
-  TargetId,
-  UserProfile,
-} from "@/shared/models";
+import { resolveScheduledTargetForDate } from "@/client/src/utils/targetSchedule";
+import { useTodayIsoDate } from "@/client/src/hooks/useTodayIsoDate";
+import type { MealEntry, MealId, TargetId, UserProfile } from "@/shared/models";
 
 export function useModel({
   profile,
@@ -25,30 +16,7 @@ export function useModel({
   profile: UserProfile;
   plannerState: PlannerState;
 }) {
-  const today = useSyncExternalStore<IsoDateString | null>(
-    (onStoreChange) => {
-      let timeoutId: ReturnType<typeof setTimeout> | null = null;
-
-      const scheduleNext = () => {
-        const now = new Date();
-        const next = new Date(now);
-        next.setHours(24, 0, 0, 0);
-        const msUntilNextMidnight = Math.max(0, next.getTime() - now.getTime());
-
-        timeoutId = setTimeout(() => {
-          onStoreChange();
-          scheduleNext();
-        }, msUntilNextMidnight + 25);
-      };
-
-      scheduleNext();
-      return () => {
-        if (timeoutId) clearTimeout(timeoutId);
-      };
-    },
-    () => asIsoDateString(toIsoDateStringLocalCalendar(new Date())),
-    () => null,
-  );
+  const today = useTodayIsoDate();
 
   const scheduledResult = useMemo(() => {
     if (!today) return null;

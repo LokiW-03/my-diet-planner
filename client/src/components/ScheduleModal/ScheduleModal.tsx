@@ -12,9 +12,11 @@ import type {
 import { ModalShell } from "@/client/src/components/ModalShell/ModalShell";
 import {
     asIsoDateString,
-    parseIsoDateUtc,
+    parseByDayCodesFromRrule,
     toIsoDateStringLocalCalendar,
+    weekdayCodeFromIsoDate,
 } from "@/client/src/utils/targetSchedule";
+import type { WeekdayCode } from "@/client/src/utils/targetSchedule";
 import styles from "./ScheduleModal.module.scss";
 
 export function ScheduleModal({
@@ -33,7 +35,7 @@ export function ScheduleModal({
     );
 
     const [targetId, setTargetId] = useState<TargetId>(() => initialTargetId);
-    const [weeklyDays, setWeeklyDays] = useState<WeekdayCode[]>(() => [weekdayFromIsoDate(today)]);
+    const [weeklyDays, setWeeklyDays] = useState<WeekdayCode[]>(() => [weekdayCodeFromIsoDate(today)]);
 
     const onOk = useCallback(() => {
         const rrule = buildWeeklyRrule({ weeklyDays });
@@ -68,7 +70,7 @@ export function ScheduleModal({
                         className={styles.btn}
                         type="button"
                         onClick={() => {
-                            setWeeklyDays([weekdayFromIsoDate(today)]);
+                            setWeeklyDays([weekdayCodeFromIsoDate(today)]);
                         }}
                     >
                         Reset
@@ -170,18 +172,6 @@ export function ScheduleModal({
     );
 }
 
-function weekdayFromIsoDate(date: IsoDateString): WeekdayCode {
-    const day = parseIsoDateUtc(date).getUTCDay();
-    // 0=Sun ... 6=Sat
-    if (day === 0) return "SU";
-    if (day === 1) return "MO";
-    if (day === 2) return "TU";
-    if (day === 3) return "WE";
-    if (day === 4) return "TH";
-    if (day === 5) return "FR";
-    return "SA";
-}
-
 function buildWeeklyRrule(opts: { weeklyDays: WeekdayCode[] }): string {
     const days = opts.weeklyDays.length > 0 ? opts.weeklyDays : ["MO"];
     return `FREQ=WEEKLY;BYDAY=${days.join(",")}`;
@@ -192,20 +182,17 @@ function isDefined<T>(value: T | null | undefined): value is T {
 }
 
 function getRuleDayLabels(rule: TargetScheduleRule): string[] {
-    const byday = /(?:^|;)BYDAY=([^;]+)/.exec(rule.rrule)?.[1] ?? null;
+    const codes = parseByDayCodesFromRrule(rule.rrule);
 
-    if (byday) {
-        return byday
-            .split(",")
-            .map((c) => c.trim())
-            .filter(Boolean)
+    if (codes) {
+        return codes
             .map((c) => WEEKDAYS.find((d) => d.code === c))
             .filter(isDefined)
             .sort((a: WeekdayMeta, b: WeekdayMeta) => a.ruleOrder - b.ruleOrder)
             .map((d) => d.shortLabel);
     }
 
-    const fallback = WEEKDAYS.find((d) => d.code === weekdayFromIsoDate(rule.dtstart));
+    const fallback = WEEKDAYS.find((d) => d.code === weekdayCodeFromIsoDate(rule.dtstart));
     return [fallback?.shortLabel ?? "(unknown)"];
 }
 
@@ -223,8 +210,6 @@ const WEEKDAYS: Array<{
         { code: "FR", ariaLabel: "Friday", shortLabel: "Fri", ruleOrder: 4 },
         { code: "SA", ariaLabel: "Saturday", shortLabel: "Sat", ruleOrder: 5 },
     ];
-
-
 type ScheduleModalProps = {
     open: boolean;
     onClose: () => void;
@@ -244,8 +229,6 @@ type ScheduleModalProps = {
     ) => void;
     removeScheduleRule: (ruleId: string) => void;
 };
-
-type WeekdayCode = "MO" | "TU" | "WE" | "TH" | "FR" | "SA" | "SU";
 
 type WeekdayMeta = (typeof WEEKDAYS)[number];
 

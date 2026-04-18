@@ -56,7 +56,6 @@ export function usePlannerScreen() {
     addScheduleRule,
     updateScheduleRule,
     removeScheduleRule,
-    clearScheduleOverride,
     addTarget,
     updateTarget,
     removeTarget,
@@ -76,6 +75,14 @@ export function usePlannerScreen() {
     removeFolder,
     reorderFolders,
   } = useProfile();
+
+  const schedule = {
+    actions: {
+      addScheduleRule,
+      updateScheduleRule,
+      removeScheduleRule,
+    },
+  };
 
   const model = useModel({ profile, plannerState });
 
@@ -201,11 +208,7 @@ export function usePlannerScreen() {
       ...category.actions,
       ...folder.actions,
       ...targetModal.actions,
-      addScheduleRule,
-      setScheduleOverride,
-      updateScheduleRule,
-      removeScheduleRule,
-      clearScheduleOverride,
+      ...schedule.actions,
       // glue actions
       openEditById,
       removeFoodAndEntries,

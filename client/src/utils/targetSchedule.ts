@@ -1,4 +1,3 @@
-import { RRule, rrulestr } from "rrule";
 import type {
   IsoDateString,
   TargetId,
@@ -15,14 +14,6 @@ export function asIsoDateString(s: string): IsoDateString {
   return s as IsoDateString;
 }
 
-export function toIsoDateStringUtc(d: Date): IsoDateString {
-  const yyyy = d.getUTCFullYear();
-  const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
-  const dd = String(d.getUTCDate()).padStart(2, "0");
-  return `${yyyy}-${mm}-${dd}` as IsoDateString;
-}
-
-/** Returns the user's local calendar date as YYYY-MM-DD (date-only key). */
 export function toIsoDateStringLocalCalendar(d: Date): IsoDateString {
   const yyyy = d.getFullYear();
   const mm = String(d.getMonth() + 1).padStart(2, "0");
@@ -31,36 +22,34 @@ export function toIsoDateStringLocalCalendar(d: Date): IsoDateString {
 }
 
 export function parseIsoDateUtc(date: IsoDateString): Date {
-  // Treat schedule as date-only (calendar), and run computations in UTC to avoid DST shifts.
   const [y, m, d] = date.split("-").map((x) => Number(x));
   return new Date(Date.UTC(y, m - 1, d, 0, 0, 0, 0));
 }
 
-export function startOfDayUtc(date: IsoDateString): Date {
-  const d = parseIsoDateUtc(date);
-  d.setUTCHours(0, 0, 0, 0);
-  return d;
+export function weekdayCodeFromIsoDate(date: IsoDateString): WeekdayCode {
+  const day = parseIsoDateUtc(date).getUTCDay();
+  if (day === 0) return "SU";
+  if (day === 1) return "MO";
+  if (day === 2) return "TU";
+  if (day === 3) return "WE";
+  if (day === 4) return "TH";
+  if (day === 5) return "FR";
+  return "SA";
 }
 
-export function endOfDayUtc(date: IsoDateString): Date {
-  const d = parseIsoDateUtc(date);
-  d.setUTCHours(23, 59, 59, 999);
-  return d;
+export function parseByDayCodesFromRrule(rrule: string): WeekdayCode[] | null {
+  const byday = /(?:^|;)BYDAY=([^;]+)/.exec(rrule)?.[1] ?? null;
+  if (!byday) return null;
+
+  const allowed: WeekdayCode[] = ["MO", "TU", "WE", "TH", "FR", "SA", "SU"];
+  const codes = byday
+    .split(",")
+    .map((c) => c.trim())
+    .filter(Boolean)
+    .filter((c): c is WeekdayCode => (allowed as string[]).includes(c));
+
+  return codes.length > 0 ? codes : null;
 }
-
-export type ResolveScheduledTargetOpts = {
-  schedule: TargetSchedule;
-  date: IsoDateString;
-};
-
-export type ResolveScheduledTargetResult = {
-  /** If an override exists for the date, this is true (even if targetId is null). */
-  fromOverride: boolean;
-  /** The scheduled target for this date. null means "explicitly no scheduled target". */
-  targetId: TargetId | null;
-  /** The matching rule that produced the result (if any). */
-  ruleId?: string;
-};
 
 export function resolveScheduledTargetForDate(
   opts: ResolveScheduledTargetOpts,
@@ -93,24 +82,21 @@ export function findMatchingRulesForDate(opts: {
 }): TargetScheduleRule[] {
   const { rules, date } = opts;
 
-  const from = startOfDayUtc(date);
-  const to = endOfDayUtc(date);
+  const weekday = weekdayCodeFromIsoDate(date);
 
   const out: TargetScheduleRule[] = [];
   for (const rule of rules) {
     if (!rule.enabled) continue;
 
-    const dtstart = parseIsoDateUtc(rule.dtstart);
-    let rr: RRule;
-    try {
-      rr = rrulestr(rule.rrule, { dtstart }) as unknown as RRule;
-    } catch {
-      // Invalid rule string; treat as non-matching.
-      continue;
-    }
+    // dtstart is date-only; lexical comparison is safe for YYYY-MM-DD.
+    if (date < rule.dtstart) continue;
 
-    const occurrences = rr.between(from, to, true);
-    if (occurrences.length > 0) out.push(rule);
+    const byday = parseByDayCodesFromRrule(rule.rrule);
+    const matches = byday
+      ? byday.includes(weekday)
+      : weekdayCodeFromIsoDate(rule.dtstart) === weekday;
+
+    if (matches) out.push(rule);
   }
 
   return out;
@@ -123,9 +109,21 @@ export function pickBestRule(
 
   return rules.slice().sort((a, b) => {
     if (a.priority !== b.priority) return b.priority - a.priority;
-    // createdAt is ISO datetime; lexical sort works.
     if (a.createdAt !== b.createdAt)
       return b.createdAt.localeCompare(a.createdAt);
     return b.id.localeCompare(a.id);
   })[0];
 }
+
+export type WeekdayCode = "MO" | "TU" | "WE" | "TH" | "FR" | "SA" | "SU";
+
+export type ResolveScheduledTargetOpts = {
+  schedule: TargetSchedule;
+  date: IsoDateString;
+};
+
+export type ResolveScheduledTargetResult = {
+  fromOverride: boolean; // If an override exists for the date, this is true (even if targetId is null)
+  targetId: TargetId | null;
+  ruleId?: string;
+};
