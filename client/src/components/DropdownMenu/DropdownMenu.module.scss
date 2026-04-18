@@ -1,0 +1,50 @@
+.root {
+    position: relative;
+    display: inline-block;
+}
+
+.button {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+.label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.arrow {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+.menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 4px;
+    width: 100%;
+    padding: 0;
+    z-index: 10;
+
+    max-height: 240px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    list-style: none;
+}
+
+.option {
+    display: block;
+    width: 100%;
+    border: none;
+    background: transparent;
+    font: inherit;
+    cursor: pointer;
+}

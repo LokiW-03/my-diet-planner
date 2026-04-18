@@ -5,6 +5,7 @@ import type { CategoryId, FoodCategory } from "@/shared/models";
 import { type Unit, UNITS } from "@/shared/models";
 import { clampInt } from "@/shared/utils";
 import { ModalShell } from "@/client/src/components/ModalShell/ModalShell";
+import { DropdownMenu } from "@/client/src/components/DropdownMenu/DropdownMenu";
 import styles from "./FoodModal.module.scss";
 
 
@@ -31,6 +32,8 @@ export function FoodModal({
     onSave,
     onDelete,
 }: FoodModalProps) {
+
+    const selectedCategory = categories.find((c) => c.id === categoryId);
 
     if (!open) return null;
 
@@ -83,34 +86,42 @@ export function FoodModal({
 
             <div className={styles.row}>
                 <label className={styles.label} htmlFor="foodModalCategory">Category</label>
-                <select
-                    id="foodModalCategory"
-                    className={styles.input}
-                    value={String(categoryId)}
-                    onChange={(e) => onChangeCategoryId(e.target.value as unknown as CategoryId)}
-                >
-                    {categories.map((c) => (
-                        <option key={String(c.id)} value={String(c.id)}>
-                            {c.name}
-                        </option>
-                    ))}
-                </select>
+                <DropdownMenu
+                    triggerId="foodModalCategory"
+                    buttonLabel={selectedCategory?.name ?? ""}
+                    options={categories.map((c) => ({
+                        value: String(c.id),
+                        label: c.name,
+                        selected: c.id === categoryId,
+                    }))}
+                    onSelect={(value) => onChangeCategoryId(value as unknown as CategoryId)}
+                    rootClassName={styles.dropdownRoot}
+                    buttonClassName={`${styles.input} ${styles.dropdownButton}`}
+                    menuClassName={styles.dropdownMenu}
+                    optionClassName={styles.dropdownOption}
+                    optionSelectedClassName={styles.dropdownOptionSelected}
+                    closeOnMouseLeave={false}
+                />
             </div>
 
             <div className={styles.row}>
                 <label className={styles.label} htmlFor="foodModalUnit">Unit</label>
-                <select
-                    id="foodModalUnit"
-                    className={styles.input}
-                    value={unit}
-                    onChange={(e) => onChangeUnit(e.target.value as Unit)}
-                >
-                    {UNITS.map((u) => (
-                        <option key={u} value={u}>
-                            {u}
-                        </option>
-                    ))}
-                </select>
+                <DropdownMenu
+                    triggerId="foodModalUnit"
+                    buttonLabel={unit}
+                    options={UNITS.map((u) => ({
+                        value: u,
+                        label: u,
+                        selected: u === unit,
+                    }))}
+                    onSelect={(value) => onChangeUnit(value as Unit)}
+                    rootClassName={styles.dropdownRoot}
+                    buttonClassName={`${styles.input} ${styles.dropdownButton}`}
+                    menuClassName={styles.dropdownMenu}
+                    optionClassName={styles.dropdownOption}
+                    optionSelectedClassName={styles.dropdownOptionSelected}
+                    closeOnMouseLeave={false}
+                />
             </div>
 
             <div className={styles.row}>

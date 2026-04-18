@@ -38,6 +38,17 @@ async function bulkAddFoodToMeal(opts: { foodName: string; mealName: string }) {
     fireEvent.click(screen.getByTitle("Exit selection mode"));
 }
 
+async function selectDropdownOptionByLabel(opts: { label: string; option: string }) {
+    const trigger = screen.getByLabelText(opts.label) as HTMLElement;
+    fireEvent.click(trigger);
+
+    const menuId = `${trigger.id}__menu`;
+    await waitFor(() => expect(document.getElementById(menuId)).toBeTruthy());
+
+    const menu = document.getElementById(menuId) as HTMLElement;
+    fireEvent.click(within(menu).getByRole("button", { name: opts.option }));
+}
+
 beforeEach(() => {
     resetPlannerStoreForTest();
 });
@@ -119,7 +130,7 @@ describe("Totals reactivity (UI integration)", () => {
             await screen.findByText("Edit Food");
 
             // Switch to per-piece and define new per-unit macros + default portion.
-            fireEvent.change(screen.getByLabelText("Unit"), { target: { value: "pc" } });
+            await selectDropdownOptionByLabel({ label: "Unit", option: "pc" });
             fireEvent.change(screen.getByLabelText(/Kcal per pc/i), { target: { value: "263" } });
             fireEvent.change(screen.getByLabelText(/Protein per pc/i), { target: { value: "30" } });
             fireEvent.change(screen.getByLabelText(/Default portion \(pc\)/i), { target: { value: "1" } });

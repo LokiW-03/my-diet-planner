@@ -1,52 +1,29 @@
 "use client";
 
-import { useState } from "react";
-import { FiChevronDown } from "react-icons/fi";
+import { DropdownMenu } from "@/client/src/components/DropdownMenu/DropdownMenu";
 import styles from "./TargetSelect.module.scss";
 
 export function TargetSelect({ value, onChange, options, placeholder }: TargetSelectProps) {
-    const [open, setOpen] = useState(false);
     const selected = options.find((o) => o.value === value);
 
     return (
-        <div className={styles.TargetSelect}>
-            <button
-                type="button"
-                className={styles.TargetSelectButton}
-                onClick={() => setOpen((o) => !o)}
-            >
-                <span className={styles.TargetSelectLabel}>
-                    {selected?.label ?? placeholder ?? "Select…"}
-                </span>
-                <FiChevronDown className={styles.TargetSelectArrow} size={22} />
-            </button>
-
-            {open && (
-                <ul
-                    className={styles.TargetSelectMenu}
-                    onMouseLeave={() => setOpen(false)}
-                >
-                    {options.map((opt) => (
-                        <li key={opt.value}>
-                            <button
-                                type="button"
-                                className={
-                                    opt.value === value
-                                        ? `${styles.TargetSelectOption} ${styles.TargetSelectOptionSelected}`
-                                        : styles.TargetSelectOption
-                                }
-                                onClick={() => {
-                                    onChange(opt.value);
-                                    setOpen(false);
-                                }}
-                            >
-                                {opt.label}
-                            </button>
-                        </li>
-                    ))}
-                </ul>
-            )}
-        </div>
+        <DropdownMenu
+            buttonLabel={selected?.label ?? placeholder ?? "Select…"}
+            options={options.map((opt) => ({
+                value: opt.value,
+                label: opt.label,
+                selected: opt.value === value,
+            }))}
+            onSelect={onChange}
+            arrowSize={22}
+            rootClassName={styles.TargetSelect}
+            buttonClassName={styles.TargetSelectButton}
+            labelClassName={styles.TargetSelectLabel}
+            arrowClassName={styles.TargetSelectArrow}
+            menuClassName={styles.TargetSelectMenu}
+            optionClassName={styles.TargetSelectOption}
+            optionSelectedClassName={styles.TargetSelectOptionSelected}
+        />
     );
 }
 

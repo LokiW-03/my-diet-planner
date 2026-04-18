@@ -45,7 +45,8 @@ $control-h: 44px;
     border-radius: 12px;
     border: 1px solid var(--btn-border);
     padding: 0;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
     z-index: 10;
 }
 

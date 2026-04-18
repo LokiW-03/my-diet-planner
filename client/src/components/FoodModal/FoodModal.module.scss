@@ -18,6 +18,45 @@
     background: var(--background);
 }
 
+.dropdownRoot {
+    width: 100%;
+}
+
+.dropdownButton {
+    justify-content: flex-start;
+    text-align: left;
+    padding-right: 28px;
+}
+
+.dropdownMenu {
+    background: var(--background);
+    border-radius: 8px;
+    border: 1px solid var(--card-border);
+    padding: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.dropdownOption {
+    display: block;
+    width: 100%;
+    padding: 5px;
+    text-align: left;
+    background: transparent;
+    border: none;
+    font: inherit;
+    cursor: pointer;
+    font-size: 13px;
+
+    &:hover {
+        background: var(--read-only-bg);
+    }
+}
+
+.dropdownOptionSelected {
+    background: var(--read-only-bg);
+}
+
 .footerLeft {
     display: flex;
     align-items: center;

@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { FiChevronDown } from "react-icons/fi";
+import { DropdownMenu } from "@/client/src/components/DropdownMenu/DropdownMenu";
 import styles from "./FoodLibBulkSelect.module.scss";
 
 export function FoodLibBulkSelect({
@@ -11,53 +10,22 @@ export function FoodLibBulkSelect({
     title,
     disabled = false,
 }: FoodLibBulkSelectProps) {
-    const [open, setOpen] = useState(false);
-
-    const toggleOpen = () => {
-        if (disabled) return;
-        setOpen((o) => !o);
-    };
-
-    const handleSelect = (value: string) => {
-        if (disabled) return;
-        onSelect(value);
-        setOpen(false);
-    };
-
     return (
-        <div className={styles.BulkSelect}>
-            <button
-                type="button"
-                className={`${styles.BulkSelectButton} ${disabled ? styles.BulkSelectButtonDisabled : ""
-                    }`}
-                onClick={toggleOpen}
-                title={title}
-                disabled={disabled}
-                aria-disabled={disabled}
-            >
-                <span className={styles.BulkSelectLabel}>{placeholder}</span>
-                <FiChevronDown className={styles.BulkSelectArrow} size={18} />
-            </button>
-
-            {open && !disabled && (
-                <ul
-                    className={styles.BulkSelectMenu}
-                    onMouseLeave={() => setOpen(false)}
-                >
-                    {options.map((opt) => (
-                        <li key={opt.value}>
-                            <button
-                                type="button"
-                                className={styles.BulkSelectOption}
-                                onClick={() => handleSelect(opt.value)}
-                            >
-                                {opt.label}
-                            </button>
-                        </li>
-                    ))}
-                </ul>
-            )}
-        </div>
+        <DropdownMenu
+            buttonLabel={placeholder}
+            options={options}
+            onSelect={onSelect}
+            disabled={disabled}
+            title={title}
+            arrowSize={18}
+            rootClassName={styles.BulkSelect}
+            buttonClassName={styles.BulkSelectButton}
+            buttonDisabledClassName={styles.BulkSelectButtonDisabled}
+            labelClassName={styles.BulkSelectLabel}
+            arrowClassName={styles.BulkSelectArrow}
+            menuClassName={styles.BulkSelectMenu}
+            optionClassName={styles.BulkSelectOption}
+        />
     );
 }
 
