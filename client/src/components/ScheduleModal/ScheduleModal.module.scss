@@ -12,6 +12,44 @@
     color: var(--foreground);
 }
 
+.dropdownRoot {
+    width: 100%;
+}
+
+.dropdownButton {
+    justify-content: flex-start;
+    text-align: left;
+    padding-right: 28px;
+}
+
+.dropdownMenu {
+    background: var(--card-bg);
+    border-radius: 12px;
+    border: 1px solid var(--card-border);
+    padding: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.dropdownOption {
+    display: block;
+    width: 100%;
+    padding: 10px 12px;
+    text-align: left;
+    background: transparent;
+    border: none;
+    font: inherit;
+    cursor: pointer;
+
+    &:hover {
+        background: var(--read-only-bg);
+    }
+}
+
+.dropdownOptionSelected {
+    background: var(--read-only-bg);
+}
+
 .input,
 .select {
     height: 44px;

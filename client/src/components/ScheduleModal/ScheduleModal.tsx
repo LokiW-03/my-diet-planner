@@ -10,6 +10,7 @@ import type {
     TargetScheduleRule,
 } from "@/shared/models";
 import { ModalShell } from "@/client/src/components/ModalShell/ModalShell";
+import { DropdownMenu } from "@/client/src/components/DropdownMenu/DropdownMenu";
 import {
     asIsoDateString,
     parseByDayCodesFromRrule,
@@ -58,6 +59,8 @@ export function ScheduleModal({
         return (schedule.rules ?? []).slice().sort((a, b) => b.createdAt.localeCompare(a.createdAt));
     }, [schedule.rules]);
 
+    const selectedTarget = targets.find((t) => t.id === targetId);
+
     return (
         <ModalShell
             open={open}
@@ -87,20 +90,26 @@ export function ScheduleModal({
             }
         >
             <div className={styles.form}>
-                <label className={styles.label}>
-                    Target
-                    <select
-                        className={styles.select}
-                        value={String(targetId)}
-                        onChange={(e) => setTargetId(e.target.value as TargetId)}
-                    >
-                        {targets.map((t) => (
-                            <option key={String(t.id)} value={String(t.id)}>
-                                {t.name}
-                            </option>
-                        ))}
-                    </select>
-                </label>
+                <div className={styles.label}>
+                    <label htmlFor="scheduleModalTarget">Target</label>
+                    <DropdownMenu
+                        triggerId="scheduleModalTarget"
+                        buttonLabel={selectedTarget?.name ?? "Select…"}
+                        options={targets.map((t) => ({
+                            value: String(t.id),
+                            label: t.name,
+                            selected: t.id === targetId,
+                        }))}
+                        onSelect={(value) => setTargetId(value as TargetId)}
+                        disabled={targets.length === 0}
+                        rootClassName={styles.dropdownRoot}
+                        buttonClassName={`${styles.select} ${styles.dropdownButton}`}
+                        menuClassName={styles.dropdownMenu}
+                        optionClassName={styles.dropdownOption}
+                        optionSelectedClassName={styles.dropdownOptionSelected}
+                        closeOnMouseLeave={false}
+                    />
+                </div>
 
                 <div className={styles.weeklyRow}>
                     <div className={styles.weeklyLabel}>Days</div>
