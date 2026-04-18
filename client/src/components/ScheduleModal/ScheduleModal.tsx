@@ -120,7 +120,7 @@ export function ScheduleModal({
                                     aria-label={d.ariaLabel}
                                     title={d.ariaLabel}
                                 >
-                                    {d.label}
+                                    {d.shortLabel}
                                 </button>
                             );
                         })}
@@ -146,7 +146,7 @@ export function ScheduleModal({
                                         <div className={styles.ruleText}>
                                             <div className={styles.ruleName}>{name}</div>
                                             <div className={styles.ruleMeta}>
-                                                {r.dtstart} · {r.rrule}
+                                                Every: {getRuleDayLabels(r).join(", ")}
                                             </div>
                                         </div>
                                     </label>
@@ -187,6 +187,44 @@ function buildWeeklyRrule(opts: { weeklyDays: WeekdayCode[] }): string {
     return `FREQ=WEEKLY;BYDAY=${days.join(",")}`;
 }
 
+function isDefined<T>(value: T | null | undefined): value is T {
+    return value !== null && value !== undefined;
+}
+
+function getRuleDayLabels(rule: TargetScheduleRule): string[] {
+    const byday = /(?:^|;)BYDAY=([^;]+)/.exec(rule.rrule)?.[1] ?? null;
+
+    if (byday) {
+        return byday
+            .split(",")
+            .map((c) => c.trim())
+            .filter(Boolean)
+            .map((c) => WEEKDAYS.find((d) => d.code === c))
+            .filter(isDefined)
+            .sort((a: WeekdayMeta, b: WeekdayMeta) => a.ruleOrder - b.ruleOrder)
+            .map((d) => d.shortLabel);
+    }
+
+    const fallback = WEEKDAYS.find((d) => d.code === weekdayFromIsoDate(rule.dtstart));
+    return [fallback?.shortLabel ?? "(unknown)"];
+}
+
+const WEEKDAYS: Array<{
+    code: WeekdayCode;
+    ariaLabel: string;
+    shortLabel: string;
+    ruleOrder: number;
+}> = [
+        { code: "SU", ariaLabel: "Sunday", shortLabel: "Sun", ruleOrder: 6 },
+        { code: "MO", ariaLabel: "Monday", shortLabel: "Mon", ruleOrder: 0 },
+        { code: "TU", ariaLabel: "Tuesday", shortLabel: "Tue", ruleOrder: 1 },
+        { code: "WE", ariaLabel: "Wednesday", shortLabel: "Wed", ruleOrder: 2 },
+        { code: "TH", ariaLabel: "Thursday", shortLabel: "Thu", ruleOrder: 3 },
+        { code: "FR", ariaLabel: "Friday", shortLabel: "Fri", ruleOrder: 4 },
+        { code: "SA", ariaLabel: "Saturday", shortLabel: "Sat", ruleOrder: 5 },
+    ];
+
+
 type ScheduleModalProps = {
     open: boolean;
     onClose: () => void;
@@ -209,12 +247,5 @@ type ScheduleModalProps = {
 
 type WeekdayCode = "MO" | "TU" | "WE" | "TH" | "FR" | "SA" | "SU";
 
-const WEEKDAYS: Array<{ code: WeekdayCode; label: string; ariaLabel: string }> = [
-    { code: "SU", label: "S", ariaLabel: "Sunday" },
-    { code: "MO", label: "M", ariaLabel: "Monday" },
-    { code: "TU", label: "T", ariaLabel: "Tuesday" },
-    { code: "WE", label: "W", ariaLabel: "Wednesday" },
-    { code: "TH", label: "T", ariaLabel: "Thursday" },
-    { code: "FR", label: "F", ariaLabel: "Friday" },
-    { code: "SA", label: "S", ariaLabel: "Saturday" },
-];
+type WeekdayMeta = (typeof WEEKDAYS)[number];
+

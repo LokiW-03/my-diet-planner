@@ -64,6 +64,7 @@ export function TopToolBar({
                     onClick={onOpenSchedule}
                     type="button"
                     title="Schedule targets"
+                    aria-label="Schedule targets"
                 >
                     <FaRegCalendarAlt size={18} />
                 </button>
