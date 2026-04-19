@@ -1,0 +1,219 @@
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.target {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.label {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-weight: 800;
+    color: var(--foreground);
+}
+
+.dropdownRoot {
+    width: 65%;
+    margin: 0 auto;
+}
+
+.dropdownButton {
+    justify-content: center;
+    text-align: center;
+    padding-right: 28px;
+}
+
+.dropdownMenu {
+    background: var(--background);
+    border-radius: 12px;
+    border: 1px solid var(--card-border);
+    padding: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    font-weight: 700;
+}
+
+.dropdownOption {
+    display: block;
+    width: 100%;
+    padding: 10px 12px;
+    text-align: center;
+    background: transparent;
+    border: none;
+    font: inherit;
+    cursor: pointer;
+
+    &:hover {
+        background: var(--read-only-bg);
+        color: var(--foreground);
+    }
+}
+
+.dropdownOptionSelected {
+    background: var(--foreground);
+    color: var(--background);
+}
+
+.select {
+    height: 44px;
+    border-radius: 12px;
+    border: 1px solid var(--card-border);
+    background: var(--background);
+    color: var(--foreground);
+    padding: 0 12px;
+    font-weight: 700;
+}
+
+
+.weeklyRow {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+}
+
+.weeklyLabel {
+    font-weight: 900;
+    color: var(--foreground);
+    white-space: nowrap;
+    margin-right: 0;
+}
+
+.weekdayGrid {
+    display: flex;
+    flex: 1;
+    justify-content: center;
+    gap: 8px;
+}
+
+.dayBtn {
+    width: 40px;
+    height: 36px;
+    border-radius: 10px;
+    background: var(--background);
+    color: var(--foreground);
+    font-weight: 900;
+    cursor: pointer;
+
+    &:hover {
+        background: var(--btn-bg);
+        color: var(--btn-fg);
+    }
+}
+
+.dayBtnActive {
+    border: 1px solid var(--foreground);
+}
+
+.rulesToolRow {
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: 20px;
+    border-bottom: 3px solid var(--card-border);
+}
+
+.hint {
+    color: var(--foreground);
+    opacity: 0.9;
+    font-weight: 700;
+}
+
+
+.rulesTitle {
+    margin-top: 8px;
+    font-weight: 900;
+    color: var(--foreground);
+}
+
+.rulesList {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.ruleRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px;
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    background: var(--background);
+}
+
+.ruleLeft {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    flex: 1;
+}
+
+.ruleCheckbox {
+    cursor: pointer;
+    accent-color: var(--accent);
+}
+
+.ruleText {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.ruleName {
+    color: var(--foreground);
+    font-weight: 900;
+}
+
+.ruleMeta {
+    color: var(--foreground);
+    opacity: 0.9;
+    font-weight: 700;
+    font-size: 12px;
+    word-break: break-word;
+}
+
+.btn {
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--card-border);
+    background: var(--background);
+    cursor: pointer;
+    font-weight: 700;
+
+    &:disabled {
+        background-color: var(--read-only-bg);
+        cursor: not-allowed;
+    }
+
+    &:hover:not(:disabled) {
+        background: var(--foreground);
+        color: var(--background);
+    }
+}
+
+
+.iconDangerBtn {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    border: 1px solid var(--danger-fg);
+    background: var(--card-bg);
+    color: var(--danger-fg);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+
+    &:hover {
+        background: var(--danger-fg);
+        color: var(--card-bg);
+    }
+}

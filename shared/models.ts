@@ -9,6 +9,8 @@ export type FolderId = string & { readonly __brand: "FolderId" };
 export const UNITS = ["g", "pc"] as const;
 export type Unit = (typeof UNITS)[number];
 
+export type IsoDateString = string & { readonly __brand: "IsoDateString" }; // YYYY-MM-DD
+
 export type FoodItem = {
   id: FoodId;
   name: string;
@@ -45,6 +47,22 @@ export type UserProfile = {
   folders: Record<FolderId, CategoryFolder>;
   categories: Record<CategoryId, FoodCategory>;
   foods: Record<FoodId, FoodItem>;
+  schedule: TargetSchedule;
+};
+
+export type TargetScheduleRule = {
+  id: string;
+  targetId: TargetId;
+  dtstart: IsoDateString;
+  rrule: string; // RFC5545 RRULE string (e.g. FREQ=WEEKLY;BYDAY=MO,WE,FR).
+  enabled: boolean;
+  priority: number; // Higher wins when multiple rules match the same day.
+  createdAt: string; // ISO datetime
+};
+
+export type TargetSchedule = {
+  rules: TargetScheduleRule[];
+  overridesByDate: Record<IsoDateString, TargetId | null>;
 };
 
 export type Target = {

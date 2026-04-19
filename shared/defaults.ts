@@ -260,6 +260,10 @@ export const defaultUserProfile: UserProfile = {
   folders: defaultFolders,
   categories: defaultCategories,
   foods: defaultFoods,
+  schedule: {
+    rules: [],
+    overridesByDate: {},
+  },
 };
 
 export function getInitialProfile(stored?: Partial<UserProfile>): UserProfile {
@@ -270,5 +274,14 @@ export function getInitialProfile(stored?: Partial<UserProfile>): UserProfile {
     meals: { ...defaultUserProfile.meals, ...(stored?.meals || {}) },
     folders: { ...defaultUserProfile.folders, ...(stored?.folders || {}) },
     foods: { ...defaultUserProfile.foods, ...(stored?.foods || {}) },
+    schedule: {
+      ...defaultUserProfile.schedule,
+      ...(stored?.schedule || {}),
+      overridesByDate: {
+        ...defaultUserProfile.schedule.overridesByDate,
+        ...(stored?.schedule?.overridesByDate || {}),
+      },
+      rules: stored?.schedule?.rules ?? defaultUserProfile.schedule.rules,
+    },
   };
 }

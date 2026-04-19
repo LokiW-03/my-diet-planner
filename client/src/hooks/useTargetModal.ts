@@ -4,23 +4,6 @@ import { useCallback } from "react";
 import type { Target, TargetId } from "@/shared/models";
 import { defaultTargetId } from "@/shared/defaults";
 
-type UseTargetModalProps = {
-  targetsById: Record<TargetId, Target>;
-  dayType: TargetId;
-  setDayType: (next: TargetId) => void;
-
-  addTarget: (target: Omit<Target, "id">) => TargetId;
-  updateTarget: (
-    targetId: TargetId,
-    patch: Partial<Omit<Target, "id">>,
-  ) => void;
-  removeTarget: (targetId: TargetId) => void;
-
-  resetTargetsToDefault: () => void;
-
-  saveProfileAsDefault: () => Promise<void>;
-};
-
 export function useTargetModal({
   targetsById,
   dayType,
@@ -81,3 +64,20 @@ function chooseFallbackTargetId(
 
   return fallback ?? null;
 }
+
+type UseTargetModalProps = {
+  targetsById: Record<TargetId, Target>;
+  dayType: TargetId;
+  setDayType: (next: TargetId) => void;
+
+  addTarget: (target: Omit<Target, "id">) => TargetId;
+  updateTarget: (
+    targetId: TargetId,
+    patch: Partial<Omit<Target, "id">>,
+  ) => void;
+  removeTarget: (targetId: TargetId) => void;
+
+  resetTargetsToDefault: () => void;
+
+  saveProfileAsDefault: () => Promise<void>;
+};

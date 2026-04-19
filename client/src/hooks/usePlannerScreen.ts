@@ -11,6 +11,10 @@ import { useFolder } from "@/client/src/hooks/useFolder";
 import { useModel } from "@/client/src/hooks/useModel";
 import { useTargetModal } from "@/client/src/hooks/useTargetModal";
 import type { CategoryId, FoodId, MealId } from "@/shared/models";
+import {
+  asIsoDateString,
+  toIsoDateStringLocalCalendar,
+} from "@/client/src/utils/targetSchedule";
 
 export function usePlannerScreen() {
   // external state sources
@@ -48,6 +52,10 @@ export function usePlannerScreen() {
     addFood,
     updateFood,
     removeFood,
+    setScheduleOverride,
+    addScheduleRule,
+    updateScheduleRule,
+    removeScheduleRule,
     addTarget,
     updateTarget,
     removeTarget,
@@ -68,7 +76,33 @@ export function usePlannerScreen() {
     reorderFolders,
   } = useProfile();
 
+  const schedule = {
+    actions: {
+      addScheduleRule,
+      updateScheduleRule,
+      removeScheduleRule,
+    },
+  };
+
   const model = useModel({ profile, plannerState });
+
+  const setDayTypeFromToolbar = useCallback(
+    (next: Parameters<typeof plannerActions.setDayType>[0]) => {
+      const hasEnabledScheduleRules = (profile.schedule?.rules ?? []).some(
+        (r) => r.enabled,
+      );
+
+      if (!hasEnabledScheduleRules) {
+        plannerActions.setDayType(next);
+        return;
+      }
+
+      const today = asIsoDateString(toIsoDateStringLocalCalendar(new Date()));
+      setScheduleOverride(today, next);
+      plannerActions.setDayType(next);
+    },
+    [plannerActions, profile.schedule?.rules, setScheduleOverride],
+  );
 
   const removeFoodAndEntries = useCallback(
     (foodId: FoodId) => {
@@ -174,12 +208,14 @@ export function usePlannerScreen() {
       ...category.actions,
       ...folder.actions,
       ...targetModal.actions,
+      ...schedule.actions,
       // glue actions
       openEditById,
       removeFoodAndEntries,
       addEntryToMealWithDefaultPortion,
       resetMealPanelsToDefault,
       changeFoodCategory,
+      setDayType: setDayTypeFromToolbar,
     },
   };
 }

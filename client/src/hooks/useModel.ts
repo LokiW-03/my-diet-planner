@@ -5,6 +5,8 @@ import {
   computeMealTotals,
   computeTotals,
 } from "@/client/src/utils/computeTotals";
+import { resolveScheduledTargetForDate } from "@/client/src/utils/targetSchedule";
+import { useTodayIsoDate } from "@/client/src/hooks/useTodayIsoDate";
 import type { MealEntry, MealId, TargetId, UserProfile } from "@/shared/models";
 
 export function useModel({
@@ -14,6 +16,20 @@ export function useModel({
   profile: UserProfile;
   plannerState: PlannerState;
 }) {
+  const today = useTodayIsoDate();
+
+  const scheduledResult = useMemo(() => {
+    if (!today) return null;
+    return resolveScheduledTargetForDate({
+      schedule: profile.schedule,
+      date: today,
+    });
+  }, [profile.schedule, today]);
+
+  const scheduled = scheduledResult?.targetId ?? null;
+  const effectiveDayType: TargetId = (scheduled ??
+    plannerState.dayType) as TargetId;
+
   const foods = useMemo(() => Object.values(profile.foods), [profile.foods]);
   const foldersById = profile.folders;
   const folders = useMemo(
@@ -69,6 +85,7 @@ export function useModel({
 
   return {
     foods,
+    schedule: profile.schedule,
     foldersById,
     folders,
     categoriesById,
@@ -78,7 +95,7 @@ export function useModel({
     meals: plannerState.meals,
     totals,
     mealTotals,
-    dayType: plannerState.dayType,
+    dayType: effectiveDayType,
     weightKg: profile.weightKg,
     hiddenMeals: plannerState.hiddenMeals,
     mealPanelOrder: plannerState.mealPanelOrder,

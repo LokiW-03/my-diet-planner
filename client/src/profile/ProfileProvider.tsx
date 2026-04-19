@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useCallback, useEffect, useMemo, useState } from "react";
-import type { CategoryFolder, CategoryId, FoodCategory, FoodId, FoodItem, FolderId, MealDefinition, MealId, Target, TargetId, UserProfile } from "@/shared/models";
+import type { CategoryFolder, CategoryId, FoodCategory, FoodId, FoodItem, FolderId, IsoDateString, MealDefinition, MealId, Target, TargetId, TargetScheduleRule, UserProfile } from "@/shared/models";
 import { defaultUserProfile, getInitialProfile, UNKNOWN_CATEGORY_ID } from "@/shared/defaults";
 import { uid } from "@/shared/utils";
 
@@ -40,6 +40,13 @@ export type ProfileContextValue = {
     addFood: (food: Omit<FoodItem, "id">) => void;
     updateFood: (foodId: FoodId, patch: Partial<Omit<FoodItem, "id">>) => void;
     removeFood: (foodId: FoodId) => void;
+
+    // Scheduling (local cache)
+    addScheduleRule: (rule: Omit<TargetScheduleRule, "id" | "createdAt">) => string;
+    updateScheduleRule: (ruleId: string, patch: Partial<Omit<TargetScheduleRule, "id" | "createdAt">>) => void;
+    removeScheduleRule: (ruleId: string) => void;
+    setScheduleOverride: (date: IsoDateString, targetId: TargetId | null) => void;
+    clearScheduleOverride: (date: IsoDateString) => void;
 
     // CRUD action for food library defaults
     updateCategory: (categoryId: CategoryId, patch: Partial<Omit<FoodCategory, "id" | "profileId">>) => void;
@@ -110,6 +117,75 @@ export function ProfileProvider({
             const { [foodId]: removed, ...rest } = p.foods;
             void removed;
             return { ...p, foods: rest as UserProfile["foods"] };
+        });
+    }, []);
+
+    const addScheduleRule = useCallback(
+        (rule: Omit<TargetScheduleRule, "id" | "createdAt">) => {
+            const id = uid("sched") as string;
+            const createdAt = new Date().toISOString();
+            const full: TargetScheduleRule = { ...rule, id, createdAt };
+            setProfile((p) => ({
+                ...p,
+                schedule: {
+                    ...p.schedule,
+                    rules: [...(p.schedule?.rules ?? []), full],
+                },
+            }));
+            return id;
+        },
+        [],
+    );
+
+    const updateScheduleRule = useCallback(
+        (ruleId: string, patch: Partial<Omit<TargetScheduleRule, "id" | "createdAt">>) => {
+            setProfile((p) => ({
+                ...p,
+                schedule: {
+                    ...p.schedule,
+                    rules: (p.schedule?.rules ?? []).map((r) =>
+                        r.id === ruleId ? { ...r, ...patch, createdAt: r.createdAt } : r,
+                    ),
+                },
+            }));
+        },
+        [],
+    );
+
+    const removeScheduleRule = useCallback((ruleId: string) => {
+        setProfile((p) => ({
+            ...p,
+            schedule: {
+                ...p.schedule,
+                rules: (p.schedule?.rules ?? []).filter((r) => r.id !== ruleId),
+            },
+        }));
+    }, []);
+
+    const setScheduleOverride = useCallback((date: IsoDateString, targetId: TargetId | null) => {
+        setProfile((p) => ({
+            ...p,
+            schedule: {
+                ...p.schedule,
+                overridesByDate: {
+                    ...(p.schedule?.overridesByDate ?? {}),
+                    [date]: targetId,
+                },
+            },
+        }));
+    }, []);
+
+    const clearScheduleOverride = useCallback((date: IsoDateString) => {
+        setProfile((p) => {
+            const next = { ...(p.schedule?.overridesByDate ?? {}) } as Record<string, TargetId | null>;
+            delete next[String(date)];
+            return {
+                ...p,
+                schedule: {
+                    ...p.schedule,
+                    overridesByDate: next as UserProfile["schedule"]["overridesByDate"],
+                },
+            };
         });
     }, []);
 
@@ -313,6 +389,11 @@ export function ProfileProvider({
             addFood,
             updateFood,
             removeFood,
+            addScheduleRule,
+            updateScheduleRule,
+            removeScheduleRule,
+            setScheduleOverride,
+            clearScheduleOverride,
             updateCategory,
             addCategory,
             removeCategory,
@@ -339,6 +420,11 @@ export function ProfileProvider({
             addFood,
             updateFood,
             removeFood,
+            addScheduleRule,
+            updateScheduleRule,
+            removeScheduleRule,
+            setScheduleOverride,
+            clearScheduleOverride,
             updateCategory,
             addCategory,
             removeCategory,
