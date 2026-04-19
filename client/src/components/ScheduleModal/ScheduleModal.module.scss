@@ -4,38 +4,47 @@
     gap: 12px;
 }
 
+.target {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
 .label {
+    flex: 0 0 auto;
     display: flex;
     flex-direction: column;
     gap: 6px;
-    font-weight: 700;
+    font-weight: 800;
     color: var(--foreground);
 }
 
 .dropdownRoot {
-    width: 100%;
+    width: 65%;
+    margin: 0 auto;
 }
 
 .dropdownButton {
-    justify-content: flex-start;
-    text-align: left;
+    justify-content: center;
+    text-align: center;
     padding-right: 28px;
 }
 
 .dropdownMenu {
-    background: var(--card-bg);
+    background: var(--background);
     border-radius: 12px;
     border: 1px solid var(--card-border);
     padding: 0;
     overflow-x: hidden;
     overflow-y: auto;
+    font-weight: 700;
 }
 
 .dropdownOption {
     display: block;
     width: 100%;
     padding: 10px 12px;
-    text-align: left;
+    text-align: center;
     background: transparent;
     border: none;
     font: inherit;
@@ -43,49 +52,53 @@
 
     &:hover {
         background: var(--read-only-bg);
+        color: var(--foreground);
     }
 }
 
 .dropdownOptionSelected {
-    background: var(--read-only-bg);
+    background: var(--foreground);
+    color: var(--background);
 }
 
-.input,
 .select {
     height: 44px;
     border-radius: 12px;
     border: 1px solid var(--card-border);
-    background: var(--card-bg);
+    background: var(--background);
     color: var(--foreground);
     padding: 0 12px;
     font-weight: 700;
 }
 
+
 .weeklyRow {
     display: flex;
+    flex-direction: row;
     align-items: center;
-    justify-content: space-between;
     gap: 12px;
 }
 
 .weeklyLabel {
     font-weight: 900;
     color: var(--foreground);
+    white-space: nowrap;
+    margin-right: 0;
 }
 
 .weekdayGrid {
-    display: grid;
-    grid-template-columns: repeat(7, 36px);
+    display: flex;
+    flex: 1;
+    justify-content: center;
     gap: 8px;
 }
 
 .dayBtn {
-    width: 36px;
+    width: 40px;
     height: 36px;
     border-radius: 10px;
-    border: 1px solid var(--btn-border);
-    background: var(--card-bg);
-    color: var(--background);
+    background: var(--background);
+    color: var(--foreground);
     font-weight: 900;
     cursor: pointer;
 
@@ -96,8 +109,14 @@
 }
 
 .dayBtnActive {
-    background: var(--btn-bg);
-    color: var(--btn-fg);
+    border: 1px solid var(--foreground);
+}
+
+.rulesToolRow {
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: 20px;
+    border-bottom: 3px solid var(--card-border);
 }
 
 .hint {
@@ -106,21 +125,6 @@
     font-weight: 700;
 }
 
-.overrideRow {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    padding: 10px 12px;
-    border: 1px solid var(--card-border);
-    border-radius: 12px;
-    background: var(--card-bg);
-}
-
-.overrideText {
-    color: var(--foreground);
-    font-weight: 800;
-}
 
 .rulesTitle {
     margin-top: 8px;
@@ -142,7 +146,7 @@
     padding: 10px 12px;
     border: 1px solid var(--card-border);
     border-radius: 12px;
-    background: var(--card-bg);
+    background: var(--background);
 }
 
 .ruleLeft {
@@ -150,6 +154,11 @@
     align-items: flex-start;
     gap: 10px;
     flex: 1;
+}
+
+.ruleCheckbox {
+    cursor: pointer;
+    accent-color: var(--accent);
 }
 
 .ruleText {
@@ -172,67 +181,39 @@
 }
 
 .btn {
-    height: 44px;
-    min-width: 120px;
-    border-radius: 12px;
-    border: 1px solid var(--btn-border);
-    background: var(--card-bg);
-    color: var(--background);
-    font-weight: 900;
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--card-border);
+    background: var(--background);
     cursor: pointer;
+    font-weight: 700;
 
-    &:hover {
-        background: var(--btn-bg);
-        color: var(--btn-fg);
+    &:disabled {
+        background-color: var(--read-only-bg);
+        cursor: not-allowed;
+    }
+
+    &:hover:not(:disabled) {
+        background: var(--foreground);
+        color: var(--background);
     }
 }
 
-.btnDanger {
-    height: 38px;
-    border-radius: 12px;
-    border: 1px solid var(--btn-border);
-    background: var(--card-bg);
-    color: var(--background);
-    font-weight: 900;
-    cursor: pointer;
-    padding: 0 12px;
-
-    &:hover {
-        background: var(--btn-bg);
-        color: var(--btn-fg);
-    }
-}
 
 .iconDangerBtn {
     width: 38px;
     height: 38px;
     border-radius: 12px;
-    border: 1px solid var(--btn-border);
+    border: 1px solid var(--danger-fg);
     background: var(--card-bg);
-    color: var(--background);
+    color: var(--danger-fg);
     display: inline-flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
 
     &:hover {
-        background: var(--btn-bg);
-        color: var(--btn-fg);
-    }
-}
-
-.btnPrimary {
-    height: 44px;
-    min-width: 120px;
-    border-radius: 12px;
-    border: 1px solid var(--btn-border);
-    background: var(--btn-bg);
-    color: var(--btn-fg);
-    font-weight: 900;
-    cursor: pointer;
-
-    &:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
+        background: var(--danger-fg);
+        color: var(--card-bg);
     }
 }

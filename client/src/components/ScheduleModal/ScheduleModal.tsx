@@ -38,7 +38,7 @@ export function ScheduleModal({
     const [targetId, setTargetId] = useState<TargetId>(() => initialTargetId);
     const [weeklyDays, setWeeklyDays] = useState<WeekdayCode[]>(() => [weekdayCodeFromIsoDate(today)]);
 
-    const onOk = useCallback(() => {
+    const onAddRule = useCallback(() => {
         const rrule = buildWeeklyRrule({ weeklyDays });
         addScheduleRule({
             targetId,
@@ -47,8 +47,7 @@ export function ScheduleModal({
             enabled: true,
             priority: 0,
         });
-        onClose();
-    }, [addScheduleRule, onClose, targetId, today, weeklyDays]);
+    }, [addScheduleRule, targetId, today, weeklyDays]);
 
     const canSave = useMemo(() => {
         if (targets.length === 0) return false;
@@ -67,31 +66,10 @@ export function ScheduleModal({
             title="Schedule"
             onClose={onClose}
             size="md"
-            footer={
-                <>
-                    <button
-                        className={styles.btn}
-                        type="button"
-                        onClick={() => {
-                            setWeeklyDays([weekdayCodeFromIsoDate(today)]);
-                        }}
-                    >
-                        Reset
-                    </button>
-                    <button
-                        className={styles.btnPrimary}
-                        type="button"
-                        onClick={onOk}
-                        disabled={!canSave}
-                    >
-                        OK
-                    </button>
-                </>
-            }
         >
             <div className={styles.form}>
-                <div className={styles.label}>
-                    <label htmlFor="scheduleModalTarget">Target</label>
+                <div className={styles.target}>
+                    <label htmlFor="scheduleModalTarget" className={styles.label}>Target:</label>
                     <DropdownMenu
                         triggerId="scheduleModalTarget"
                         buttonLabel={selectedTarget?.name ?? "Select…"}
@@ -107,12 +85,12 @@ export function ScheduleModal({
                         menuClassName={styles.dropdownMenu}
                         optionClassName={styles.dropdownOption}
                         optionSelectedClassName={styles.dropdownOptionSelected}
-                        closeOnMouseLeave={false}
+                        closeOnMouseLeave={true}
                     />
                 </div>
 
                 <div className={styles.weeklyRow}>
-                    <div className={styles.weeklyLabel}>Days</div>
+                    <div className={styles.weeklyLabel}>Days:</div>
                     <div className={styles.weekdayGrid} role="group" aria-label="Weekdays">
                         {WEEKDAYS.map((d) => {
                             const active = weeklyDays.includes(d.code);
@@ -138,46 +116,80 @@ export function ScheduleModal({
                     </div>
                 </div>
 
+                <div className={styles.rulesToolRow}>
+                    <button
+                        className={styles.btn}
+                        type="button"
+                        onClick={onAddRule}
+                        disabled={!canSave}
+                    >
+                        Add Rule
+                    </button>
+
+                    <button
+                        className={styles.btn}
+                        type="button"
+                        onClick={() => {
+                            setWeeklyDays([weekdayCodeFromIsoDate(today)]);
+                        }}
+                    >
+                        Clear
+                    </button>
+                </div>
+
+
                 <div className={styles.rulesTitle}>Saved rules</div>
                 {sortedRules.length === 0 ? (
                     <div className={styles.hint}>No schedule rules yet.</div>
                 ) : (
                     <div className={styles.rulesList}>
-                        {sortedRules.map((r) => {
-                            const name = targets.find((t) => t.id === r.targetId)?.name ?? String(r.targetId);
-                            return (
-                                <div key={r.id} className={styles.ruleRow}>
-                                    <label className={styles.ruleLeft}>
-                                        <input
-                                            type="checkbox"
-                                            checked={r.enabled}
-                                            onChange={(e) => updateScheduleRule(r.id, { enabled: e.target.checked })}
-                                            aria-label={`Enabled: ${name}`}
-                                        />
-                                        <div className={styles.ruleText}>
-                                            <div className={styles.ruleName}>{name}</div>
-                                            <div className={styles.ruleMeta}>
-                                                Every: {getRuleDayLabels(r).join(", ")}
-                                            </div>
-                                        </div>
-                                    </label>
-
-                                    <button
-                                        type="button"
-                                        className={styles.iconDangerBtn}
-                                        onClick={() => removeScheduleRule(r.id)}
-                                        title="Remove rule"
-                                        aria-label="Remove rule"
-                                    >
-                                        <FaTrash />
-                                    </button>
-                                </div>
-                            );
-                        })}
+                        {sortedRules.map((r) =>
+                            <RuleRow
+                                key={r.id}
+                                rule={r}
+                                targets={targets}
+                                updateScheduleRule={updateScheduleRule}
+                                removeScheduleRule={removeScheduleRule}
+                            />
+                        )}
                     </div>
                 )}
             </div>
         </ModalShell>
+    );
+}
+
+
+function RuleRow({ rule, targets, updateScheduleRule, removeScheduleRule }: RuleRowProps) {
+    const name = targets.find((t) => t.id === rule.targetId)?.name ?? String(rule.targetId);
+    return (
+        <div className={styles.ruleRow}>
+            <label className={styles.ruleLeft}>
+                <input
+                    type="checkbox"
+                    className={styles.ruleCheckbox}
+                    checked={rule.enabled}
+                    onChange={(e) => updateScheduleRule(rule.id, { enabled: e.target.checked })}
+                    aria-label={`Enabled: ${name}`}
+                />
+                <div className={styles.ruleText}>
+                    <div className={styles.ruleName}>{name}</div>
+                    <div className={styles.ruleMeta}>
+                        Every: {getRuleDayLabels(rule).join(", ")}
+                    </div>
+                </div>
+            </label>
+
+            <button
+                type="button"
+                className={styles.iconDangerBtn}
+                onClick={() => removeScheduleRule(rule.id)}
+                title="Remove rule"
+                aria-label="Remove rule"
+            >
+                <FaTrash />
+            </button>
+        </div >
     );
 }
 
@@ -219,6 +231,8 @@ const WEEKDAYS: Array<{
         { code: "FR", ariaLabel: "Friday", shortLabel: "Fri", ruleOrder: 4 },
         { code: "SA", ariaLabel: "Saturday", shortLabel: "Sat", ruleOrder: 5 },
     ];
+
+
 type ScheduleModalProps = {
     open: boolean;
     onClose: () => void;
@@ -236,6 +250,13 @@ type ScheduleModalProps = {
         ruleId: string,
         patch: Partial<Omit<TargetScheduleRule, "id" | "createdAt">>,
     ) => void;
+    removeScheduleRule: (ruleId: string) => void;
+};
+
+type RuleRowProps = {
+    rule: TargetScheduleRule;
+    targets: Target[];
+    updateScheduleRule: (ruleId: string, patch: Partial<Omit<TargetScheduleRule, "id" | "createdAt">>) => void;
     removeScheduleRule: (ruleId: string) => void;
 };
 
